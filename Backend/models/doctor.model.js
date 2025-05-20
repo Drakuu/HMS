@@ -1,0 +1,32 @@
+const mongoose = require("mongoose");
+
+const doctorSchema = new mongoose.Schema(
+  {
+    doctor_Identifier: { type: String },
+    doctor_Image: { filePath: { type: String }, },
+    doctor_Name: { type: String, },
+    doctor_Email: { type: String, unique: true, },
+    doctor_Contact: { type: String, },
+    doctor_Address: { type: String, },
+    doctor_Department: { type: String },
+    doctor_CNIC: { type: String },
+    doctor_Type: { type: String, },
+    doctor_Specialization: { type: String, },
+    doctor_Qualifications: [{ type: String }],
+    doctor_LicenseNumber: { type: String },
+    doctor_Fee: { type: Number },
+
+    doctor_Contract: {
+      doctor_Percentage: { type: Number },
+      hospital_Percentage: { type: Number },
+      contract_Time: { type: String },
+      doctor_JoiningDate: { type: String, },
+      doctor_Agreement: { filePath: { type: String }, },
+    },
+    deleted: { type: Boolean, default: false },
+  },
+  { timestamps: true, }
+);
+const Doctor = mongoose.model("Doctor", doctorSchema);
+
+module.exports = Doctor;
