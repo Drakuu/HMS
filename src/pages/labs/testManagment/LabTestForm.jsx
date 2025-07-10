@@ -4,7 +4,7 @@ import { InputField, TextAreaField, RadioGroup } from '../../../components/commo
 import {Button, ButtonGroup} from './../../../components/common/Buttons'
 import {AiOutlinePrinter, AiOutlineFileText,AiOutlineSave,} from "react-icons/ai";
 
-const LabTestForm = ({ mode = "create" }) => {
+const AddTest = ({ mode = "create" }) => {
   const [formData, setFormData] = useState({
     testName: '',
     testCode: '',
@@ -253,7 +253,4 @@ return(
         </div>
     );
 }
-export default LabTestForm;
-
-
-
+export default AddTest;

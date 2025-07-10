@@ -1,6 +1,9 @@
 import { Route } from 'react-router-dom';
 import {
-  PatientManagment, Dashboard,AddTest
+  PatientManagment,
+  Dashboard,
+  AddTest,
+
 } from '../pages/labs/labsPages'
 
 const LabRoutes = () => {
