@@ -98,7 +98,7 @@ const VerifyEmail = async (req, res) => {
 //login
 const login = async (req, res) => {
   try {
-    console.log("here");
+    // console.log("here");
     const { user_Email, user_Password } = req.body;
 
     if (!user_Email || !user_Password) {
@@ -137,7 +137,11 @@ const login = async (req, res) => {
     }
 
     const jwtLoginToken = jwt.sign(
-      { user_Email: user.user_Email },
+      { 
+        user_Email: user.user_Email,
+        user_Access: user.user_Access,
+
+       },
       JWT_SECRET,
       { expiresIn: "7d" }
     );

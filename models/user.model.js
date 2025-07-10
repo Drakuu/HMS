@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema(
     user_Address: { type: String },
     user_Access: {
       type: String,
-      enum: ["Admin", "Receptionist", "Lab"],
+      enum: ["Admin", "Receptionist", "Lab" , "Doctor"],
     },
     isVerified: { type: Boolean, default: false, },
     verificationCode: { type: String, },
