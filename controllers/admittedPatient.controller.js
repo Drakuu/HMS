@@ -37,16 +37,16 @@ const admittedPatient = async (req, res) => {
         message: `No patient found with MR number: ${patient_MRNo}`,
       });
     }
-    
+
     console.log("Patient data fetched: ", patient); // Log fetched patient data
-    
+
     // Proceed with the admission process
-    const admittedPatientRecord = new AdmittedPatient({ 
+    const admittedPatientRecord = new AdmittedPatient({
       patient_MRNo,
       patient_Name: patient.patient_Name,
       patient_CNIC: patient.patient_CNIC,
       patient_Gender: patient.patient_Gender,
-      patient_Age: patient.patient_Age,  
+      patient_Age: patient.patient_Age,
       patient_DateOfBirth: patient.patient_DateOfBirth,
       patient_Address: patient.patient_Address,
       patient_Guardian: patient.patient_Guardian || {},
@@ -58,7 +58,7 @@ const admittedPatient = async (req, res) => {
       },
       ward_Information: ward_Information,
       financials: financials,
-      status:"Admitted"
+      status: "Admitted"
     });
 
     await admittedPatientRecord.save();
@@ -185,7 +185,7 @@ const updateAdmission = async (req, res) => {
         message: "Ward type, ward number, and bed number are required for admitted status",
       });
     }
-  
+
 
     // Check if the bed is available only when the status is "Admitted"
     if (status === "Admitted") {

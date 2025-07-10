@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const patientSchema = new mongoose.Schema(
   {
-    patient_MRNo: { type: String, },  
+    patient_MRNo: { type: String, },
     patient_Name: { type: String },
     patient_ContactNo: { type: String },
     patient_Guardian: {
@@ -12,7 +12,7 @@ const patientSchema = new mongoose.Schema(
     },
     patient_CNIC: { type: String },
     patient_Gender: { type: String },
-    Patient_Age: { type: String },
+    patient_Age: { type: String },
     patient_DateOfBirth: { type: String },
     patient_Address: { type: String },
     patient_HospitalInformation: {
@@ -21,9 +21,9 @@ const patientSchema = new mongoose.Schema(
       doctor_Fee: { type: Number },
       discount: { type: Number },
       total_Fee: { type: Number },
-      doctor_Specialization : {type : String},
-      qualification : {type : String},
-      gender : {type : String},
+      doctor_Specialization: { type: String },
+      qualification: { type: String },
+      gender: { type: String },
       token: { type: Number, },
       amount_Status: { type: String, },
       referredBy: { type: String },
@@ -32,7 +32,6 @@ const patientSchema = new mongoose.Schema(
     patient_MaritalStatus: { type: String },
     deleted: { type: Boolean, default: false },
   },
-
   {
     timestamps: true,
   }

@@ -10,7 +10,7 @@ const createPatient = async (req, res) => {
       patient_Guardian,
       patient_CNIC,
       patient_Gender,
-      Patient_Age,
+      patient_Age,
       patient_DateOfBirth,
       patient_Address,
       patient_HospitalInformation,
@@ -20,7 +20,7 @@ const createPatient = async (req, res) => {
     // Use current date if not specified
     const currentDate = new Date().toISOString().split('T')[0];
     const patient_MRNo = await utils.generateUniqueMrNo(currentDate);
-     const token = await generateUniqueToken(currentDate);
+    const token = await generateUniqueToken(currentDate);
 
     const newPatient = await hospitalModel.Patient.create({
       patient_MRNo,
@@ -33,7 +33,7 @@ const createPatient = async (req, res) => {
       },
       patient_CNIC,
       patient_Gender,
-      Patient_Age,
+      patient_Age,
       patient_DateOfBirth,
       patient_Address,
       patient_HospitalInformation: {
@@ -52,7 +52,7 @@ const createPatient = async (req, res) => {
       patient_BloodType,
       patient_MaritalStatus,
     });
-    
+
 
     return res.status(200).json({
       success: true,
@@ -237,7 +237,7 @@ const updatePatient = async (req, res) => {
       patient_Guardian,
       patient_CNIC,
       patient_Gender,
-      Patient_Age,
+      patient_Age,
       patient_DateOfBirth,
       patient_Address,
       patient_HospitalInformation,
@@ -258,7 +258,7 @@ const updatePatient = async (req, res) => {
       patient_Guardian: patient_Guardian || existingPatient.patient_Guardian,
       patient_CNIC: patient_CNIC || existingPatient.patient_CNIC,
       patient_Gender: patient_Gender || existingPatient.patient_Gender,
-      Patient_Age: Patient_Age || existingPatient.Patient_Age,
+      patient_Age: patient_Age || existingPatient.patient_Age,
       patient_DateOfBirth: patient_DateOfBirth || existingPatient.patient_DateOfBirth,
       patient_Address: patient_Address || existingPatient.patient_Address,
       patient_HospitalInformation: {

@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const patientTestSchema = new mongoose.Schema({
+    originalPatient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+    isExternalPatient: { type: Boolean, default: false },
+    tokenNumber: { type: Number, required: true },
     patient_Detail: {
         patient_MRNo: { type: String, ref: 'Patient' },
         patient_CNIC: { type: String, ref: 'Patient' },

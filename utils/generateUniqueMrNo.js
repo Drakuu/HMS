@@ -1,5 +1,4 @@
-const Appointment = require("../models/appointment.model");
-const Patient = require("../models/patient.model");
+const hospitalModel = require("../models/index.model")
 
 async function generateUniqueMrNo(appointmentDate) {
   try {
@@ -12,11 +11,21 @@ async function generateUniqueMrNo(appointmentDate) {
 
     // Check both Appointment and Patient collections for existing MRNOs with this prefix
     const [appointmentCount, patientCount] = await Promise.all([
-      Appointment.countDocuments({
+      hospitalModel.Appointment.countDocuments({
         appointmentMRNO: new RegExp(`^${datePrefix}-`)
       }),
-      Patient.countDocuments({
+      hospitalModel.Patient.countDocuments({
         patient_MRNo: new RegExp(`^${datePrefix}-`)
+      })
+    ]);
+    const [regularPatientCount, externalPatientCount] = await Promise.all([
+      hospitalModel.Patient.countDocuments({
+        patient_MRNo: new RegExp(`^${datePrefix}-`),
+        isExternal: false
+      }),
+      hospitalModel.Patient.countDocuments({
+        patient_MRNo: new RegExp(`^${datePrefix}-`),
+        isExternal: true
       })
     ]);
 

@@ -140,7 +140,7 @@ const getDoctorById = async (req, res) => {
       patient_Guardian: patient.patient_Guardian,
       patient_CNIC: patient.patient_CNIC,
       patient_Gender: patient.patient_Gender,
-      Patient_Age: patient.Patient_Age,
+      patient_Age: patient.patient_Age,
       patient_DateOfBirth: patient.patient_DateOfBirth,
       patient_Address: patient.patient_Address,
       patient_HospitalInformation: patient.patient_HospitalInformation,

@@ -12,7 +12,7 @@ const counter = require("./counter.model")
 const Medicine = require("./medicine.model")
 const PatientTest = require("./patientTest.model")
 const TestManagment = require('./testmanagement.model')
-
+const Appointment = require("./appointment.model")
 
 const Hospital = {
     User,
@@ -28,7 +28,9 @@ const Hospital = {
     counter,
     Medicine,
     PatientTest,
-    TestManagment
+    TestManagment,
+    Appointment,
+    
 };
 
 module.exports = Hospital;

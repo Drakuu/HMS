@@ -1,39 +1,81 @@
 const hospitalModel = require("../models/index.model");
 const mongoose = require('mongoose');
+const utils = require("../utils/utilsIndex")
 
 const createPatientTest = async (req, res) => {
     try {
         const {
             patient_MRNo,
             patient_CNIC,
+            patient_Name,
+            patient_ContactNo,
+            patient_Gender,
+            patient_Age,
             referredBy,
             selectedTests,
             discount = 0,
             labNotes,
-            performedBy
+            performedBy,
+            isExternalPatient = false
         } = req.body;
 
         // Validate required fields
-        if (!patient_MRNo || !patient_CNIC || !selectedTests || !selectedTests.length) {
+        if ((!patient_MRNo && !isExternalPatient) || !selectedTests || !selectedTests.length) {
             return res.status(400).json({
                 success: false,
-                message: 'Patient MRNo, CNIC and at least one test are required',
-                requiredFields: ['patient_MRNo', 'patient_CNIC', 'selectedTests']
+                message: 'Patient MRNo (or complete details for external patients) and at least one test are required',
+                requiredFields: ['selectedTests']
             });
         }
 
-        // Find patient
-        const patient = await hospitalModel.Patient.findOne({
-            $or: [
-                { patient_MRNo },
-                { patient_CNIC }
-            ]
-        }).select('patient_MRNo patient_CNIC patient_Name patient_ContactNo patient_Gender patient_Age');
+        let patient;
+        let generatedMRNo;
+        let tokenNumber;
 
-        if (!patient) {
-            return res.status(404).json({
+        // For external patients (no MRNo)
+        if (isExternalPatient) {
+            // Generate new MRNo and token
+            const currentDate = new Date().toISOString().split('T')[0];
+            generatedMRNo = await utils.generateUniqueMrNo(currentDate);
+            tokenNumber = await utils.generateUniqueToken(currentDate);
+
+            // Create minimal patient record
+            patient = {
+                patient_MRNo: generatedMRNo,
+                patient_CNIC: patient_CNIC || '',
+                patient_Name,
+                patient_ContactNo,
+                patient_Gender,
+                patient_Age,
+                isExternal: true
+            };
+        }
+        // For existing patients
+        else {
+            // Find patient in database
+            patient = await hospitalModel.Patient.findOne({
+                $or: [
+                    { patient_MRNo },
+                    { patient_CNIC }
+                ]
+            }).select('patient_MRNo patient_CNIC patient_Name patient_ContactNo patient_Gender patient_Age');
+
+            if (!patient) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Patient not found'
+                });
+            }
+
+            // Get token for the day
+            const currentDate = new Date().toISOString().split('T')[0];
+            tokenNumber = await utils.generateUniqueToken(currentDate);
+        }
+
+        if (isExternalPatient && (!patient_Name || !patient_ContactNo || !patient_Gender || !patient_Age)) {
+            return res.status(400).json({
                 success: false,
-                message: 'Patient not found'
+                message: 'For external patients, name, contact number, gender, and age are required'
             });
         }
 
@@ -44,14 +86,10 @@ const createPatientTest = async (req, res) => {
             }
             return new mongoose.Types.ObjectId(t.test);
         });
+
         const tests = await hospitalModel.TestManagment.find({
             _id: { $in: testIds }
         }).select('testName testCode testPrice fields.name fields.unit fields.normalRange');
-
-        console.log('Found tests:', tests);
-
-        // console.log('Searching for test IDs:', testIds);
-        // console.log('First test ID type:', typeof testIds[0], testIds[0]);
 
         if (tests.length !== selectedTests.length) {
             const foundTestIds = tests.map(t => t._id.toString());
@@ -62,12 +100,7 @@ const createPatientTest = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'One or more tests not found',
-                missingTests,
-                debug: {
-                    collection: 'testmanagments',
-                    searchedIds: testIds.map(id => id.toString()),
-                    foundIds: foundTestIds
-                }
+                missingTests
             });
         }
 
@@ -75,27 +108,23 @@ const createPatientTest = async (req, res) => {
         const totalAmount = tests.reduce((sum, test) => sum + test.testPrice, 0);
         const finalAmount = totalAmount - (totalAmount * (discount / 100));
 
-        // Create lab patient record
+        // Create patient test record
         const patientTest = new hospitalModel.PatientTest({
             patient_Detail: {
-                patient_MRNo: patient.patient_MRNo,
+                patient_MRNo: patient.patient_MRNo || generatedMRNo,
                 patient_CNIC: patient.patient_CNIC,
                 patient_Name: patient.patient_Name,
                 patient_ContactNo: patient.patient_ContactNo,
                 patient_Gender: patient.patient_Gender,
                 patient_Age: patient.patient_Age,
-                referredBy: referredBy || 'Self'
+                referredBy: referredBy || 'Self',
+                isExternal: isExternalPatient
             },
             selectedTests: selectedTests.map(test => {
-                // Find the full test document for this test ID
                 const testDoc = tests.find(t => t._id.equals(new mongoose.Types.ObjectId(test.test)));
-
-                if (!testDoc) {
-                    throw new Error(`Test details not found for test ID: ${test.test}`);
-                }
                 return {
                     test: test.test,
-                    testDetails: {  // Add test details
+                    testDetails: {
                         testName: testDoc.testName,
                         testCode: testDoc.testCode,
                         testPrice: testDoc.testPrice,
@@ -108,8 +137,7 @@ const createPatientTest = async (req, res) => {
                     results: [],
                     status: 'pending',
                     notes: test.notes || '',
-                    testDate: new Date(), // You might want to set this
-                    resultDate: null
+                    testDate: new Date()
                 };
             }),
             totalAmount,
@@ -117,10 +145,29 @@ const createPatientTest = async (req, res) => {
             finalAmount,
             paymentStatus: 'pending',
             labNotes,
-            performedBy
+            performedBy,
+            tokenNumber,
+            isExternalPatient
         });
 
         await patientTest.save();
+
+        // If external patient, create minimal patient record
+        if (isExternalPatient && !patient._id) {
+            await hospitalModel.Patient.create({
+                patient_MRNo: generatedMRNo,
+                patient_CNIC,
+                patient_Name,
+                patient_ContactNo,
+                patient_Gender,
+                patient_Age: patient_Age,
+                isExternal: true,
+                patient_HospitalInformation: {
+                    token: tokenNumber,
+                    referredBy: referredBy || 'External'
+                }
+            });
+        }
 
         return res.status(201).json({
             success: true,
@@ -128,20 +175,12 @@ const createPatientTest = async (req, res) => {
             data: {
                 patientTestId: patientTest._id,
                 patient: patientTest.patient_Detail,
-                tests: tests.map(test => ({
-                    testName: test.testName,
-                    testCode: test.testCode,
-                    testPrice: test.testPrice,
-                    fields: test.fields.map(field => ({
-                        name: field.name,
-                        unit: field.unit,
-                        normalRange: field.normalRange
-                    }))
-                })),
+                tests: patientTest.selectedTests.map(t => t.testDetails),
                 totalTests: patientTest.selectedTests.length,
                 totalAmount,
                 discount,
                 finalAmount,
+                tokenNumber,
                 status: 'created'
             }
         });
@@ -154,7 +193,7 @@ const createPatientTest = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
 const getAllPatientTests = async (req, res) => {
     try {
@@ -162,7 +201,7 @@ const getAllPatientTests = async (req, res) => {
         const skip = (page - 1) * limit;
 
         let query = { isDeleted: false };
-        
+
         if (search) {
             query = {
                 ...query,
@@ -322,6 +361,6 @@ module.exports = {
     createPatientTest,
     getAllPatientTests,
     getPatientTestById,
-   restorePatientTest,
-softDeletePatientTest,
+    restorePatientTest,
+    softDeletePatientTest,
 };
