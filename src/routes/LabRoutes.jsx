@@ -1,6 +1,6 @@
 import { Route } from 'react-router-dom';
 import {
-  PatientManagment, Dashboard,
+  PatientManagment, Dashboard,AddTest
 } from '../pages/labs/labsPages'
 
 const LabRoutes = () => {
@@ -12,7 +12,7 @@ const LabRoutes = () => {
       <Route path="/add-patient" element={<><PatientManagment /></>} />
 
       {/* labs routs */}
-      <Route path="/lab-test" element={<><LabTestForm /></>} />
+      <Route path="/lab-test" element={<><AddTest /></>} />
     </>
   )
 }
