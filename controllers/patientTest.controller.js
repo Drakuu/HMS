@@ -106,7 +106,7 @@ const createPatientTest = async (req, res) => {
 
         // Calculate amounts
         const totalAmount = tests.reduce((sum, test) => sum + test.testPrice, 0);
-        const finalAmount = totalAmount - (totalAmount * (discount / 100));
+        const finalAmount = totalAmount - discount ;
 
         // Create patient test record
         const patientTest = new hospitalModel.PatientTest({
