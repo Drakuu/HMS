@@ -28,10 +28,10 @@ const IpdForm = () => {
   const navigate = useNavigate();
 
   const {
-    data = {},        
-    isLoading = false, 
-    isError = false,   
-    errorMessage = '' ,
+    data = {},
+    isLoading = false,
+    isError = false,
+    errorMessage = '',
   } = useSelector((state) => state.patient || {});
   console.log(`the data is `, data)
 
@@ -107,60 +107,60 @@ const IpdForm = () => {
     }
   }, [location]);
 
-const handleSearch = async (e) => {
-  e.preventDefault();
-  if (!mrNo) return;
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!mrNo) return;
 
-  try {
-    const resultAction = await dispatch(fetchPatientByMrNo(mrNo));
-    if (fetchPatientByMrNo.fulfilled.match(resultAction)) {
-      const patientData = resultAction.payload; // Directly use the payload
-      
-      // Safely access nested properties with optional chaining
-      const guardian = patientData?.patient_Guardian || {};
-      const hospitalInfo = patientData?.patient_HospitalInformation || {};
+    try {
+      const resultAction = await dispatch(fetchPatientByMrNo(mrNo));
+      if (fetchPatientByMrNo.fulfilled.match(resultAction)) {
+        const patientData = resultAction.payload; // Directly use the payload
 
-      setFormData(prev => ({
-        ...prev,
-        // Patient Information
-        mrNumber: patientData?.patient_MRNo || "",
-        patientName: patientData?.patient_Name || "",
-        patientContactNo: patientData?.patient_ContactNo || "",
-        dob: patientData?.patient_DateOfBirth || "",
-        cnic: patientData?.patient_CNIC || "",
-        age: patientData?.Patient_Age || "",
-        address: patientData?.patient_Address || "",
-        gender: patientData?.patient_Gender || "",
-        
-        // Guardian Information
-        guardianName: guardian?.guardian_Name || "",
-        guardianRelation: guardian?.guardian_Relation || "",
-        guardianContact: guardian?.guardian_Contact || "",
-        
-        // Hospital/Doctor Information
-        doctor: hospitalInfo?.doctor_Name || "",
-        doctorName: hospitalInfo?.doctor_Name || "",
-        doctorDepartment: hospitalInfo?.doctor_Department || "",
-        doctorSpecialization: hospitalInfo?.doctor_Specialization || "",
-        doctorFee: hospitalInfo?.doctor_Fee || "",
-        doctorQualification: hospitalInfo?.qualification || "",
-        doctorGender: hospitalInfo?.gender || "",
-        referredBy: hospitalInfo?.referredBy || "",
-        
-        // Other patient details
-        bloodGroup: patientData?.patient_BloodType || "",
-        maritalStatus: patientData?.patient_MaritalStatus || "",
-        
-        // Reset admission-specific fields
-        wardType: "",
-        wardNumber: "",
-        bedNumber: "",
-      }));
+        // Safely access nested properties with optional chaining
+        const guardian = patientData?.patient_Guardian || {};
+        const hospitalInfo = patientData?.patient_HospitalInformation || {};
+
+        setFormData(prev => ({
+          ...prev,
+          // Patient Information
+          mrNumber: patientData?.patient_MRNo || "",
+          patientName: patientData?.patient_Name || "",
+          patientContactNo: patientData?.patient_ContactNo || "",
+          dob: patientData?.patient_DateOfBirth || "",
+          cnic: patientData?.patient_CNIC || "",
+          age: patientData?.patient_Age || "",
+          address: patientData?.patient_Address || "",
+          gender: patientData?.patient_Gender || "",
+
+          // Guardian Information
+          guardianName: guardian?.guardian_Name || "",
+          guardianRelation: guardian?.guardian_Relation || "",
+          guardianContact: guardian?.guardian_Contact || "",
+
+          // Hospital/Doctor Information
+          doctor: hospitalInfo?.doctor_Name || "",
+          doctorName: hospitalInfo?.doctor_Name || "",
+          doctorDepartment: hospitalInfo?.doctor_Department || "",
+          doctorSpecialization: hospitalInfo?.doctor_Specialization || "",
+          doctorFee: hospitalInfo?.doctor_Fee || "",
+          doctorQualification: hospitalInfo?.qualification || "",
+          doctorGender: hospitalInfo?.gender || "",
+          referredBy: hospitalInfo?.referredBy || "",
+
+          // Other patient details
+          bloodGroup: patientData?.patient_BloodType || "",
+          maritalStatus: patientData?.patient_MaritalStatus || "",
+
+          // Reset admission-specific fields
+          wardType: "",
+          wardNumber: "",
+          bedNumber: "",
+        }));
+      }
+    } catch (error) {
+      toast.error(errorMessage || "Error fetching patient data");
     }
-  } catch (error) {
-    toast.error(errorMessage || "Error fetching patient data");
-  }
-};
+  };
 
   //Error state
   if (isError) {

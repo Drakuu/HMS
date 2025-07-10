@@ -261,7 +261,7 @@ useEffect(() => {
                       <div className="text-base font-normal text-gray-900">{patient.patient_Name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm  text-gray-900">{patient.Patient_Age}</div>
+                      <div className="text-sm  text-gray-900">{patient.patient_Age}</div>
                       <div className={`text-sm px-4 rounded-full inline-block mt-1 ${
                         patient.patient_Gender === "Male" 
                           ? "bg-primary-100 text-primary-600" 

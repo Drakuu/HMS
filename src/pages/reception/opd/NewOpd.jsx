@@ -71,7 +71,7 @@ const NewOpd = ({ mode = "create" }) => {
             setIsLoading(true);
             dispatch(fetchPatientByMrNo(patientMRNo))
                 .unwrap()
-                .then((patientData) => { 
+                .then((patientData) => {
                     populateForm(patientData); // Populate form after successful fetch
                 })
                 .catch((err) => {
@@ -95,7 +95,7 @@ const NewOpd = ({ mode = "create" }) => {
                 guardianContact: selectedPatient.patient_Guardian?.guardian_Contact || "",
                 dob: selectedPatient.patient_DateOfBirth,
                 cnic: selectedPatient.patient_CNIC,
-                age: selectedPatient.Patient_Age,
+                age: selectedPatient.patient_Age,
                 address: selectedPatient.patient_Address,
                 gender: selectedPatient.patient_Gender,
                 maritalStatus: selectedPatient.patient_MaritalStatus,
@@ -147,7 +147,7 @@ const NewOpd = ({ mode = "create" }) => {
             guardianContact: patientData.patient_Guardian?.guardian_Contact || "",
             dob: patientData.patient_DateOfBirth || "",
             cnic: patientData.patient_CNIC || "",
-            age: patientData.Patient_Age || "",
+            age: patientData.patient_Age || "",
             address: patientData.patient_Address || "",
             gender: patientData.patient_Gender || "",
             maritalStatus: patientData.patient_MaritalStatus || "",
@@ -179,70 +179,70 @@ const NewOpd = ({ mode = "create" }) => {
     };
 
     const handleSave = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+        e.preventDefault();
+        setIsSubmitting(true);
 
-    const payload = {
-        patient_Name: formData.patientName,
-        patient_ContactNo: formData.patientContactNo,
-        patient_Guardian: {
-            guardian_Relation: formData.guardianRelation,
-            guardian_Name: formData.guardianName,
-            guardian_Contact: formData.guardianContact,
-        },
-        patient_CNIC: formData.cnic,
-        patient_Gender: formData.gender,
-        Patient_Age: formData.age,
-        patient_DateOfBirth: formData.dob,
-        patient_Address: formData.address,
-        patient_HospitalInformation: {
-            doctor_Name: formData.doctorName,
-            doctor_Department: formData.doctorDepartment,
-            doctor_Specialization: formData.doctorSpecialization,
-            doctor_Fee: formData.doctorFee,
-            discount: formData.discount,
-            total_Fee: formData.totalFee,
-            qualification: formData.doctorQualification,
-            gender: formData.doctorGender,
-            referredBy: formData.referredBy,
-        },
-        patient_BloodType: formData.bloodGroup,
-        patient_MaritalStatus: formData.maritalStatus,
-    };
+        const payload = {
+            patient_Name: formData.patientName,
+            patient_ContactNo: formData.patientContactNo,
+            patient_Guardian: {
+                guardian_Relation: formData.guardianRelation,
+                guardian_Name: formData.guardianName,
+                guardian_Contact: formData.guardianContact,
+            },
+            patient_CNIC: formData.cnic,
+            patient_Gender: formData.gender,
+            patient_Age: formData.age,
+            patient_DateOfBirth: formData.dob,
+            patient_Address: formData.address,
+            patient_HospitalInformation: {
+                doctor_Name: formData.doctorName,
+                doctor_Department: formData.doctorDepartment,
+                doctor_Specialization: formData.doctorSpecialization,
+                doctor_Fee: formData.doctorFee,
+                discount: formData.discount,
+                total_Fee: formData.totalFee,
+                qualification: formData.doctorQualification,
+                gender: formData.doctorGender,
+                referredBy: formData.referredBy,
+            },
+            patient_BloodType: formData.bloodGroup,
+            patient_MaritalStatus: formData.maritalStatus,
+        };
 
-    try {
-        if (mode === "create") {
-            await dispatch(createPatient(payload)).unwrap();
-            toast.success("Patient created successfully!");
-        } else {
-            if (!formData.patientMRNo) {
-                throw new Error("MR Number is required");
+        try {
+            if (mode === "create") {
+                await dispatch(createPatient(payload)).unwrap();
+                toast.success("Patient created successfully!");
+            } else {
+                if (!formData.patientMRNo) {
+                    throw new Error("MR Number is required");
+                }
+
+                await dispatch(updatePatient({
+                    mrNo: formData.patientMRNo,
+                    updatedData: payload
+                })).unwrap();
+
+                toast.success("Patient updated successfully!");
             }
-            
-            await dispatch(updatePatient({
-                mrNo: formData.patientMRNo,
-                updatedData: payload
-            })).unwrap();
-            
-            toast.success("Patient updated successfully!");
+            resetForm();
+            navigate('/OPD/manage');
+        } catch (err) {
+            console.error("Submission error:", err);
+            toast.error(
+                err.payload?.message ||
+                (mode === "create" ? "Patient creation failed!" : "Patient update failed!"),
+                {
+                    autoClose: 5000,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                }
+            );
+        } finally {
+            setIsSubmitting(false);
         }
-        resetForm();
-        navigate('/OPD/manage');
-    } catch (err) {
-        console.error("Submission error:", err);
-        toast.error(
-            err.payload?.message || 
-            (mode === "create" ? "Patient creation failed!" : "Patient update failed!"),
-            {
-                autoClose: 5000,
-                closeOnClick: true,
-                pauseOnHover: true,
-            }
-        );
-    } finally {
-        setIsSubmitting(false);
-    }
-};
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -380,23 +380,23 @@ const NewOpd = ({ mode = "create" }) => {
         }));
 
         // Special case for doctor info auto-population
-         if (name === "doctor") {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        if (selectedOption.value) {
-            const doctorData = JSON.parse(selectedOption.dataset.doctor);
-            setFormData(prev => ({
-                ...prev,
-                doctorName: doctorData.name,
-                doctorGender: doctorData.gender,
-                doctorQualification: doctorData.qualification,
-                doctorFee: doctorData.fee,
-                doctorSpecialization: doctorData.specialization,
-                doctorDepartment: doctorData.department,
-                totalFee: doctorData.fee - (prev.discount || 0)
-            }));
+        if (name === "doctor") {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            if (selectedOption.value) {
+                const doctorData = JSON.parse(selectedOption.dataset.doctor);
+                setFormData(prev => ({
+                    ...prev,
+                    doctorName: doctorData.name,
+                    doctorGender: doctorData.gender,
+                    doctorQualification: doctorData.qualification,
+                    doctorFee: doctorData.fee,
+                    doctorSpecialization: doctorData.specialization,
+                    doctorDepartment: doctorData.department,
+                    totalFee: doctorData.fee - (prev.discount || 0)
+                }));
+            }
+            return;
         }
-        return;
-    }
 
 
         // Handle discount calculation
@@ -488,8 +488,8 @@ const NewOpd = ({ mode = "create" }) => {
                     ) : (
                         getFormattedDoctors().map(doctor => (
                             <option key={doctor.id}
-                            value={`${doctor.name}`} 
-                             data-doctor={JSON.stringify(doctor)}
+                                value={`${doctor.name}`}
+                                data-doctor={JSON.stringify(doctor)}
                             >
                                 {doctor.name} ({doctor.department}) ({doctor.specialization})
                             </option>
@@ -542,7 +542,7 @@ const NewOpd = ({ mode = "create" }) => {
                                 <p className="text-primary-100 mt-1">{formDescription}</p>
                             </div>
                         </div>
-                        
+
                     </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -51,7 +51,7 @@ const PatientDetailModal = ({ patient, loading, onClose }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <DetailItem label="Full Name" value={patient.patient_Name} />
               <DetailItem label="Gender" value={patient.patient_Gender} />
-              <DetailItem label="Age" value={patient.Patient_Age} />
+              <DetailItem label="Age" value={patient.patient_Age} />
               <DetailItem label="Date of Birth" value={patient.patient_DateOfBirth} />
               <DetailItem label="CNIC" value={patient.patient_CNIC} />
               <DetailItem label="Contact" value={patient.patient_ContactNo} />
@@ -103,8 +103,8 @@ const PatientDetailModal = ({ patient, loading, onClose }) => {
               <DetailItem label="Fee" value={`Rs. ${patient.patient_HospitalInformation?.total_Fee}`} />
               <DetailItem label="Payment Status" value={
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${patient.patient_HospitalInformation?.amount_Status === 'Pending'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-green-100 text-green-800'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-green-100 text-green-800'
                   }`}>
                   {patient.patient_HospitalInformation?.amount_Status || 'Paid'}
                 </span>

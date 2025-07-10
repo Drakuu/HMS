@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import login_back from "../../assets/images/login_back.jpg";
+import { jwtDecode } from 'jwt-decode';
+
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -36,10 +38,13 @@ export default function Login() {
 
       // Store token securely
       localStorage.setItem("jwtLoginToken", data.information.jwtLoginToken);
-      // console.log("Stored Token:", localStorage.getItem("jwtLoginToken"));
+
+      const decodedToken = jwtDecode(data.information.jwtLoginToken);
+      console.log("Decoded JWT Token:", decodedToken);
 
       // Extract user role correctly
-      const userRole = data.information.user.user_Access; // ✅ Corrected role path
+      const userRole = data.information.user.user_Access;
+      // ✅ Corrected role path
       // console.log("User Role:", userRole); // Debug role
 
       // Redirect based on role
@@ -49,6 +54,8 @@ export default function Login() {
         navigate("/receptiondashboard");
       } else if (userRole.toLowerCase() === "Lab" || "lab") {
         navigate("/lab-dashboard");
+      } else if (userRole.toLowerCase() === "Doctor" || "Doctor") {
+        navigate("/doctor-dashboard");
       } else {
         throw new Error("Unauthorized user role!");
       }

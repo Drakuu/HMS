@@ -400,7 +400,7 @@ const AdmittedPatients = () => {
           Showing patients admitted between {new Date(dateRange.start).toLocaleDateString()} and {new Date(dateRange.end).toLocaleDateString()}
         </div>
       )}
-     
+
       {dateRange.start && dateRange.end && filteredPatients?.length === 0 && (
         <div className="text-center py-4 text-gray-500">
           No patients found in selected date range
