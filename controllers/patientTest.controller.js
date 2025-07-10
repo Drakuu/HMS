@@ -20,10 +20,13 @@ const createPatientTest = async (req, res) => {
         } = req.body;
 
         // Validate required fields
+        // Validate required fields
         if ((!patient_MRNo && !isExternalPatient) || !selectedTests || !selectedTests.length) {
             return res.status(400).json({
                 success: false,
-                message: 'Patient MRNo (or complete details for external patients) and at least one test are required',
+                message: isExternalPatient
+                    ? 'Complete details for external patients and at least one test are required'
+                    : 'Patient MRNo and at least one test are required',
                 requiredFields: ['selectedTests']
             });
         }
@@ -34,6 +37,13 @@ const createPatientTest = async (req, res) => {
 
         // For external patients (no MRNo)
         if (isExternalPatient) {
+            if (!patient_Name || !patient_ContactNo || !patient_Gender || !patient_Age) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: 'For external patients, name, contact number, gender, and age are required'
+                });
+            }
             // Generate new MRNo and token
             const currentDate = new Date().toISOString().split('T')[0];
             generatedMRNo = await utils.generateUniqueMrNo(currentDate);
@@ -58,7 +68,7 @@ const createPatientTest = async (req, res) => {
                     { patient_MRNo },
                     { patient_CNIC }
                 ]
-            }).select('patient_MRNo patient_CNIC patient_Name patient_ContactNo patient_Gender patient_Age');
+            }).select('patient_MRNo patient_CNIC patient_Name patient_ContactNo patient_Gender patient_Age')
 
             if (!patient) {
                 return res.status(404).json({
@@ -72,13 +82,6 @@ const createPatientTest = async (req, res) => {
             tokenNumber = await utils.generateUniqueToken(currentDate);
         }
 
-        if (isExternalPatient && (!patient_Name || !patient_ContactNo || !patient_Gender || !patient_Age)) {
-            return res.status(400).json({
-                success: false,
-                message: 'For external patients, name, contact number, gender, and age are required'
-            });
-        }
-
         // Validate and prepare selected tests
         const testIds = selectedTests.map(t => {
             if (!mongoose.Types.ObjectId.isValid(t.test)) {
@@ -89,13 +92,15 @@ const createPatientTest = async (req, res) => {
 
         const tests = await hospitalModel.TestManagment.find({
             _id: { $in: testIds }
-        }).select('testName testCode testPrice fields.name fields.unit fields.normalRange');
+        }).select('testName testCode testPrice fields.name fields.unit fields.normalRange')
+
 
         if (tests.length !== selectedTests.length) {
             const foundTestIds = tests.map(t => t._id.toString());
             const missingTests = testIds
                 .filter(id => !foundTestIds.includes(id.toString()))
                 .map(id => id.toString());
+
 
             return res.status(404).json({
                 success: false,
@@ -106,7 +111,7 @@ const createPatientTest = async (req, res) => {
 
         // Calculate amounts
         const totalAmount = tests.reduce((sum, test) => sum + test.testPrice, 0);
-        const finalAmount = totalAmount - discount ;
+        const finalAmount = totalAmount - discount;
 
         // Create patient test record
         const patientTest = new hospitalModel.PatientTest({
@@ -137,7 +142,12 @@ const createPatientTest = async (req, res) => {
                     results: [],
                     status: 'pending',
                     notes: test.notes || '',
-                    testDate: new Date()
+                    testDate: new Date(),
+                    statusHistory: [{
+                        status: 'registered',
+                        changedAt: new Date(),
+                        changedBy: performedBy || 'system'
+                    }]
                 };
             }),
             totalAmount,
@@ -174,19 +184,43 @@ const createPatientTest = async (req, res) => {
             message: 'Lab test order created successfully',
             data: {
                 patientTestId: patientTest._id,
-                patient: patientTest.patient_Detail,
-                tests: patientTest.selectedTests.map(t => t.testDetails),
+                patient: {
+                    mrNo: patientTest.patient_Detail.patient_MRNo,
+                    name: patientTest.patient_Detail.patient_Name,
+                    contact: patientTest.patient_Detail.patient_ContactNo
+                },
+                tests: patientTest.selectedTests.map(t => ({
+                    testId: t.test,
+                    testName: t.testName, // From the optimized storage
+                    status: t.status,
+                    lastStatusChange: t.statusHistory[0].changedAt
+                })),
+                billing: {
+                    totalAmount,
+                    discount,
+                    finalAmount
+                },
+                tokenNumber,
+                createdAt: patientTest.createdAt,
                 totalTests: patientTest.selectedTests.length,
-                totalAmount,
-                discount,
-                finalAmount,
                 tokenNumber,
                 status: 'created'
             }
         });
 
     } catch (error) {
+
         console.error('Error creating lab patient test:', error);
+
+        // Handle duplicate key errors specifically
+        if (error.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: 'Duplicate test order detected',
+                error: error.message
+            });
+        }
+
         return res.status(500).json({
             success: false,
             message: 'Internal server error',

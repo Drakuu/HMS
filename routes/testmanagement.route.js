@@ -6,7 +6,9 @@ const createTest  = require('../controllers/index.controller');
 router.post('/createtest', createTest.testManagement.createTest);
 
 router.get('/getAlltest',createTest.testManagement.getTests )
+
 router.get('/gettestbyId/:id',createTest.testManagement.getTestById )
+
 router.put('/updateTest/:id',createTest.testManagement.updateTest )
 
 

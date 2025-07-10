@@ -6,7 +6,6 @@ const testManagmentSchema = new mongoose.Schema(
     testCode: { type: String, required: true, unique: true },
     description: { type: String },
     instructions: { type: String },
-
     testPrice: { type: Number, required: true },
 
     requiresFasting: { type: Boolean, default: false },

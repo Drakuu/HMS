@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const patientTestSchema = new mongoose.Schema({
-    originalPatient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+    // originalPatient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
     isExternalPatient: { type: Boolean, default: false },
     tokenNumber: { type: Number, required: true },
     patient_Detail: {
@@ -44,7 +44,12 @@ const patientTestSchema = new mongoose.Schema({
             enum: ['pending', 'completed', 'cancelled'],
             default: 'pending'
         },
-        notes: { type: String }
+        notes: { type: String },
+         statusHistory: [{
+            status: { type: String,  enum: ['registered', 'sample-collected', 'processing', 'completed', 'reported', 'cancelled'], },
+            changedAt: { type: Date, default: Date.now },
+            changedBy: { type: String }  // Person who changed the status
+        }]
     }],
 
     totalAmount: { type: Number, },
@@ -64,10 +69,3 @@ const patientTestSchema = new mongoose.Schema({
 const PatientTest = mongoose.model('PatientTest', patientTestSchema);
 
 module.exports = PatientTest
-
-
-// statusHistory: [{
-//     status: { type: String, enum: ['registered', 'collected', 'processing', 'completed'] },
-//     changedAt: { type: Date, default: Date.now },
-//     changedBy: { type: String }
-// }]
