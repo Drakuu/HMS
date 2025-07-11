@@ -1,14 +1,24 @@
 import React from 'react'
-import Component1  from './component1'
+import Header from './Header'
+import TestSummaryCard from './TestSummaryCard'
+import TestTypeOverview from './TestTypeOverview'
+import AlertsList from './AlertsList'
+import LabTechnicianSummary from './LabTechnicianSummary'
 
-const dashboardPannel = () => {
-console.log("i am here")
+const DashboardPannel = () => {
+  console.log("i am here")
 
   return (
     <>
-    <Component1/>
+      <Header />
+      <TestSummaryCard />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
+        <TestTypeOverview />
+        <AlertsList />
+      </div>
+      <LabTechnicianSummary />
     </>
   )
 }
 
-export default dashboardPannel
+export default DashboardPannel

@@ -1,70 +1,25 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import login_back from "../../assets/images/login_back.jpg";
-import { jwtDecode } from 'jwt-decode';
+// pages/auth/Login.jsx
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../../features/auth/authSlice';
+import login_back from '../../assets/images/login_back.jpg';
 
-
-const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
-
-export default function Login() {
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const status = useSelector((state) => state.auth.status);
+  const error = useSelector((state) => state.auth.error);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    const resultAction = await dispatch(loginUser({ email, password }));
 
-    const loginData = { user_Email: email, user_Password: password };
-
-    try {
-      const response = await fetch(`${API_URL}/user/log-in`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(loginData),
-      });
-
-      const data = await response.json();
-      // console.log("Full API Response:", data); // Debug API response
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed!");
-      }
-
-      // Store token securely
-      localStorage.setItem("jwtLoginToken", data.information.jwtLoginToken);
-
-      const decodedToken = jwtDecode(data.information.jwtLoginToken);
-      console.log("Decoded JWT Token:", decodedToken);
-
-      // Extract user role correctly
-      const userRole = data.information.user.user_Access;
-      // ✅ Corrected role path
-      // console.log("User Role:", userRole); // Debug role
-
-      // Redirect based on role
-      if (userRole.toLowerCase() === "admin") {
-        navigate("/admindashboard");
-      } else if (userRole.toLowerCase() === "receptionist") {
-        navigate("/receptiondashboard");
-      } else if (userRole.toLowerCase() === "Lab" || "lab") {
-        navigate("/lab-dashboard");
-      } else if (userRole.toLowerCase() === "Doctor" || "Doctor") {
-        navigate("/doctor-dashboard");
-      } else {
-        throw new Error("Unauthorized user role!");
-      }
-
-    } catch (err) {
-      console.error("Error:", err.message);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    if (loginUser.fulfilled.match(resultAction)) {
+      const userRole = resultAction.payload.user.user_Access.toLowerCase();
+      navigate(`/${userRole}/dashboard`);
     }
   };
 
@@ -73,9 +28,9 @@ export default function Login() {
       className="min-h-screen w-full flex items-center pl-40 bg-gray-100"
       style={{
         backgroundImage: `url(${login_back})`,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
       }}
     >
       <div className="w-full max-w-md p-8 bg-white bg-opacity-80 shadow-lg rounded-3xl border border-gray-300">
@@ -127,16 +82,16 @@ export default function Login() {
           <button
             type="submit"
             className="w-full py-3 px-4 bg-primary-500 text-white font-semibold rounded-lg shadow-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
-            disabled={loading}
+            disabled={status === 'loading'}
           >
-            {loading ? "Logging in..." : "Login"}
+            {status === 'loading' ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don’t have an account? {" "}
-            <a href="#" onClick={() => navigate("/signup")} className="text-primary-600 font-medium hover:underline focus:outline-none">
+            Don't have an account?{' '}
+            <a href="#" onClick={() => navigate('/signup')} className="text-primary-600 font-medium hover:underline focus:outline-none">
               Sign up
             </a>
           </p>
@@ -144,4 +99,6 @@ export default function Login() {
       </div>
     </div>
   );
-}
+};
+
+export default Login;

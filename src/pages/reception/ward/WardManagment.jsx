@@ -41,8 +41,8 @@ const WardManagement = () => {
 
     useEffect(() => {
         if (wardDetails.department_Name) {
-            const nurses = staffList.filter(staff => 
-                staff.department === wardDetails.department_Name && 
+            const nurses = staffList.filter(staff =>
+                staff.department === wardDetails.department_Name &&
                 staff.staffType === 'Nurse'
             );
             setDepartmentNurses(nurses);
@@ -53,11 +53,11 @@ const WardManagement = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setWardDetails(prev => ({ 
-            ...prev, 
-            [name]: name === 'wardNumber' || name === 'bedCount' 
+        setWardDetails(prev => ({
+            ...prev,
+            [name]: name === 'wardNumber' || name === 'bedCount'
                 ? (value === '' ? null : Number(value))
-                : value 
+                : value
         }));
     };
 
@@ -95,7 +95,7 @@ const WardManagement = () => {
             console.error("Ward ID is missing");
             return;
         }
-    
+
         const { _id, ...updateData } = wardDetails;
         dispatch(updateWardById({ id: _id, wardData: updateData }))
             .unwrap()
@@ -144,11 +144,11 @@ const WardManagement = () => {
 
     const calculateBedsStatus = (ward) => {
         if (!ward.beds) return { totalBeds: 0, availableBeds: 0, occupiedBeds: 0 };
-        
+
         const totalBeds = ward.beds.length;
         const occupiedBeds = ward.beds.filter(bed => bed.isOccupied).length;
         const availableBeds = totalBeds - occupiedBeds;
-        
+
         return { totalBeds, availableBeds, occupiedBeds };
     };
 
@@ -284,9 +284,9 @@ const WardManagement = () => {
             )}
 
             {isBedModalOpen && selectedWard && (
-                <BedManagementModal 
-                    ward={selectedWard} 
-                    onClose={() => setIsBedModalOpen(false)} 
+                <BedManagementModal
+                    ward={selectedWard}
+                    onClose={() => setIsBedModalOpen(false)}
                 />
             )}
         </div>

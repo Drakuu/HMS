@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import {createInventoryRecord , updateInventoryRecord , getAllInventory, deleteInventory} from '../../../features/inventory/inventorySlice';
-import {getallDepartments} from '../../../features/department/DepartmentSlice';
-import {getwardsbydepartmentId} from '../../../features/ward/Wardslice';
-import { useDispatch , useSelector} from 'react-redux';
+import { createInventoryRecord, updateInventoryRecord, getAllInventory, deleteInventory } from '../../../features/inventory/inventorySlice';
+import { getallDepartments } from '../../../features/department/DepartmentSlice';
+import { getwardsbydepartmentId } from '../../../features/ward/Wardslice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const Inventory = () => {
   // Sample data for dropdowns
-  const categories =['Bed', 'Furniture', 'Medical Equipment', 'Surgical Instrument', 'Pharmaceutical', 'Consumable'];
+  const categories = ['Bed', 'Furniture', 'Medical Equipment', 'Surgical Instrument', 'Pharmaceutical', 'Consumable'];
   const status = ['Available', 'In Use', 'Maintenance', 'Disposed'];
-  const bedType= ['Standard', 'ICU', 'Pediatric', 'Bariatric'];
-  const furnitureType= ['Chair', 'Table', 'Cabinet', 'Stretcher'];
-  const equipmentType=['Diagnostic', 'Therapeutic', 'LifeSupport'];
-  const instrumentType=['Scalpel', 'Forceps', 'Clamp', 'Retractor'];
+  const bedType = ['Standard', 'ICU', 'Pediatric', 'Bariatric'];
+  const furnitureType = ['Chair', 'Table', 'Cabinet', 'Stretcher'];
+  const equipmentType = ['Diagnostic', 'Therapeutic', 'LifeSupport'];
+  const instrumentType = ['Scalpel', 'Forceps', 'Clamp', 'Retractor'];
   const dosageForm = ['Tablet', 'Capsule', 'Injection', 'Ointment'];
-  const consumableType=['Gloves', 'Syringe', 'Bandage', 'Catheter'];
+  const consumableType = ['Gloves', 'Syringe', 'Bandage', 'Catheter'];
 
   // State management
   const [formData, setFormData] = useState({
@@ -64,10 +64,10 @@ const Inventory = () => {
   // Redux state and dispatch
   const dispatch = useDispatch();
   const { inventoryList } = useSelector((state) => state.inventory);
-  const { departments } = useSelector((state) => state.department); 
+  const { departments } = useSelector((state) => state.department);
   const { wardsByDepartment } = useSelector((state) => state.ward);
-  
-  
+
+
 
   // Fetch data on component mount
   useEffect(() => {
@@ -77,18 +77,18 @@ const Inventory = () => {
 
 
   useEffect(() => {
-  if (formData.department) {
-    dispatch(getwardsbydepartmentId(formData.department));
-  }
-}, [dispatch, formData.department]);
+    if (formData.department) {
+      dispatch(getwardsbydepartmentId(formData.department));
+    }
+  }, [dispatch, formData.department]);
 
-//  Filter inventory
-  const filteredInventory = inventoryList.filter(item => 
-  item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  item.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  (item.room && item.room.toLowerCase().includes(searchTerm.toLowerCase())) ||
-  item.category.toLowerCase().includes(searchTerm.toLowerCase())
-);
+  //  Filter inventory
+  const filteredInventory = inventoryList.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.room && item.room.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Handle form operations
   const handleInputChange = (e) => {
@@ -104,7 +104,7 @@ const Inventory = () => {
   // Handle specification changes
   const handleSpecificationChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     setFormData(prev => ({
       ...prev,
       specifications: {
@@ -144,68 +144,68 @@ const Inventory = () => {
   };
 
   const handleEdit = (item) => {
- const formatDate = (date) =>
-    date ? new Date(date).toISOString().split('T')[0] : '';
+    const formatDate = (date) =>
+      date ? new Date(date).toISOString().split('T')[0] : '';
 
-  // Format top-level date fields
-  const formattedItem = {
-    ...item,
-    purchaseDate: formatDate(item.purchaseDate),
-    warrantyExpiry: formatDate(item.warrantyExpiry),
-  };
+    // Format top-level date fields
+    const formattedItem = {
+      ...item,
+      purchaseDate: formatDate(item.purchaseDate),
+      warrantyExpiry: formatDate(item.warrantyExpiry),
+    };
 
-  // Format date fields inside specifications
-  const formattedSpecifications = {
-    ...item.specifications,
-    lastCalibrationDate: formatDate(item.specifications?.lastCalibrationDate),
-    sterilizationDate: formatDate(item.specifications?.sterilizationDate),
-    expiryDate: formatDate(item.specifications?.expiryDate),
-  };
+    // Format date fields inside specifications
+    const formattedSpecifications = {
+      ...item.specifications,
+      lastCalibrationDate: formatDate(item.specifications?.lastCalibrationDate),
+      sterilizationDate: formatDate(item.specifications?.sterilizationDate),
+      expiryDate: formatDate(item.specifications?.expiryDate),
+    };
 
-  // Set form data
-  setFormData({
-    ...formattedItem,
-    specifications: {
-      bedType: '',
-      adjustable: false,
-      hasWheels: false,
-      mattressType: '',
-      furnitureType: '',
-      material: '',
-      maxLoad: '',
-      equipmentType: '',
-      requiresCalibration: false,
-      lastCalibrationDate: '',
-      calibrationFrequency: '',
-      instrumentType: '',
-      isSterile: false,
-      sterilizationDate: '',
-      drugName: '',
-      dosageForm: '',
-      expiryDate: '',
-      storageTemp: '',
-      consumableType: '',
-      isDisposable: false,
-      packageSize: '',
-      ...formattedSpecifications, // override defaults with actual values
-    }
-  });
+    // Set form data
+    setFormData({
+      ...formattedItem,
+      specifications: {
+        bedType: '',
+        adjustable: false,
+        hasWheels: false,
+        mattressType: '',
+        furnitureType: '',
+        material: '',
+        maxLoad: '',
+        equipmentType: '',
+        requiresCalibration: false,
+        lastCalibrationDate: '',
+        calibrationFrequency: '',
+        instrumentType: '',
+        isSterile: false,
+        sterilizationDate: '',
+        drugName: '',
+        dosageForm: '',
+        expiryDate: '',
+        storageTemp: '',
+        consumableType: '',
+        isDisposable: false,
+        packageSize: '',
+        ...formattedSpecifications, // override defaults with actual values
+      }
+    });
 
 
     setEditMode(item._id || item.id);
     setShowForm(true);
   };
 
-    const handleDelete = async (id) => {
-      if (window.confirm('Are you sure you want to delete this inventory record?')) {
-        try {
-          await dispatch(deleteInventory(id));
-          // No need to dispatch getAllInventory() here since the state is already updated
-        } catch (error) {
-          console.error("Failed to delete inventory item:", error);
-        }
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this inventory record?')) {
+      try {
+        await dispatch(deleteInventory(id));
+        // No need to dispatch getAllInventory() here since the state is already updated
+      } catch (error) {
+        console.error("Failed to delete inventory item:", error);
       }
-    };
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -305,18 +305,18 @@ const Inventory = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              <div>
+
+                <div>
                   <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">Department*</label>
                   <select
                     name="department"
                     value={formData.department}
                     onChange={handleInputChange}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                  required >
-                     {departments.map((dept) => (
-                    <option key={dept._id} value={dept._id || dept}>{dept.name}</option>
-                  ))}
+                    required >
+                    {departments.map((dept) => (
+                      <option key={dept._id} value={dept._id || dept}>{dept.name}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -332,11 +332,11 @@ const Inventory = () => {
                   >
                     <option value="">Select Wards</option>
                     {wardsByDepartment.map((ward) => (
-                      
+
                       <option key={ward._id} value={ward.wardNumber}>{ward.wardNumber}</option>
                     ))}
-                    
-                    
+
+
                     )
                   </select>
                 </div>
@@ -397,7 +397,7 @@ const Inventory = () => {
                       <option key={index} value={cat}>{cat}</option>
                     ))}
                   </select>
-                </div> 
+                </div>
 
                 {formData.category === 'Bed' && (<>
 
@@ -415,7 +415,7 @@ const Inventory = () => {
                         <option key={index} value={type}>{type}</option>
                       ))}
                     </select>
-                  </div> 
+                  </div>
 
                   <div>
                     <label htmlFor="adjustable" className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-1">
@@ -458,50 +458,50 @@ const Inventory = () => {
                   </div>
                 </>)}
 
-                {formData.category === 'Furniture' &&   
-                (<>
-                  <div>
-                    <label htmlFor="furnitureType" className="block text-sm font-medium text-gray-700 mb-1">Furniture Type</label>
-                    <select
-                      id="furnitureType"
-                      name="furnitureType"
-                      value={formData.specifications.furnitureType}
-                      onChange={handleSpecificationChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    >
-                      <option value="">Select Furniture type</option>
-                      {furnitureType.map((type, index) => (
-                        <option key={index} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div> 
+                {formData.category === 'Furniture' &&
+                  (<>
+                    <div>
+                      <label htmlFor="furnitureType" className="block text-sm font-medium text-gray-700 mb-1">Furniture Type</label>
+                      <select
+                        id="furnitureType"
+                        name="furnitureType"
+                        value={formData.specifications.furnitureType}
+                        onChange={handleSpecificationChange}
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      >
+                        <option value="">Select Furniture type</option>
+                        {furnitureType.map((type, index) => (
+                          <option key={index} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <div>
-                    <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">Furniture Material</label>
-                    <input
-                      type="text"
-                      id="material"
-                      name="material"
-                      value={formData.specifications.material}
-                      onChange={handleSpecificationChange}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="material" className="block text-sm font-medium text-gray-700 mb-1">Furniture Material</label>
+                      <input
+                        type="text"
+                        id="material"
+                        name="material"
+                        value={formData.specifications.material}
+                        onChange={handleSpecificationChange}
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="maxLoad" className="block text-sm font-medium text-gray-700 mb-1">Furniture Maxload</label>
-                    <input
-                      type="number"
-                      id="maxLoad"
-                      name="maxLoad"
-                      min="1"
-                      value={formData.specifications.maxLoad}
-                      onChange={handleSpecificationNumberInput}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                    />
-                  </div>
-                </>
-                )}
+                    <div>
+                      <label htmlFor="maxLoad" className="block text-sm font-medium text-gray-700 mb-1">Furniture Maxload</label>
+                      <input
+                        type="number"
+                        id="maxLoad"
+                        name="maxLoad"
+                        min="1"
+                        value={formData.specifications.maxLoad}
+                        onChange={handleSpecificationNumberInput}
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                      />
+                    </div>
+                  </>
+                  )}
 
                 {formData.category === 'Medical Equipment' && (<>
                   <div>
@@ -518,7 +518,7 @@ const Inventory = () => {
                         <option key={index} value={type}>{type}</option>
                       ))}
                     </select>
-                  </div> 
+                  </div>
 
                   <div>
                     <label htmlFor="requiresCalibration" className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-1">
@@ -544,7 +544,7 @@ const Inventory = () => {
                       onChange={handleSpecificationChange}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     />
-                  </div>         
+                  </div>
 
                   <div>
                     <label htmlFor="calibrationFrequency" className="block text-sm font-medium text-gray-700 mb-1">Calibration Frequency</label>
@@ -575,7 +575,7 @@ const Inventory = () => {
                         <option key={index} value={type}>{type}</option>
                       ))}
                     </select>
-                  </div> 
+                  </div>
 
                   <div>
                     <label htmlFor="isSterile" className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-1">
@@ -616,7 +616,7 @@ const Inventory = () => {
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                     />
                   </div>
-                
+
                   <div>
                     <label htmlFor="dosageForm" className="block text-sm font-medium text-gray-700 mb-1">Dosage Form</label>
                     <select
@@ -631,7 +631,7 @@ const Inventory = () => {
                         <option key={index} value={type}>{type}</option>
                       ))}
                     </select>
-                  </div> 
+                  </div>
 
                   <div>
                     <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-1">Expiry Date*</label>
@@ -642,7 +642,7 @@ const Inventory = () => {
                       value={formData.specifications.expiryDate}
                       onChange={handleSpecificationChange}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                     required />
+                      required />
                   </div>
 
                   <div>
@@ -673,8 +673,8 @@ const Inventory = () => {
                         <option key={index} value={type}>{type}</option>
                       ))}
                     </select>
-                  </div> 
-                
+                  </div>
+
                   <div>
                     <label htmlFor="isDisposable" className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-1">
                       <input
@@ -825,7 +825,7 @@ const Inventory = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Room
                   </th>
-                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ward
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -834,13 +834,13 @@ const Inventory = () => {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Quantity
                   </th>
-                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Current Stock
                   </th>
-                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Supplier
                   </th>
-                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Purchase Date
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -854,265 +854,264 @@ const Inventory = () => {
                   </th>
                 </tr>
               </thead>
-           <tbody className="bg-white divide-y divide-gray-200">
-        {filteredInventory.length > 0 ? (
-          filteredInventory.map((item) => (
-            <tr key={item._id || item.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap">
-                <div className="font-medium text-gray-900">{item.name}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {typeof item.department === 'object' 
-              ? item.department.name 
-              : departments.find(d => d._id === item.department)?.name || 'N/A'}
-      </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.room || '-'}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.wards || '-'}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-            item.category === 'Medical Equipment' ? 'bg-blue-100 text-blue-800' :
-            item.category === 'Furniture' ? 'bg-green-100 text-green-800' :
-            item.category === 'Surgical Instrument' ? 'bg-purple-100 text-purple-800' :
-            'bg-yellow-100 text-yellow-800'
-          }`}>
-            {item.category}
-          </span>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.quantity}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.currentStock}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.supplier}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : '-'}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.warrantyExpiry ? new Date(item.warrantyExpiry).toLocaleDateString() : '-'}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {item.status}
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-          <button
-            onClick={() => handleEdit(item)}
-            className="text-blue-600 hover:text-blue-900 mr-4"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => handleDelete(item._id)}
-            className="text-red-600 hover:text-red-900"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => {
-              setViewForm(true);
-              setViewRecord(item);
-            }}
-            className="text-green-600 hover:text-green-900 ml-4"
-          >
-            View
-          </button>
-        </td>
-      </tr>
-    ))
-  ) : (
-    <tr>
-      <td colSpan="13" className="px-6 py-4 text-center text-sm text-gray-500">
-        {searchTerm ? 'No inventory items match your search.' : 'No inventory items found.'}
-      </td>
-    </tr>
-  )}
-</tbody>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredInventory.length > 0 ? (
+                  filteredInventory.map((item) => (
+                    <tr key={item._id || item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">{item.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {typeof item.department === 'object'
+                          ? item.department.name
+                          : departments.find(d => d._id === item.department)?.name || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.room || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.wards || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${item.category === 'Medical Equipment' ? 'bg-blue-100 text-blue-800' :
+                          item.category === 'Furniture' ? 'bg-green-100 text-green-800' :
+                            item.category === 'Surgical Instrument' ? 'bg-purple-100 text-purple-800' :
+                              'bg-yellow-100 text-yellow-800'
+                          }`}>
+                          {item.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.quantity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.currentStock}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.supplier}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.warrantyExpiry ? new Date(item.warrantyExpiry).toLocaleDateString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {item.status}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => handleEdit(item)}
+                          className="text-blue-600 hover:text-blue-900 mr-4"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item._id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => {
+                            setViewForm(true);
+                            setViewRecord(item);
+                          }}
+                          className="text-green-600 hover:text-green-900 ml-4"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="13" className="px-6 py-4 text-center text-sm text-gray-500">
+                      {searchTerm ? 'No inventory items match your search.' : 'No inventory items found.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
 
             </table>
           </div>
         </div>
-        
+
         {/* View selected form */}
 
 
-{viewForm && (
-  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
-    <div className="bg-white rounded-xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-w-4xl w-full mx-4 border border-gray-200 overflow-hidden transform transition-all duration-200 scale-[0.98] animate-[scaleIn_0.2s_ease-out_forwards]">
-      <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100">
-        <h2 className="text-2xl font-bold text-primary-700 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          Inventory Record Details
-        </h2>
-        <button 
-          onClick={closeModal} 
-          className="text-gray-500 hover:text-red-500 text-2xl transition-all duration-200 hover:scale-110 focus:outline-none"
-          aria-label="Close modal"
-        >
-          &times;
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[70vh] overflow-y-auto">
-        {/* Helper function to format dates */}
-        {(() => {
-          const formatDate = (dateString) => {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return isNaN(date) ? 'Invalid Date' : date.toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            });
-          };
-
-     
-
-          return (
-            <>
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Item Name</p>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-lg font-medium text-gray-800">{viewRecord.name || 'N/A'}</p>
-                </div>
+        {viewForm && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
+            <div className="bg-white rounded-xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-w-4xl w-full mx-4 border border-gray-200 overflow-hidden transform transition-all duration-200 scale-[0.98] animate-[scaleIn_0.2s_ease-out_forwards]">
+              <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100">
+                <h2 className="text-2xl font-bold text-primary-700 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Inventory Record Details
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-500 hover:text-red-500 text-2xl transition-all duration-200 hover:scale-110 focus:outline-none"
+                  aria-label="Close modal"
+                >
+                  &times;
+                </button>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Department</p>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-lg font-medium text-gray-800"> {typeof viewRecord.department === 'object' 
-              ? viewRecord.department.name 
-              : departments.find(d => d._id === viewRecord.department)?.name || 'N/A'}</p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[70vh] overflow-y-auto">
+                {/* Helper function to format dates */}
+                {(() => {
+                  const formatDate = (dateString) => {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    return isNaN(date) ? 'Invalid Date' : date.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+                  };
+
+
+
+                  return (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Item Name</p>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <p className="text-lg font-medium text-gray-800">{viewRecord.name || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Department</p>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <p className="text-lg font-medium text-gray-800"> {typeof viewRecord.department === 'object'
+                            ? viewRecord.department.name
+                            : departments.find(d => d._id === viewRecord.department)?.name || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Wards</p>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <p className="text-lg font-medium text-gray-800">{viewRecord.wards || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Room</p>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <p className="text-lg font-medium text-gray-800">{viewRecord.room || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      {viewRecord.description && (
+                        <div className="space-y-2 md:col-span-2">
+                          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Description</p>
+                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <p className="text-lg font-medium text-gray-800">{viewRecord.description}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Quantity</p>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center">
+                          <p className="text-lg font-medium text-gray-800">{viewRecord.quantity || '0'}</p>
+                          <span className="ml-2 text-sm text-gray-500">units</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Current Stock</p>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center">
+                          <p className="text-lg font-medium text-gray-800">{viewRecord.currentStock || '0'}</p>
+                          <span className="ml-2 text-sm text-gray-500">units</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Category</p>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <p className="text-lg font-medium text-gray-800">{viewRecord.category || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      {/* Specifications sections */}
+                      {viewRecord.specifications?.bedType && (
+                        <div className="space-y-2">
+                          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Bed Type</p>
+                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <p className="text-lg font-medium text-gray-800">{viewRecord.specifications.bedType}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {viewRecord.specifications?.adjustable !== undefined && (
+                        <div className="space-y-2">
+                          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Adjustable</p>
+                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <p className="text-lg font-medium text-gray-800">
+                              {viewRecord.specifications.adjustable ? 'Yes' : 'No'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Add all other specification fields similarly */}
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Purchase Date</p>
+                        <div className={`p-3 rounded-lg border ${viewRecord.purchaseDate ? 'bg-gray-50 border-gray-100' : 'bg-yellow-50 border-yellow-100'}`}>
+                          <p className="text-lg font-medium text-gray-800">
+                            {formatDate(viewRecord.purchaseDate) || 'Not specified'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Warranty Expiry</p>
+                        <div className={`p-3 rounded-lg border ${viewRecord.warrantyExpiry ? 'bg-gray-50 border-gray-100' : 'bg-yellow-50 border-yellow-100'}`}>
+                          <p className="text-lg font-medium text-gray-800">
+                            {formatDate(viewRecord.warrantyExpiry) || 'Not specified'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {viewRecord.supplier && (
+                        <div className="space-y-2">
+                          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Supplier</p>
+                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <p className="text-lg font-medium text-gray-800">{viewRecord.supplier}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {viewRecord.status && (
+                        <div className="space-y-2">
+                          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Status</p>
+                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <p className="text-lg font-medium text-gray-800">{viewRecord.status}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Wards</p>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-lg font-medium text-gray-800">{viewRecord.wards || 'N/A'}</p>
-                </div>
+              <div className="px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100 border-t border-gray-200 flex justify-end space-x-3">
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+                >
+                  Close Details
+                </button>
               </div>
-              
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Room</p>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-lg font-medium text-gray-800">{viewRecord.room || 'N/A'}</p>
-                </div>
-              </div>
-
-              {viewRecord.description && (
-                <div className="space-y-2 md:col-span-2">
-                  <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Description</p>
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-lg font-medium text-gray-800">{viewRecord.description}</p>
-                  </div>
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Quantity</p>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center">
-                  <p className="text-lg font-medium text-gray-800">{viewRecord.quantity || '0'}</p>
-                  <span className="ml-2 text-sm text-gray-500">units</span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Current Stock</p>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center">
-                  <p className="text-lg font-medium text-gray-800">{viewRecord.currentStock || '0'}</p>
-                  <span className="ml-2 text-sm text-gray-500">units</span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Category</p>
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-lg font-medium text-gray-800">{viewRecord.category || 'N/A'}</p>
-                </div>
-              </div>
-
-              {/* Specifications sections */}
-              {viewRecord.specifications?.bedType && (
-                <div className="space-y-2">
-                  <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Bed Type</p>
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-lg font-medium text-gray-800">{viewRecord.specifications.bedType}</p>
-                  </div>
-                </div>
-              )}
-
-              {viewRecord.specifications?.adjustable !== undefined && (
-                <div className="space-y-2">
-                  <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Adjustable</p>
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-lg font-medium text-gray-800">
-                      {viewRecord.specifications.adjustable ? 'Yes' : 'No'}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Add all other specification fields similarly */}
-
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Purchase Date</p>
-                <div className={`p-3 rounded-lg border ${viewRecord.purchaseDate ? 'bg-gray-50 border-gray-100' : 'bg-yellow-50 border-yellow-100'}`}>
-                  <p className="text-lg font-medium text-gray-800">
-                    {formatDate(viewRecord.purchaseDate) || 'Not specified'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Warranty Expiry</p>
-                <div className={`p-3 rounded-lg border ${viewRecord.warrantyExpiry ? 'bg-gray-50 border-gray-100' : 'bg-yellow-50 border-yellow-100'}`}>
-                  <p className="text-lg font-medium text-gray-800">
-                    {formatDate(viewRecord.warrantyExpiry) || 'Not specified'}
-                  </p>
-                </div>
-              </div>
-
-              {viewRecord.supplier && (
-                <div className="space-y-2">
-                  <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Supplier</p>
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-lg font-medium text-gray-800">{viewRecord.supplier}</p>
-                  </div>
-                </div>
-              )}
-
-              {viewRecord.status && (
-                <div className="space-y-2">
-                  <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Status</p>
-                  <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-lg font-medium text-gray-800">{viewRecord.status}</p>
-                  </div>
-                </div>
-              )}
-            </>
-          );
-        })()}
-      </div>
-
-      <div className="px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100 border-t border-gray-200 flex justify-end space-x-3">
-        <button
-          onClick={closeModal}
-          className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
-        >
-          Close Details
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

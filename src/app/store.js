@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from '../features/auth/authSlice';
 import doctorReducer from "../features/doctor/doctorSlice";
 import appointmentReducer from "../features/appointments/appointmentSlice";
 import { patientReducer, mrNumberReducer } from "../features/patient/patientSlice";
@@ -11,6 +10,7 @@ import otReducer from  "../features/operationManagment/otSlice";
 import WardReducer from  "../features/ward/Wardslice";
 import InventoryReducer from "../features/inventory/InventorySlice";
 import MedicineReducer from "../features/medicine/MedicineSlice"
+import authReducer from '../features/auth/authSlice';
 
 const store = configureStore({
   reducer: {

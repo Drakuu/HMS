@@ -1,73 +1,99 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+// features/auth/authSlice.js
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import {jwtDecode} from 'jwt-decode';
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
-export const userLogin = createAsyncThunk(
+export const loginUser = createAsyncThunk(
   'auth/login',
-  async (loginData, { rejectWithValue }) => {
+  async ({ email, password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/user/log-in`, loginData, {
-        headers: {
-          "Content-Type": "application/json",
-        }
+      const response = await axios.post(`${API_URL}/user/log-in`, {
+        user_Email: email,
+        user_Password: password,
       });
       
-      // Store token if included in response
-      if (response.data.information?.jwtLoginToken) {
-        localStorage.setItem("jwtLoginToken", response.data.information.jwtLoginToken);
-      }
+      const { jwtLoginToken, user } = response.data.information;
+      const decodedToken = jwtDecode(jwtLoginToken);
       
-      return response.data;
+      return {
+        token: jwtLoginToken,
+        user: {
+          ...user,
+          exp: decodedToken.exp,
+        },
+      };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || "Failed to login";
-      return rejectWithValue({ 
-        message, 
-        statusCode: error.response?.status || 500 
-      });
+      return rejectWithValue(error.response?.data?.message || 'Login failed');
     }
   }
 );
 
-const initialState = {
-  isAuthenticated: false,
-  user: null,
-  userRole: null,
-  status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
-  error: null,
-};
+// Async thunk for logout
+export const logoutUser = createAsyncThunk(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      // You might want to call a logout API here if needed
+      return true;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 const authSlice = createSlice({
-  name: "auth",
-  initialState,
+  name: 'auth',
+  initialState: {
+    token: localStorage.getItem('jwtLoginToken') || null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
+    status: 'idle', 
+    error: null,
+  },
   reducers: {
-    logout: (state) => {
-      state.isAuthenticated = false;
-      state.user = null;
-      state.userRole = null;
-      state.status = 'idle';
-      state.error = null;
-      localStorage.removeItem("jwtLoginToken");
+    initializeAuth(state) {
+      state.token = localStorage.getItem('jwtLoginToken') || null;
+      state.user = JSON.parse(localStorage.getItem('user')) || null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(userLogin.pending, (state) => {
+      .addCase(loginUser.pending, (state) => {
         state.status = 'loading';
         state.error = null;
       })
-      .addCase(userLogin.fulfilled, (state, action) => {
+      .addCase(loginUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.isAuthenticated = true;
-        state.user = action.payload.information?.user;
-        state.userRole = action.payload.information?.user?.user_Access?.toLowerCase();
+        state.token = action.payload.token;
+        state.user = action.payload.user;
+        
+        // Store in localStorage
+        localStorage.setItem('jwtLoginToken', action.payload.token);
+        localStorage.setItem('user', JSON.stringify(action.payload.user));
       })
-      .addCase(userLogin.rejected, (state, action) => {
+      .addCase(loginUser.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload?.message || "Login failed";
+        state.error = action.payload;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.token = null;
+        state.user = null;
+        state.status = 'idle';
+        state.error = null;
+        
+        // Clear localStorage
+        localStorage.removeItem('jwtLoginToken');
+        localStorage.removeItem('user');
       });
-  }
+  },
 });
 
-export const { logout } = authSlice.actions;
+export const { initializeAuth } = authSlice.actions;
+
+export const selectCurrentToken = (state) => state.auth.token;
+export const selectCurrentUser = (state) => state.auth.user;
+export const selectAuthStatus = (state) => state.auth.status;
+export const selectAuthError = (state) => state.auth.error;
+
 export default authSlice.reducer;

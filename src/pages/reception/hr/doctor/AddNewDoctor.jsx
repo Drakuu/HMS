@@ -419,7 +419,7 @@ const DoctorForm = ({ mode = 'create' }) => {
     }
   ];
 
-   const doctorTypes = ["Senior Doctor", "General Doctor", "Specialist Doctor", "Assistant Doctor", "Internee Doctor", "Consultant", "Surgeon", "Resident Doctor"
+  const doctorTypes = ["Senior Doctor", "General Doctor", "Specialist Doctor", "Assistant Doctor", "Internee Doctor", "Consultant", "Surgeon", "Resident Doctor"
   ];
 
   // In your form fields array, update the structure to match InputField props:
@@ -523,7 +523,7 @@ const DoctorForm = ({ mode = 'create' }) => {
     }
   ];
 
- 
+
   const formConfig = {
     title: isEditMode ? "Edit Doctor" : "Doctor Registration",
     description: isEditMode ? "Update the doctor details below" : "Please fill in the doctor details below",

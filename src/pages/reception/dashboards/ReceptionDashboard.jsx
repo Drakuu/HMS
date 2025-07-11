@@ -19,6 +19,7 @@ import { Chart, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElem
 // Register Chart.js components
 Chart.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
+
 const HospitalDashboard = () => {
   const [stats, setStats] = useState({
     patients: 0,
@@ -42,7 +43,7 @@ const HospitalDashboard = () => {
   const [editingCut, setEditingCut] = useState(false);
   const [tempCut, setTempCut] = useState(stats.hospitalCut);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
+    console.log(`the is receptio dasadfjsafg`)
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {

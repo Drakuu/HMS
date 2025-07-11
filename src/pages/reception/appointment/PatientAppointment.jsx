@@ -108,7 +108,7 @@ const PatientAppointment = () => {
         appointment.appointmentMRNO?.toLowerCase().includes(filters.searchQuery.toLowerCase());
       const matchesDate =
         !filters.date || new Date(appointment.appointmentDate).toISOString().slice(0, 10) === filters.date;
-      
+
       return matchesStatus && matchesSearch && matchesDate && matchesDoctor && matchesType;
     });
   }, [appointments, filters]);
@@ -151,15 +151,15 @@ const PatientAppointment = () => {
 
     try {
       if (editMode && editingId) {
-        await dispatch(updateAppointment({ 
-          appointmentId: editingId, 
-          updatedData: newAppointment 
+        await dispatch(updateAppointment({
+          appointmentId: editingId,
+          updatedData: newAppointment
         }));
         toast.success('Appointment updated successfully!');
       } else {
-        await dispatch(createAppointment({ 
-          appointmentData: newAppointment, 
-          jwtLoginToken 
+        await dispatch(createAppointment({
+          appointmentData: newAppointment,
+          jwtLoginToken
         }));
         toast.success('Appointment created successfully!');
       }
@@ -265,8 +265,8 @@ const PatientAppointment = () => {
         )}
 
         {showPatientModal && (
-          <PatientDetailsModal 
-            patient={selectedPatient} 
+          <PatientDetailsModal
+            patient={selectedPatient}
             onClose={() => setShowPatientModal(false)}
             onEdit={handleEdit}
           />
@@ -283,11 +283,10 @@ const PatientAppointment = () => {
                   <button
                     key={status}
                     onClick={() => updateFilter('status', status)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      filters.status === status 
-                        ? 'bg-primary-600 text-white shadow-md' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filters.status === status
+                      ? 'bg-primary-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
                   </button>
@@ -310,7 +309,7 @@ const PatientAppointment = () => {
                   {filters.date ? (
                     <div className="flex items-center bg-primary-100 text-primary-700 px-3 py-1.5 rounded-lg">
                       <span>{filters.date}</span>
-                      <button 
+                      <button
                         onClick={() => updateFilter('date', '')}
                         className="ml-2 text-primary-700 hover:text-primary-900"
                       >
@@ -335,7 +334,7 @@ const PatientAppointment = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="relative flex-1 min-w-[200px]">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiSearch className="h-4 w-4 text-gray-400" />
@@ -429,8 +428,8 @@ const PatientAppointment = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedAppointments.length > 0 ? (
                   paginatedAppointments.map((appointment) => (
-                    <tr 
-                      key={appointment._id} 
+                    <tr
+                      key={appointment._id}
                       className="hover:bg-gray-50 transition-colors cursor-pointer"
                       onClick={() => handleRowClick(appointment)}
                     >
@@ -469,9 +468,9 @@ const PatientAppointment = () => {
                               const newStatus = e.target.value;
                               setOpenStatusDropdownId(null);
                               try {
-                                await dispatch(updateAppointment({ 
-                                  appointmentId: appointment._id, 
-                                  updatedData: { ...appointment, appointmentStatus: newStatus } 
+                                await dispatch(updateAppointment({
+                                  appointmentId: appointment._id,
+                                  updatedData: { ...appointment, appointmentStatus: newStatus }
                                 }));
                                 toast.success('Status updated!');
                               } catch (err) {
@@ -491,11 +490,10 @@ const PatientAppointment = () => {
                               e.stopPropagation();
                               setOpenStatusDropdownId(appointment._id);
                             }}
-                            className={`px-2.5 py-1 text-xs rounded-full font-medium cursor-pointer ${
-                              appointment.appointmentStatus === 'confirm'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}
+                            className={`px-2.5 py-1 text-xs rounded-full font-medium cursor-pointer ${appointment.appointmentStatus === 'confirm'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                              }`}
                           >
                             {appointment.appointmentStatus}
                           </span>
@@ -544,7 +542,7 @@ const PatientAppointment = () => {
                         <FaCalendarAlt className="h-12 w-12 mb-4" />
                         <p className="text-lg font-medium">No appointments found</p>
                         <p className="text-sm mt-1">Try adjusting your search or filters</p>
-                        <button 
+                        <button
                           onClick={resetFilters}
                           className="mt-2 px-4 py-1.5 bg-primary-100 text-primary-700 rounded-lg text-sm hover:bg-primary-200"
                         >
@@ -563,7 +561,7 @@ const PatientAppointment = () => {
       {/* Fixed Pagination Footer */}
       <div className="fixed w-full bottom-0 z-10 bg-white border-t border-gray-200 shadow-sm ">
         <div className="sm:px-3 py-4">
-            <FilterList
+          <FilterList
             entriesPerPage={entriesPerPage}
             setEntriesPerPage={setEntriesPerPage}
             entriesPerPageOptions={[5, 10, 20, 50]}
@@ -571,9 +569,9 @@ const PatientAppointment = () => {
             setCurrentPage={setCurrentPage}
             totalPages={totalPages}
             totalItems={totalItems}
-            />
+          />
         </div>
-        </div>
+      </div>
 
     </div>
   );

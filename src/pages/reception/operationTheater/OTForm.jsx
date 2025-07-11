@@ -230,47 +230,47 @@ const OTForm = ({ operation, onSubmit, onCancel }) => {
   };
 
   const handleDoctorFeeChange = (e) => {
-  const value = parseFloat(e.target.value) || 0;
-  setFormData(prev => {
-    const newData = {
-      ...prev,
-      otInformation: {
-        ...prev.otInformation,
-        doctor: {
-          ...prev.otInformation.doctor,
-          doctors_Fee: value
+    const value = parseFloat(e.target.value) || 0;
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        otInformation: {
+          ...prev.otInformation,
+          doctor: {
+            ...prev.otInformation.doctor,
+            doctors_Fee: value
+          }
         }
-      }
-    };
-    
-    // Calculate total using the new state values
-    const total = value + (newData.otInformation.equipment_Charges || 0);
-    return {
-      ...newData,
-      total_Operation_Cost: total
-    };
-  });
-};
+      };
 
-const handleEquipmentChargesChange = (e) => {
-  const value = parseFloat(e.target.value) || 0;
-  setFormData(prev => {
-    const newData = {
-      ...prev,
-      otInformation: {
-        ...prev.otInformation,
-        equipment_Charges: value
-      }
-    };
-    
-    // Calculate total using the new state values
-    const total = (newData.otInformation.doctor.doctors_Fee || 0) + value;
-    return {
-      ...newData,
-      total_Operation_Cost: total
-    };
-  });
-};
+      // Calculate total using the new state values
+      const total = value + (newData.otInformation.equipment_Charges || 0);
+      return {
+        ...newData,
+        total_Operation_Cost: total
+      };
+    });
+  };
+
+  const handleEquipmentChargesChange = (e) => {
+    const value = parseFloat(e.target.value) || 0;
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        otInformation: {
+          ...prev.otInformation,
+          equipment_Charges: value
+        }
+      };
+
+      // Calculate total using the new state values
+      const total = (newData.otInformation.doctor.doctors_Fee || 0) + value;
+      return {
+        ...newData,
+        total_Operation_Cost: total
+      };
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">

@@ -28,7 +28,7 @@ const AddStaffModal = () => {
     },
     nurseDetails: {
       shift: '',
-      assignedWard: '',      
+      assignedWard: '',
       nursingLicense: '',
       certifications: '',
     },
@@ -72,7 +72,7 @@ const AddStaffModal = () => {
         console.log(form);
         await dispatch(createStaff(form));
       }
-      
+
       // Reset form and close it
       setForm({
         firstName: "",
@@ -93,7 +93,7 @@ const AddStaffModal = () => {
         },
         nurseDetails: {
           shift: '',
-          assignedWard: '',      
+          assignedWard: '',
           nursingLicense: '',
           certifications: '',
         },
@@ -113,7 +113,7 @@ const AddStaffModal = () => {
       setIsEditing(false);
       setEditingStaffId(null);
       setFormOpen(false); // Close the form after submission
-      
+
       // Refresh the staff list
       dispatch(getAllStaff());
     } catch (error) {
@@ -144,7 +144,7 @@ const AddStaffModal = () => {
         },
         nurseDetails: staffToEdit.nurseDetails || {
           shift: '',
-          assignedWard: '',      
+          assignedWard: '',
           nursingLicense: '',
           certifications: '',
         },
@@ -166,32 +166,32 @@ const AddStaffModal = () => {
     }
   };
 
-    const handleDelete = (id) => {
+  const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this medicine record?')) {
       setDeletedIds(prev => [...prev, id]);
     }
   };
 
   const handleView = (id) => {
-   // setViewStaffId(id);
+    // setViewStaffId(id);
     dispatch(getStaffById(id));
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-  //  setViewStaffId(null);
+    //  setViewStaffId(null);
   };
 
-const filteredStaff = staffList
-  .filter(staff => !deletedIds.includes(staff._id)) // First, exclude deleted staff
-  .filter(staff =>
-    `${staff.firstName} ${staff.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (staff.email && staff.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    staff.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff.staffType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStaff = staffList
+    .filter(staff => !deletedIds.includes(staff._id)) // First, exclude deleted staff
+    .filter(staff =>
+      `${staff.firstName} ${staff.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (staff.email && staff.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      staff.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.staffType.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
 
   const handleNestedChange = (field, subfield, value) => {
@@ -261,7 +261,7 @@ const filteredStaff = staffList
                   },
                   nurseDetails: {
                     shift: '',
-                    assignedWard: '',     
+                    assignedWard: '',
                     nursingLicense: '',
                     certifications: '',
                   },
@@ -648,14 +648,14 @@ const filteredStaff = staffList
                 </div>
 
                 <div className="md:col-span-2 mt-4 flex justify-end space-x-4">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="bg-primary-600 text-white py-2 px-6 rounded hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors"
                   >
                     {isEditing ? "Update Staff" : "Add Staff"}
                   </button>
 
-                  <button 
+                  <button
                     onClick={() => setFormOpen(false)}
                     type="button"
                     className="border border-gray-300 text-gray-700 py-2 px-6 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-250 focus:ring-offset-2 transition-colors"
@@ -710,11 +710,10 @@ const filteredStaff = staffList
                         {staff.email || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          staff.department === "Medical" ? "bg-blue-100 text-blue-800" :
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${staff.department === "Medical" ? "bg-blue-100 text-blue-800" :
                           staff.department === "Admin" ? "bg-purple-100 text-purple-800" :
-                          "bg-green-100 text-green-800"
-                        }`}>
+                            "bg-green-100 text-green-800"
+                          }`}>
                           {staff.department}
                         </span>
                       </td>
@@ -729,8 +728,8 @@ const filteredStaff = staffList
                           <FaEdit className="inline mr-1" /> Edit
                         </button>
                         <button
-                         onClick={() => handleDelete(staff._id)}
-                         
+                          onClick={() => handleDelete(staff._id)}
+
                           className="text-red-600 hover:text-red-900 mr-4"
                         >
                           <FaTrash className="inline mr-1" /> Delete
@@ -758,212 +757,212 @@ const filteredStaff = staffList
       </div>
 
       {/* Staff Details Modal */}
-{isModalOpen && (
-  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
-    <div className="bg-white rounded-xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-w-4xl w-full mx-4 border border-gray-200 overflow-hidden transform transition-all duration-200 scale-[0.98] animate-[scaleIn_0.2s_ease-out_forwards]">
-      {/* Header */}
-      <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100">
-        <h2 className="text-2xl font-bold text-primary-700 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-          Staff Record Details
-        </h2>
-        <button 
-          onClick={closeModal} 
-          className="text-gray-500 hover:text-red-500 text-2xl transition-all duration-200 hover:scale-110 focus:outline-none"
-          aria-label="Close modal"
-        >
-          &times;
-        </button>
-      </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] max-w-4xl w-full mx-4 border border-gray-200 overflow-hidden transform transition-all duration-200 scale-[0.98] animate-[scaleIn_0.2s_ease-out_forwards]">
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100">
+              <h2 className="text-2xl font-bold text-primary-700 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Staff Record Details
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-500 hover:text-red-500 text-2xl transition-all duration-200 hover:scale-110 focus:outline-none"
+                aria-label="Close modal"
+              >
+                &times;
+              </button>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[70vh] overflow-y-auto">
-        {/* Basic Info */}
-        <div className="space-y-2">
-          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Full Name</p>
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-lg font-medium text-gray-800">{staffDetails?.firstName} {staffDetails?.lastName}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 max-h-[70vh] overflow-y-auto">
+              {/* Basic Info */}
+              <div className="space-y-2">
+                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Full Name</p>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-lg font-medium text-gray-800">{staffDetails?.firstName} {staffDetails?.lastName}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Phone</p>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-lg font-medium text-gray-800">{staffDetails?.phone}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Email</p>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-lg font-medium text-gray-800">{staffDetails?.email || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Designation</p>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-lg font-medium text-gray-800">{staffDetails?.designation || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Department</p>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-lg font-medium text-gray-800">{staffDetails?.department || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Staff Type</p>
+                <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-lg font-medium text-gray-800">{staffDetails?.staffType || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* Doctor-only fields */}
+              {staffDetails?.staffType === "Doctor" && (
+                <>
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Specialization</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.specialization || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Consulting Hours</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.consultingHours || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Ward Rounds</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.wardRounds || 'N/A'}</p>
+                    </div>
+                  </div>
+
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Procedures</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.procedures || 'N/A'}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Doctor-only fields */}
+              {staffDetails?.staffType === "nurseDetails" && (
+                <>
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Shift</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.shift || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Assigned Ward</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.assignedWard || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Nursing License</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.nursingLicense || 'N/A'}</p>
+                    </div>
+                  </div>
+
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Certifications</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.certifications || 'N/A'}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Doctor-only fields */}
+              {staffDetails?.staffType === "cleaningStaffDetails" && (
+                <>
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Shift</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.shift || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Assigned Area</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.assignedArea || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Cleaning Certification</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.cleaningCertification || 'N/A'}</p>
+                    </div>
+                  </div>
+
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Equipment Training</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.equipmentTraining || 'N/A'}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Doctor-only fields */}
+              {staffDetails?.staffType === "adminDetails" && (
+                <>
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Role</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.role || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Access Level</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.accessLevel || 'N/A'}</p>
+                    </div>
+                  </div>
+
+
+                  <div className="space-y-2">
+                    <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">System Access</p>
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.systemAccess || 'N/A'}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+            </div>
+
+            <div className="px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100 border-t border-gray-200 flex justify-end space-x-3">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
+              >
+                Close Details
+              </button>
+            </div>
           </div>
         </div>
-
-        <div className="space-y-2">
-          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Phone</p>
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-lg font-medium text-gray-800">{staffDetails?.phone}</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Email</p>
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-lg font-medium text-gray-800">{staffDetails?.email || 'N/A'}</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Designation</p>
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-lg font-medium text-gray-800">{staffDetails?.designation || 'N/A'}</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Department</p>
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-lg font-medium text-gray-800">{staffDetails?.department || 'N/A'}</p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Staff Type</p>
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-            <p className="text-lg font-medium text-gray-800">{staffDetails?.staffType || 'N/A'}</p>
-          </div>
-        </div>
-
-        {/* Doctor-only fields */}
-        {staffDetails?.staffType === "Doctor" && (
-          <>
-            <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Specialization</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.specialization || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Consulting Hours</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.consultingHours || 'N/A'}</p>
-              </div>
-            </div>
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Ward Rounds</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.wardRounds || 'N/A'}</p>
-              </div>
-            </div>
-
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Procedures</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.procedures || 'N/A'}</p>
-              </div>
-            </div>
-          </>
-        )}
-
-         {/* Doctor-only fields */}
-        {staffDetails?.staffType === "nurseDetails" && (
-          <>
-            <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Shift</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.shift || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Assigned Ward</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.assignedWard || 'N/A'}</p>
-              </div>
-            </div>
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Nursing License</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.nursingLicense || 'N/A'}</p>
-              </div>
-            </div>
-
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Certifications</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.certifications || 'N/A'}</p>
-              </div>
-            </div>
-          </>
-        )}
-
-         {/* Doctor-only fields */}
-        {staffDetails?.staffType === "cleaningStaffDetails" && (
-          <>
-            <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Shift</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.shift || 'N/A'}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Assigned Area</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?. assignedArea || 'N/A'}</p>
-              </div>
-            </div>
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Cleaning Certification</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.cleaningCertification || 'N/A'}</p>
-              </div>
-            </div>
-
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Equipment Training</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.equipmentTraining || 'N/A'}</p>
-              </div>
-            </div>
-          </>
-        )}
-
-         {/* Doctor-only fields */}
-        {staffDetails?.staffType === "adminDetails" && (
-          <>
-            <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Role</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.role || 'N/A'}</p>
-              </div>
-            </div>
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">Access Level</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.accessLevel || 'N/A'}</p>
-              </div>
-            </div>
-
-
-             <div className="space-y-2">
-              <p className="text-l font-semibold text-gray-500 uppercase tracking-wider">System Access</p>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-lg font-medium text-gray-800">{staffDetails?.doctorDetails?.systemAccess || 'N/A'}</p>
-              </div>
-            </div>
-          </>
-        )}
-
-      </div>
-
-      <div className="px-6 py-4 bg-gradient-to-r from-primary-50 to-primary-100 border-t border-gray-200 flex justify-end space-x-3">
-        <button
-          onClick={closeModal}
-          className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-sm hover:shadow-md"
-        >
-          Close Details
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
 
     </div>

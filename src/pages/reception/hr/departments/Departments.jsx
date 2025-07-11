@@ -155,7 +155,7 @@ const DepartmentManagement = () => {
                     required
                   />
                 </div>
-           
+
 
                 <div>
                   <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Location*</label>
@@ -185,7 +185,7 @@ const DepartmentManagement = () => {
                   </select>
                 </div>
 
-           
+
 
                 <div className="md:col-span-2">
                   <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -256,9 +256,9 @@ const DepartmentManagement = () => {
                       <span key={service} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{service}</span>
                     ))}
                   </td>
-                 
 
-                
+
+
                   <td className="px-6 py-4 ">
                     <button onClick={() => handleEdit(dept)} className="text-primary-600 hover:underline mr-3">Edit</button>
                   </td>

@@ -1,22 +1,20 @@
-import React from 'react'
-import { Route } from "react-router-dom";
-import { AdminDashboard,} from "../pages/admin/AdminPages"
-import AdminLayout from '../layouts/Admin/AdminLayout'
+import { Routes, Route } from "react-router-dom";
+import { AdminDashboard } from "../pages/admin/AdminPages";
+import DynamicLayout from '../layouts/DynamicLayout';
+import ProtectedRoute from '../pages/auth/ProtectedRoute';
 
 const AdminRoutes = () => {
   return (
-    <>
+    <Routes>
+      <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
+        <Route element={<DynamicLayout />}>
 
-      <Route
-        path="/admindashboard"
-        element={
-          <AdminLayout>
-            <AdminDashboard />
-          </AdminLayout>
-        }
-      />
-    </>
-  )
-}
+          <Route path="dashboard" element={<AdminDashboard />} />
 
-export default AdminRoutes
+        </Route>
+      </Route>
+    </Routes>
+  );
+};
+
+export default AdminRoutes;

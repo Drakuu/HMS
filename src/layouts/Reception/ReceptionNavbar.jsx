@@ -3,7 +3,7 @@ import { LogOut, Menu, } from "lucide-react";
 import logo from "../../assets/landing-page/logo.png";
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from "framer-motion";
-import AnimatedHeading from "./AnimationHeading"
+import AnimatedHeading from "../AnimationHeading"
 export default function ReceptionNavbar({ toggleSidebar }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const navigate = useNavigate();
