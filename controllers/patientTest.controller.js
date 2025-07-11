@@ -391,10 +391,108 @@ const restorePatientTest = async (req, res) => {
     }
 };
 
+const submitTestResults = async (req, res) => {
+    try {
+        const { patientTestId, testId } = req.params;
+        const { results, performedBy, notes } = req.body;
+
+        // 1. Find the test order
+        const testOrder = await hospitalModel.PatientTest.findOne({
+            _id: new mongoose.Types.ObjectId(patientTestId),
+            'selectedTests._id': new mongoose.Types.ObjectId(testId)
+        });
+
+        console.log('Querying for:', {
+            patientTestId: new mongoose.Types.ObjectId(patientTestId),
+            testId: new mongoose.Types.ObjectId(testId)
+        });
+
+
+        if (!testOrder) {
+            return res.status(404).json({
+                success: false,
+                message: 'Test order not found'
+            });
+        }
+
+        const testToUpdate = testOrder.selectedTests.id(testId);
+
+       // 2. Validate and process results - only for submitted fields
+        const validatedResults = [];
+        const missingFields = [];
+        
+        // Process submitted results
+        results.forEach(result => {
+            const field = testToUpdate.testDetails.fields.find(f => f.name === result.fieldName);
+            if (field) {
+                validatedResults.push({
+                    fieldName: field.name,
+                    value: result.value,
+                    unit: field.unit,
+                    normalRange: field.normalRange,
+                    isNormal: checkIfNormal(
+                        result.value,
+                        field.normalRange,
+                        testOrder.patient_Detail.patient_Gender
+                    ),
+                    reportedAt: new Date()
+                });
+            }
+        });
+
+
+         // 3. Update test with results
+        testToUpdate.results = validatedResults;
+        testToUpdate.status = 'completed';
+        testToUpdate.resultDate = new Date();
+        testToUpdate.notes = notes || testToUpdate.notes;
+
+        testToUpdate.statusHistory.push({
+            status: 'completed',
+            changedAt: new Date(),
+            changedBy: performedBy,
+            notes: 'Results submitted'
+        });
+
+        await testOrder.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Test results submitted successfully',
+           data: {
+                patientTestId,
+                testId,
+                submittedFields: validatedResults.map(r => r.fieldName),
+                status: 'completed'
+            }
+        });
+
+    } catch (error) {
+         console.error('Error submitting results:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error submitting test results',
+            error: error.message
+        });
+    }
+};
+
+function checkIfNormal(value, normalRange, gender) {
+    try {
+        const numericValue = parseFloat(value);
+        const range = normalRange[gender.toLowerCase()] || normalRange;
+        return numericValue >= range.min && numericValue <= range.max;
+    } catch (e) {
+        console.error('Error checking normal range:', e);
+        return false; // Or handle differently based on your requirements
+    }
+}
+
 module.exports = {
     createPatientTest,
     getAllPatientTests,
     getPatientTestById,
     restorePatientTest,
     softDeletePatientTest,
+    submitTestResults,
 };

@@ -1,15 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const createTest  = require('../controllers/index.controller');
+const controller = require('../controllers/index.controller');
 
-// POST: Create a new test
-router.post('/createtest', createTest.testManagement.createTest);
+router.post('/createtest', controller.testManagement.createTest);
 
-router.get('/getAlltest',createTest.testManagement.getTests )
+router.get('/getAlltest', controller.testManagement.getTests);
 
-router.get('/gettestbyId/:id',createTest.testManagement.getTestById )
+router.get('/gettestbyId/:id', controller.testManagement.getTestById);
 
-router.put('/updateTest/:id',createTest.testManagement.updateTest )
+router.put('/updateTest/:id', controller.testManagement.updateTest);
 
+router.delete('/deleteTest/:id', controller.testManagement.deleteTest);
+
+router.patch('/recoverTest/:id', controller.testManagement.recoverTest);
 
 module.exports = router;
