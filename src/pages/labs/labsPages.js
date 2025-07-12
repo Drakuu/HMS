@@ -1,5 +1,6 @@
 // patient managnemnt pages
-import  PatientManagment from './patientManagment/AddlabPatient';
+import  AddPatienttest from './patientManagment/AddPatienttest';
+import PatientTests from './patientManagment/PatientTests'
 
 // dashboard pages
 import DashboardPannel from './dashboard/DashboardPannel';
@@ -8,7 +9,8 @@ import DashboardPannel from './dashboard/DashboardPannel';
 import AddTest from './testManagment/LabTestForm';
 
 export {
-    PatientManagment ,
+    AddPatienttest ,
+    PatientTests,
     DashboardPannel,
     AddTest,
 }

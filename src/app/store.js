@@ -11,6 +11,7 @@ import WardReducer from  "../features/ward/Wardslice";
 import InventoryReducer from "../features/inventory/InventorySlice";
 import MedicineReducer from "../features/medicine/MedicineSlice"
 import authReducer from '../features/auth/authSlice';
+import patientTestReducer from "../features/patienttestSlice/labPatientTestSlice"
 
 const store = configureStore({
   reducer: {
@@ -27,6 +28,7 @@ const store = configureStore({
     ward:WardReducer,
     inventory : InventoryReducer,
     medicine : MedicineReducer ,
+    patientTest : patientTestReducer ,
     
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware(),

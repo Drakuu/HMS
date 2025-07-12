@@ -1,5 +1,6 @@
 import {
-  PatientManagment,
+  AddPatienttest,
+  PatientTests,
   DashboardPannel,
   AddTest,
 } from '../pages/labs/labsPages'
@@ -11,11 +12,12 @@ const LabRoutes = () => {
   return (
     <Routes>
       <Route element={<ProtectedRoute allowedRoles={['Lab']} />}>
-        <Route element={<DynamicLayout />}> {/* Uncomment this */}
+        <Route element={<DynamicLayout />}> 
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="test-public" element={<div>Public Test</div>} />
-          <Route path="dashboard" element={<DashboardPannel />} /> {/* Remove manual DynamicLayout wrapping */}
-          <Route path="add-patient" element={<PatientManagment />} />
+
+          <Route path="dashboard" element={<DashboardPannel />} /> 
+          <Route path="add-patient" element={<AddPatienttest />} />
+          <Route path="patients-test" element={<PatientTests />} />
           <Route path="test" element={<AddTest />} />
         </Route>
       </Route>

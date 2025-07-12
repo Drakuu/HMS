@@ -7,7 +7,7 @@ import Signup from "./pages/auth/Signup";
 import Landing_Page from "./pages/landing-page/Index";
 import LabRoutes from './routes/LabRoutes'
 import Unauthorized from "./pages/auth/Unauthorized"
-
+import Profiles from "./pages/auth/ProfileModel"
 
 const App = () => {
   return (
@@ -16,6 +16,7 @@ const App = () => {
         {/* Public routes */}
         <Route path="/" element={<Landing_Page />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/profiles" element={<Profiles />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 

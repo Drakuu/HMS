@@ -227,7 +227,7 @@ const NewOpd = ({ mode = "create" }) => {
                 toast.success("Patient updated successfully!");
             }
             resetForm();
-            navigate('/OPD/manage');
+            navigate('/receptionist/OPD/manage');
         } catch (err) {
             console.error("Submission error:", err);
             toast.error(

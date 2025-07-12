@@ -30,7 +30,7 @@ const Header = () => {
         </nav>
 
         <div className="hidden md:flex items-center space-x-4">
-          <button onClick={() => navigate("/login")} className="hover:text-primary-300 border rounded-md border-primary-500 transition-colors py-1.5 px-2.5 font-medium">Login</button>
+          <button onClick={() => navigate("/profiles")} className="hover:text-primary-300 border rounded-md border-primary-500 transition-colors py-1.5 px-2.5 font-medium">Login</button>
           <button onClick={() => navigate("/signup")} 
            className="rounded-md transition-colors py-1.5 px-2.5 bg-primary-500 hover:bg-primary-600 font-medium">Sign Up</button>
         </div>
@@ -51,7 +51,7 @@ const Header = () => {
             <a href="#contact" className="hover:text-primary-300 transition-colors" onClick={toggleMenu}>Contact</a>
             <div className="pt-4 flex flex-col space-y-2">
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/profiles")}
                 className="hover:text-primary-300  border border-primary-500 rounded-md py-1 transition-colors">Login</button>
               <button  onClick={() => navigate("/signup")} className="rounded-md transition-colors py-1 bg-primary-500 hover:bg-primary-600 font-medium">Sign Up</button>
 
