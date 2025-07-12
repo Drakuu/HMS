@@ -281,7 +281,7 @@ const OTTable = ({
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <div className="flex justify-end space-x-2">
                                 <button
-                                  onClick={() => navigate(`/OTPatientDetails/${item.patient_MRNo}`)}
+                                  onClick={() => navigate(`/receptionist/OTPatientDetails/${item.patient_MRNo}`)}
                                   className="text-yellow-600 p-1 rounded-md border border-yellow-300 hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200"
                                   title="View details"
                                   aria-label="View details"

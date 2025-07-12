@@ -305,7 +305,7 @@ useEffect(() => {
                           <AiOutlineEye className="h-5 w-5" />
                         </button>
                         <button
-                           onClick={() => navigate(`/opd/edit/${patient.patient_MRNo}`)}
+                           onClick={() => navigate(`/receptionist/opd/edit/${patient.patient_MRNo}`)}
                           className="text-yellow-600 border border-yellow-200 hover:text-yellow-900 p-1 rounded-md hover:bg-yellow-50"
                           aria-label={`Edit ${patient.patient_Name}`}
                         >

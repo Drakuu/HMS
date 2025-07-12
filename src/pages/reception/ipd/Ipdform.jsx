@@ -385,7 +385,7 @@ const IpdForm = () => {
 
         // Navigate after short delay
         setTimeout(() => {
-          navigate("/ipd/Admitted");
+          navigate("/receptionist/ipd/Admitted");
         }, 1000);
       } else {
         toast.error(result.payload?.message || "Admission failed. Please try again.");

@@ -77,7 +77,7 @@ const NewOpd = ({ mode = "create" }) => {
                 .catch((err) => {
                     console.error("Error fetching patient:", err);
                     toast.error("Failed to load patient data");
-                    navigate("/OPD/manage");
+                    navigate("/receptionist/OPD/manage");
                 })
                 .finally(() => setIsLoading(false));
         }
@@ -505,7 +505,7 @@ const NewOpd = ({ mode = "create" }) => {
         <div className="flex justify-between pt-4 border-t border-gray-200">
             <Button
                 variant="secondary"
-                onClick={() => navigate('/OPD/manage')}
+                onClick={() => navigate('/receptionist/OPD/manage')}
             >
                 Cancel
             </Button>

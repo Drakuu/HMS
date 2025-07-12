@@ -46,7 +46,7 @@ const DeletedAppointmentsPage = () => {
         {/* Header Section */}
         <div className="mb-8">
           <button
-            onClick={() => navigate('/appointment/patient-appointment')}
+            onClick={() => navigate('/receptionist/appointment/patient-appointment')}
             className="flex items-center text-primary-600 hover:text-primary-800 mb-4 transition-colors hover:underline"
           >
             <FiArrowLeft className="mr-2" />

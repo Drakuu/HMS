@@ -60,7 +60,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
     : [];
 
   const handleAddDoctor = () => {
-    navigate('/add-doctor');
+    navigate('/receptionist/add-doctor');
   };
 
   const departmentOptions = [...new Set(doctors?.map(doc => doc.doctor_Department).filter(Boolean))];
@@ -256,14 +256,14 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         setViewLoading(doc._id);
-                        navigate(`/doctor-details/${doc._id}`);
+                        navigate(`/receptionist/doctor-details/${doc._id}`);
                       }
                     }}
                       onClick={(e) => {
                         // Only navigate if the click wasn't on a button
                         if (!e.target.closest('button')) {
                           setViewLoading(doc._id);
-                          navigate(`/doctor-details/${doc._id}`);
+                          navigate(`/receptionist/doctor-details/${doc._id}`);
                         }
                       }}
                     >
@@ -316,7 +316,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                           <button
                             onClick={() => {
                               //  e.stopPropagation(); 
-                              navigate(`/edit-doctor/${doc._id}`)
+                              navigate(`/receptionist/edit-doctor/${doc._id}`)
                             }}
                             className="text-primary-600 p-1 rounded-md border border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors duration-200"
                             title="Edit doctor"

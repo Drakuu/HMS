@@ -285,7 +285,7 @@ const DoctorForm = ({ mode = 'create' }) => {
         toast.success("Doctor created successfully!");
         resetLocalForm();
       }
-      navigate('/doctors');
+      navigate('/receptionist/doctors');
     } catch (err) {
       if (err.statusCode === 409) {
         toast.error("This email is already registered to another doctor");

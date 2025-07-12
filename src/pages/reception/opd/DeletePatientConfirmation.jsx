@@ -15,7 +15,7 @@ const DeletePatientConfirmation = ({ patient, onClose }) => {
       // Close the modal first
       onClose();
       // Then navigate
-      navigate('/OPD/manage');
+      navigate('/receptionist/OPD/manage');
     } catch (err) {
       console.error('Failed to delete patient:', err);
       // Don't close on error

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FormSection, FormGrid } from '../../../components/common/FormSection';
 import { InputField, TextAreaField, RadioGroup } from '../../../components/common/FormFields'
 import { Button, ButtonGroup } from './../../../components/common/Buttons'
-import { AiOutlinePrinter, AiOutlineFileText, AiOutlineSave, } from "react-icons/ai";
+import { AiOutlinePrinter, AiOutlineSave, } from "react-icons/ai";
 
 const AddTest = ({ mode = "create" }) => {
     const [formData, setFormData] = useState({

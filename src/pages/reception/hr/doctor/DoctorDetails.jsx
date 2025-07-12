@@ -60,7 +60,7 @@ console.log(currentDoctor)
     <div className="container mx-auto p-4 border border-primary-600 rounded-lg ">
       <div className="flex items-center text-sm text-gray-500 mb-4">
         <button
-          onClick={() => navigate('/doctors')}
+          onClick={() => navigate('/receptionist/doctors')}
           className="text-primary-600 hover:text-primary-800"
         >
           Doctors

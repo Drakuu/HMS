@@ -206,7 +206,7 @@ const AdmittedPatients = () => {
   };
 
   const handleView = (mrno) => {
-    navigate(`/patient-details/${mrno}`);
+    navigate(`/receptionist/patient-details/${mrno}`);
   };
 
   const handleDateRangeChange = (type, value) => {

@@ -292,7 +292,7 @@ const PatientAppointment = () => {
                   </button>
                 ))}
                 <button
-                  onClick={() => navigate('/appointment/patient-appointment/deleted')}
+                  onClick={() => navigate('/receptionist/appointment/patient-appointment/deleted')}
                   className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 
                             text-sm font-medium flex items-center gap-2"
                 >
