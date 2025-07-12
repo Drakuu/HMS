@@ -140,11 +140,11 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         ],
       },
       {
-        name: 'Lab Tests',
+        name: 'Test Managment',
         icon: <LabIcon className="text-lg" />,
         links: [
-          { href: 'tests', label: 'Test Management' },
-          { href: 'results', label: 'Test Results' },
+          { href: 'lab-test', label: 'Add Test' },
+          { href: 'all-tests', label: 'All Test' },
         ],
       },
     ],
