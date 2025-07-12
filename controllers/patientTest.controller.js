@@ -20,7 +20,6 @@ const createPatientTest = async (req, res) => {
         } = req.body;
 
         // Validate required fields
-        // Validate required fields
         if ((!patient_MRNo && !isExternalPatient) || !selectedTests || !selectedTests.length) {
             return res.status(400).json({
                 success: false,
@@ -133,15 +132,9 @@ const createPatientTest = async (req, res) => {
                         testName: testDoc.testName,
                         testCode: testDoc.testCode,
                         testPrice: testDoc.testPrice,
-                        fields: testDoc.fields.map(field => ({
-                            name: field.name,
-                            unit: field.unit,
-                            normalRange: field.normalRange
-                        }))
                     },
-                    results: [],
-                    status: 'pending',
-                    notes: test.notes || '',
+                     sampleStatus: 'pending',
+                    reportStatus: 'not_started',
                     testDate: new Date(),
                     statusHistory: [{
                         status: 'registered',
@@ -184,6 +177,7 @@ const createPatientTest = async (req, res) => {
             message: 'Lab test order created successfully',
             data: {
                 patientTestId: patientTest._id,
+                 tokenNumber,
                 patient: {
                     mrNo: patientTest.patient_Detail.patient_MRNo,
                     name: patientTest.patient_Detail.patient_Name,
@@ -191,19 +185,12 @@ const createPatientTest = async (req, res) => {
                 },
                 tests: patientTest.selectedTests.map(t => ({
                     testId: t.test,
-                    testName: t.testName, // From the optimized storage
+                    testName: t.testName,
                     status: t.status,
                     lastStatusChange: t.statusHistory[0].changedAt
                 })),
-                billing: {
-                    totalAmount,
-                    discount,
-                    finalAmount
-                },
-                tokenNumber,
                 createdAt: patientTest.createdAt,
                 totalTests: patientTest.selectedTests.length,
-                tokenNumber,
                 status: 'created'
             }
         });
@@ -391,108 +378,11 @@ const restorePatientTest = async (req, res) => {
     }
 };
 
-const submitTestResults = async (req, res) => {
-    try {
-        const { patientTestId, testId } = req.params;
-        const { results, performedBy, notes } = req.body;
-
-        // 1. Find the test order
-        const testOrder = await hospitalModel.PatientTest.findOne({
-            _id: new mongoose.Types.ObjectId(patientTestId),
-            'selectedTests._id': new mongoose.Types.ObjectId(testId)
-        });
-
-        console.log('Querying for:', {
-            patientTestId: new mongoose.Types.ObjectId(patientTestId),
-            testId: new mongoose.Types.ObjectId(testId)
-        });
-
-
-        if (!testOrder) {
-            return res.status(404).json({
-                success: false,
-                message: 'Test order not found'
-            });
-        }
-
-        const testToUpdate = testOrder.selectedTests.id(testId);
-
-       // 2. Validate and process results - only for submitted fields
-        const validatedResults = [];
-        const missingFields = [];
-        
-        // Process submitted results
-        results.forEach(result => {
-            const field = testToUpdate.testDetails.fields.find(f => f.name === result.fieldName);
-            if (field) {
-                validatedResults.push({
-                    fieldName: field.name,
-                    value: result.value,
-                    unit: field.unit,
-                    normalRange: field.normalRange,
-                    isNormal: checkIfNormal(
-                        result.value,
-                        field.normalRange,
-                        testOrder.patient_Detail.patient_Gender
-                    ),
-                    reportedAt: new Date()
-                });
-            }
-        });
-
-
-         // 3. Update test with results
-        testToUpdate.results = validatedResults;
-        testToUpdate.status = 'completed';
-        testToUpdate.resultDate = new Date();
-        testToUpdate.notes = notes || testToUpdate.notes;
-
-        testToUpdate.statusHistory.push({
-            status: 'completed',
-            changedAt: new Date(),
-            changedBy: performedBy,
-            notes: 'Results submitted'
-        });
-
-        await testOrder.save();
-
-        return res.status(200).json({
-            success: true,
-            message: 'Test results submitted successfully',
-           data: {
-                patientTestId,
-                testId,
-                submittedFields: validatedResults.map(r => r.fieldName),
-                status: 'completed'
-            }
-        });
-
-    } catch (error) {
-         console.error('Error submitting results:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Error submitting test results',
-            error: error.message
-        });
-    }
-};
-
-function checkIfNormal(value, normalRange, gender) {
-    try {
-        const numericValue = parseFloat(value);
-        const range = normalRange[gender.toLowerCase()] || normalRange;
-        return numericValue >= range.min && numericValue <= range.max;
-    } catch (e) {
-        console.error('Error checking normal range:', e);
-        return false; // Or handle differently based on your requirements
-    }
-}
-
 module.exports = {
     createPatientTest,
     getAllPatientTests,
     getPatientTestById,
     restorePatientTest,
     softDeletePatientTest,
-    submitTestResults,
+   
 };

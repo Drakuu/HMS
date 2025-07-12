@@ -14,7 +14,7 @@ const ward=require('./ward.route')
 const medicine = require("./medicine.route")
 const testManagment = require('./testmanagement.route')
 const patientTest = require("./patientTest.route")
-
+const testResult = require("./testResult.route")
 
 router.use("/user", user);
 router.use("/doctor", doctor);
@@ -30,5 +30,6 @@ router.use("/ward",ward)
 router.use("/medicine",medicine)
 router.use("/testManagement",testManagment)
 router.use("/patientTest",patientTest)
+router.use("/testResult",testResult)
 
 module.exports = router;

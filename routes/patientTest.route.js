@@ -35,10 +35,5 @@ router.patch('/:id/restore',
     controller.patientTest.restorePatientTest
 );
 
-// Submit Test Results (corrected path)
-router.patch('/:patientTestId/tests/:testId/results', 
-    passport.authenticate("jwt", { session: false }),
-    controller.patientTest.submitTestResults
-);
 
 module.exports = router;

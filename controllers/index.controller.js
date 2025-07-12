@@ -13,9 +13,9 @@ const ward = require("./ward.controller")
 const medicine = require("./medicine.controller")
 const testManagement = require('./testmanagement.controller')
 const patientTest = require("./patientTest.controller")
+const testResult = require("./testResult.controller")
 
 const controller = {
-
   user,
   doctor,
   patient,
@@ -30,6 +30,7 @@ const controller = {
   medicine,
   testManagement,
   patientTest,
+  testResult,
 
 };
 
