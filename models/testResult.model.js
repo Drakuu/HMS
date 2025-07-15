@@ -11,6 +11,7 @@ const testResultSchema = new mongoose.Schema({
         ref: 'TestManagment',
         required: true
     },
+    
     patientGender: { type: String, enum: ['male', 'female', 'other'], required: true },
     results: [{
         fieldName: { type: String, required: true },

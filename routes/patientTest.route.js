@@ -22,6 +22,11 @@ router.get('/:id',
     // authMiddleware,
     controller.patientTest.getPatientTestById
 );
+// Get Patient Test by ID
+router.get('/mrno/:mrNo', 
+    // authMiddleware,
+    controller.patientTest.getPatientTestByMRNo
+);
 
 // Soft Delete Patient Test
 router.delete('/:id', 

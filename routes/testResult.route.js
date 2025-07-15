@@ -10,4 +10,16 @@ router.patch('/:patientTestId/tests/:testId/results',
     controller.testResult.submitTestResults
 );
 
+// Get all test results
+router.get('/', 
+    passport.authenticate("jwt", { session: false }),
+    controller.testResult.getAllTestResults
+);
+
+// Get patient by result ID
+router.get('/:resultId/patient', 
+    passport.authenticate("jwt", { session: false }),
+    controller.testResult.getPatientByResultId
+);
+
 module.exports = router;

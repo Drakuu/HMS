@@ -110,7 +110,7 @@ const login = async (req, res) => {
     }
 
     const user = await userModel.findOne({ user_Email });
-
+// console.log("thwe user", user)
     if (!user) {
       return res.status(404).json({
         success: false,

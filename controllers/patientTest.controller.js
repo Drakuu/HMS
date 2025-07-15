@@ -303,6 +303,39 @@ const getPatientTestById = async (req, res) => {
     }
 };
 
+const getPatientTestByMRNo = async (req, res) => {
+    try {
+        const { mrNo } = req.params;
+
+    
+ console.log("Looking for MR No:", `"${mrNo}"`);
+
+        const patientTest = await hospitalModel.PatientTest.findOne({
+            "patient_Detail.patient_MRNo": mrNo.trim()
+        }).lean();
+
+        if (!patientTest) {
+            return res.status(404).json({
+                success: false,
+                message: 'Patient test not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: patientTest
+        });
+
+    } catch (error) {
+        console.error('Error fetching patient test:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
+
 const softDeletePatientTest = async (req, res) => {
     try {
         const { id } = req.params;
@@ -384,5 +417,5 @@ module.exports = {
     getPatientTestById,
     restorePatientTest,
     softDeletePatientTest,
-   
+   getPatientTestByMRNo,
 };
