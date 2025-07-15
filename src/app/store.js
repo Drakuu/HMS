@@ -6,12 +6,14 @@ import ipdPatientReducer from '../features/ipdPatient/IpdPatientSlice';
 import staffReducer from "../features/staff/staffslice"
 import roomReducer from '../features/roomsManagment/RoomSlice';
 import departmentReducer from "../features/department/DepartmentSlice";
-import otReducer from  "../features/operationManagment/otSlice";
-import WardReducer from  "../features/ward/Wardslice";
+import otReducer from "../features/operationManagment/otSlice";
+import WardReducer from "../features/ward/Wardslice";
 import InventoryReducer from "../features/inventory/InventorySlice";
 import MedicineReducer from "../features/medicine/MedicineSlice"
 import authReducer from '../features/auth/authSlice';
-import patientTestReducer from "../features/patienttestSlice/labPatientTestSlice"
+import patientTestReducer from "../features/patienttestSlice/patientTestSlice"
+import testReducer from "../features/testManagment/testSlice";
+
 
 const store = configureStore({
   reducer: {
@@ -25,11 +27,12 @@ const store = configureStore({
     room: roomReducer,
     department: departmentReducer,
     ot: otReducer,
-    ward:WardReducer,
-    inventory : InventoryReducer,
-    medicine : MedicineReducer ,
-    patientTest : patientTestReducer ,
-    
+    ward: WardReducer,
+    inventory: InventoryReducer,
+    medicine: MedicineReducer,
+    patientTest: patientTestReducer,
+    labtest: testReducer,
+
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
 });

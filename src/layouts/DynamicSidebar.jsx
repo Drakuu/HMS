@@ -143,8 +143,40 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         name: 'Test Managment',
         icon: <LabIcon className="text-lg" />,
         links: [
-          { href: 'lab-test', label: 'Add Test' },
+          { href: 'add-test', label: 'Add Test' },
           { href: 'all-tests', label: 'All Test' },
+        ],
+      },
+      {
+        name: 'Patient Managment',
+        icon: <LabIcon className="text-lg" />,
+        links: [
+          { href: 'patient-test', label: 'Patients Test' },
+          { href: 'all-patients', label: 'All patients' },
+        ],
+      },
+      {
+        name: 'Billing Managment',
+        icon: <LabIcon className="text-lg" />,
+        links: [
+          { href: 'test-billing', label: 'Patients Bills' },
+          { href: 'all-bills', label: 'All bills' },
+        ],
+      },
+      {
+        name: 'Report Managment',
+        icon: <LabIcon className="text-lg" />,
+        links: [
+          { href: 'test-report', label: 'Patients Reports' },
+          { href: 'all-reports', label: 'All reports' },
+        ],
+      },
+      {
+        name: 'Sample Managment',
+        icon: <LabIcon className="text-lg" />,
+        links: [
+          { href: 'sample-collection', label: 'Patients Samples' },
+          { href: 'all-samples', label: 'All samples' },
         ],
       },
     ],
@@ -175,7 +207,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   };
 
   return (
-    <div className={`fixed lg:relative z-30 h-full w-64 bg-primary-500 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+    <div className={`fixed lg:relative z-30 h-full w-64 bg-primary-600 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
       {/* Sidebar Header */}
       <div className="p-4 border-b border-primary-600 flex items-center justify-center">
         <h1 className="text-xl py-1.5 font-semibold">Al-Shahbaz Hospital</h1>
@@ -188,8 +220,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
             {/* Main Menu Item */}
             <div
               className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${activeMenu === menu.name
-                ? 'bg-primary-600'
-                : 'hover:bg-primary-600'
+                ? 'bg-primary-700'
+                : 'hover:bg-primary-700'
                 }`}
               onClick={() => toggleMenu(menu.name)}
             >
@@ -228,8 +260,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
       </div>
 
       {/* User Info */}
-      <div className="p-4 border-t border-primary-600 text-center">
-        <p className="text-sm">Logged in as: {userRole}</p>
+      <div className="p-4 border-t border-primary-400 text-center">
+        <p className="text-lg font-medium tracking-wide">Logged in as: {userRole}</p>
       </div>
     </div>
   );

@@ -135,7 +135,7 @@ const testSlice = createSlice({
       })
       .addCase(getAllTests.fulfilled, (state, action) => {
         state.getAllLoading = false;
-        state.tests = action.payload;
+        state.tests = Array.isArray(action.payload) ? action.payload : action.payload.tests || [];
       })
       .addCase(getAllTests.rejected, (state, action) => {
         state.getAllLoading = false;

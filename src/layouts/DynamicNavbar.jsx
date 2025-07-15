@@ -52,7 +52,7 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
 
   return (
     <div className={`${config.color} border-b border-gray-200 shadow-sm`}>
-      <div className="px-4 sm:px-6 py-5 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between">
         {/* Left side - Menu button and logo */}
         <div className="flex items-center">
           <button
@@ -63,15 +63,15 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
             <Menu className="w-5 h-5" />
           </button>
 
-          <Link to={config.dashboardPath} className="group flex items-center">
+          <Link to={config.dashboardPath} className="group bg-primary-100 px-1.5 py-2.5 rounded-full flex items-center">
             <img
-              className="w-8 h-auto transition-transform group-hover:scale-105"
+              className="w-11 h-auto transition-transform group-hover:scale-110"
               src={logo}
               alt="Hospital Logo"
             />
-            <span className="ml-3 text-white font-semibold text-lg hidden md:block">
+            {/* <span className="ml-3 text-white font-semibold text-lg hidden md:block">
               Al-Shahbaz
-            </span>
+            </span> */}
           </Link>
         </div>
 

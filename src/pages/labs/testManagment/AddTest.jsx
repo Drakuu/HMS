@@ -240,7 +240,7 @@ const LabTestForm = ({ mode = "create" }) => {
         if (updateTest.fulfilled.match(resultAction)) {
           toast.success('Test updated successfully!');
           if (print) setTimeout(() => window.print(), 500);
-          else navigate('/all-tests');
+          else navigate('../all-tests');
         } else {
           const errorMsg = resultAction.payload || resultAction.error?.message || "Test update failed!";
           toast.error(errorMsg);
@@ -252,7 +252,7 @@ const LabTestForm = ({ mode = "create" }) => {
           toast.success("Test created successfully!");
           resetForm();
           if (print) setTimeout(() => window.print(), 500);
-          else navigate('/all-tests');
+          else navigate('../all-tests');
         } else {
           const errorMsg = resultAction.payload || resultAction.error?.message || "Test creation failed!";
           toast.error(errorMsg);
@@ -479,7 +479,7 @@ const LabTestForm = ({ mode = "create" }) => {
               <ButtonGroup>
                 <Button
                   variant="secondary"
-                  onClick={() => navigate('/all-tests')}
+                  onClick={() => navigate('../all-tests')}
                 >
                   Cancel
                 </Button>

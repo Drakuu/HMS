@@ -6,6 +6,9 @@ import {
   AllTests,
   EditTest,
   TestsDetail,
+  SampleCollection,
+  TestReportPage,
+  BillingMain,
 
 } from '../pages/labs/labsPages'
 import { Navigate, Route, Routes } from 'react-router-dom';
@@ -22,15 +25,23 @@ const LabRoutes = () => {
           <Route path="dashboard" element={<DashboardPannel />} />
 
           {/* patient test routes */}
-          <Route path="add-patient" element={<AddPatienttest />} />
-          <Route path="patients-test" element={<PatientTests />} />
+          <Route path="patient-test" element={<AddPatienttest />} />
+          <Route path="all-patients" element={<PatientTests />} />
 
           {/* test managemnt routes */}
-          <Route path="lab-test" element={<><AddTest /></>} />
-          <Route path="test/edit/:id" element={<EditTest mode="edit" />} />
-          <Route path="test/:id" element={<TestsDetail />} />
+          <Route path="add-test" element={<AddTest />} />
           <Route path="all-tests" element={<AllTests />} />
+          <Route path="test/:id" element={<TestsDetail />} />
+          <Route path="test/edit/:id" element={<EditTest mode="edit" />} />
 
+          {/* test samples */}
+          <Route path='sample-collection' element={<SampleCollection />} />
+
+          {/* test reports */}
+          <Route path='test-report' element={<TestReportPage />} />
+
+          {/* test billing */}
+          <Route path='test-billing' element={<BillingMain />} />
 
         </Route>
       </Route>

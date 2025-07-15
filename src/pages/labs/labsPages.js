@@ -1,5 +1,5 @@
 // patient managnemnt pages
-import  AddPatienttest from './patientManagment/AddPatienttest';
+import AddPatienttest from './patientManagment/AddPatienttest';
 import PatientTests from './patientManagment/PatientTests'
 
 // dashboard pages
@@ -11,12 +11,25 @@ import AllTests from "./testManagment/AllTests"
 import TestsDetail from "./testManagment/TestsDetail"
 import EditTest from "./testManagment/AddTest"
 
+// Test Sample
+import SampleCollection from './SampleCollection/SampleCollection';
+
+//TestReport Page
+import TestReportPage from './testReport/TestReportPage';
+
+// Test Billing
+import BillingMain from './testBilling/BillingMain';
+
 export {
-    AddPatienttest ,
+    AddPatienttest,
     PatientTests,
     DashboardPannel,
     AddTest,
     AllTests,
     TestsDetail,
-EditTest,
+    EditTest,
+    SampleCollection,
+    TestReportPage,
+    BillingMain,
+
 }
