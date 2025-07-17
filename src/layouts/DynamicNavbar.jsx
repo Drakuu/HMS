@@ -41,7 +41,7 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
   };
 
   const config = roleConfig[currentUser?.user_Access?.toLowerCase()] || roleConfig.receptionist;
-  console.log(config)
+  // console.log(config)
 
   // User initials for avatar
   const getUserInitials = () => {

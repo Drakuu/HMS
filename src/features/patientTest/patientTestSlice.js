@@ -39,8 +39,7 @@ export const fetchPatientByMRNo = createAsyncThunk(
   "patientTest/fetchPatientByMRNo",
   async (mrNo, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_URL}/patientTest/patient-test/${mrNo}`);
-      console.log("📄 Patient fetched by MRNo:", response.data?.data);
+      const response = await axios.get(`${API_URL}/patientTest/mrno/${mrNo}`);
       return response.data.data;
     } catch (error) {
       const message = error.response?.data?.message || error.message || "Failed to fetch patient";
@@ -49,16 +48,59 @@ export const fetchPatientByMRNo = createAsyncThunk(
   }
 );
 
+export const fetchPatientTestAll = createAsyncThunk(
+  "patientTest/fetchPatientTestAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/patientTest`, {
+        headers: getAuthHeaders()
+      });
+      console.log("📄 All patient tests fetched:", response.data.data.patientTests);
+      return response.data.data.patientTests;
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || "Failed to fetch all patient tests";
+      return rejectWithValue({ message });
+    }
+  }
+);
+
+export const fetchPatientTestById = createAsyncThunk(
+  "patientTest/fetchPatientTestById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/patientTest/${id}`, {
+        headers: getAuthHeaders()
+      });
+      console.log("📄 Patient Test by ID fetched:", response.data?.data);
+      return response.data.data;
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || "Failed to fetch patient test by ID";
+      return rejectWithValue({ message });
+    }
+  }
+);
+
 // 🔧 Initial State
 const initialState = {
   patient: null,
+  allPatientTests: [],
+  allPatients: [],
+  tests: [],
   status: {
     submit: 'idle',
     fetch: 'idle',
+    fetchAll: 'idle',
+    fetchById: 'idle',
+    submit: 'idle',
+    fetch: 'idle',
+    fetchTests: 'idle',
+    // update: 'idle', 
   },
+  patientTestById: null,
   isLoading: false,
   isError: false,
   error: null,
+
 };
 
 // 🧠 Slice
@@ -112,7 +154,42 @@ const patienttestSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.error = action.payload.message || 'Failed to fetch patient';
-      });
+      })
+
+      .addCase(fetchPatientTestById.pending, (state) => {
+        state.status.fetchById = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+        state.error = null;
+      })
+      .addCase(fetchPatientTestById.fulfilled, (state, action) => {
+        state.status.fetchById = 'succeeded';
+        state.isLoading = false;
+        state.patientTestById = action.payload;
+      })
+      .addCase(fetchPatientTestById.rejected, (state, action) => {
+        state.status.fetchById = 'failed';
+        state.isLoading = false;
+        state.isError = true;
+        state.error = action.payload.message || 'Failed to fetch patient test by ID';
+      })
+      .addCase(fetchPatientTestAll.pending, (state) => {
+        state.status.fetchAll = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+        state.error = null;
+      })
+      .addCase(fetchPatientTestAll.fulfilled, (state, action) => {
+        state.status.fetchAll = 'succeeded';
+        state.isLoading = false;
+        state.allPatientTests = action.payload;
+      })
+      .addCase(fetchPatientTestAll.rejected, (state, action) => {
+        state.status.fetchAll = 'failed';
+        state.isLoading = false;
+        state.isError = true;
+        state.error = action.payload.message || 'Failed to fetch all patient tests';
+      })
   }
 });
 

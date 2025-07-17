@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
-import { SubmitPatientTest } from "../../../features/patienttestSlice/patientTestSlice";
 import { InputField } from "../../../components/common/FormFields";
 import { Button, ButtonGroup } from "../../../components/common/Buttons";
 import { FormSection } from "../../../components/common/FormSection";
@@ -8,8 +7,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ReactDOMServer from "react-dom/server";
 import PrintA4 from "./PrintPatientTest";
-import { fetchPatientByMRNo, resetPatientTestStatus } from "../../../features/patienttestSlice/patientTestSlice";
-
+import { fetchPatientByMRNo, resetPatientTestStatus , SubmitPatientTest } from "../../../features/patientTest/patientTestSlice";
+import { getAllTests } from "../../../features/testManagment/testSlice";
 
 
 const AddlabPatient = () => {
@@ -30,27 +29,26 @@ const AddlabPatient = () => {
     MaritalStatus: '',
   });
 
-  const [availableTests, setAvailableTests] = useState([]);
-  const [selectedTestId, setSelectedTestId] = useState("");
-  const [testRows, setTestRows] = useState([]);
-  const [submissionResult, setSubmissionResult] = useState(null);
-  const [dob, setDob] = useState(null);
+ const [selectedTestId, setSelectedTestId] = useState("");
+const [testRows, setTestRows] = useState([]);
+const [submissionResult, setSubmissionResult] = useState(null);
+const [dob, setDob] = useState(null);
 
-  useEffect(() => {
-    const dummyTests = [
-      {
-        _id: "68722ad4903f27385b85a629",
-        testName: "Complete Blood Count",
-        testPrice: 1200
-      },
-    ];
-    setAvailableTests(dummyTests);
-  }, []);
-  useEffect(() => {
-    return () => {
-      dispatch(resetPatientTestStatus());
-    };
-  }, [dispatch]);
+const testList = useSelector((state) => state.patientTest.tests);
+//console.log("✅ Redux test list:", testList);
+
+useEffect(() => {
+  dispatch(getAllTests());
+}, [dispatch]);
+
+useEffect(() => {
+  return () => {
+    dispatch(resetPatientTestStatus());
+  };
+}, [dispatch]);
+
+//console.log("Fetched test list: ", testList);
+
 
 
   const handlePatientChange = (e) => {
@@ -101,7 +99,8 @@ const AddlabPatient = () => {
   const handleTestAdd = () => {
     if (!selectedTestId) return;
 
-    const selected = availableTests.find(t => t._id === selectedTestId);
+    const selected = testList.find(t => t._id === selectedTestId);
+
     if (!selected) return;
 
     setTestRows(prev => [
@@ -183,13 +182,18 @@ const AddlabPatient = () => {
       setIsPrinting(shouldPrint);
       const result = await dispatch(SubmitPatientTest(payload)).unwrap();
       //console.log("✅ Submission result:", result);
-
+      //console.log("🧾 Print MR No:", printData.patient.patient_MRNo);
       setSubmissionResult(result?.data);
       if (shouldPrint && result) {
+        
+
         const printData = {
+          
           tokenNumber: result?.tokenNumber,
+          
           patient: {
-            patient_MRNo: result?.patient?.mrNo || patient.MRNo,
+            patient_MRNo: result?.patient?.patient_MRNo || result?.patient?.mrNo || patient.MRNo,
+
             Name: patient.Name,
             CNIC: patient.CNIC,
             ContactNo: patient.ContactNo,
@@ -207,6 +211,8 @@ const AddlabPatient = () => {
           reportDate: testRows[0]?.reportDate || new Date().toLocaleDateString(),
           referredBy: patient.ReferredBy,
         };
+        //console.log("🧾 Print MR No:", printData.patient.patient_MRNo);
+
 
         await handlePrintA4(printData);
       }
@@ -339,23 +345,10 @@ const AddlabPatient = () => {
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Trans">Trans</option>
+                <option value="Trans">Others</option>
               </select>
               <div className="grid grid-cols-2 gap-4 col-span-2">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                  <DatePicker
-                    selected={dob}
-                    onChange={handleDobChange}
-                    dateFormat="yyyy-MM-dd"
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    icon="calendar"
-                    placeholderText="Select DOB"
-                    className=" border rounded px-3 py-2 h-[42px]"
-                  />
-                </div>
+
 
                 <InputField
                   name="Age"
@@ -379,13 +372,12 @@ const AddlabPatient = () => {
                 <option value="">Select Marital Status</option>
                 <option value="Married">Married</option>
                 <option value="Unmarried">Unmarried</option>
-                <option value="Divorced">Divorced</option>
               </select>
               <select name="Gender" value={patient.Gender} onChange={handlePatientChange} className="border h-[42px] mt-6 p-2 rounded">
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
-                <option value="Trans">Trans</option>
+                <option value="Trans">Others</option>
               </select>
               <InputField name="ContactNo" label="Contact No" placeholder="Enter Contact No" icon="phone" value={patient.ContactNo} onChange={handlePatientChange} />
               <InputField name="ReferredBy" label="Referred By" icon="userMd" placeholder="Enter refferance" value={patient.ReferredBy} onChange={handlePatientChange} />
@@ -422,17 +414,23 @@ const AddlabPatient = () => {
       <FormSection title="Test Information" bgColor="bg-green-700 text-white">
         <div className="flex gap-4 mb-4">
           <select
-            value={selectedTestId}
-            onChange={e => setSelectedTestId(e.target.value)}
-            className="border p-2 rounded w-1/2"
-          >
-            <option value="">Select a Test</option>
-            {availableTests.map(o => (
-              <option key={o._id} value={o._id}>
-                {o.testName} - Rs {o.testPrice}
-              </option>
-            ))}
-          </select>
+  value={selectedTestId}
+  onChange={(e) => setSelectedTestId(e.target.value)}
+  className="border p-2 rounded w-1/2"
+>
+  <option value="">Select a Test</option>
+
+  {Array.isArray(testList) && testList.length > 0 ? (
+    testList.map((o) => (
+      <option key={o._id} value={o._id}>
+        {o.testName} - Rs {o.testPrice}
+      </option>
+    ))
+  ) : (
+    <option disabled>No tests available</option>
+  )}
+</select>
+
           <Button onClick={handleTestAdd} type="button" variant="primary">Add</Button>
         </div>
 
@@ -475,7 +473,7 @@ const AddlabPatient = () => {
           ) : (
             <div className="text-green-700 font-semibold">
               <p>Submission Successful!</p>
-              <p>MR No: <strong>{submissionResult?.patient?.patient_MRNo}</strong></p>
+              <p>MR No: <strong>{submissionResult?.patient?.MRNo}</strong></p>
               <p>Token No: <strong>{submissionResult?.tokenNumber}</strong></p>
             </div>
           )}

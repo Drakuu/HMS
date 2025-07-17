@@ -1,14 +1,4 @@
-import {
-  AddPatienttest,
-  PatientTests,
-  DashboardPannel,
-  AddTest,
-  AllTests,
-  EditTest,
-  TestsDetail,
-  SampleCollection,
-  TestReportPage,
-  BillingMain,
+import { AddPatienttest, PatientTests, DashboardPannel, AddTest, AllTests, EditTest, TestsDetail, SampleCollection, TestReportPage, BillingMain, UpdateReport,
 
 } from '../pages/labs/labsPages'
 import { Navigate, Route, Routes } from 'react-router-dom';
@@ -39,7 +29,7 @@ const LabRoutes = () => {
 
           {/* test reports */}
           <Route path='test-report' element={<TestReportPage />} />
-
+            <Route path='update-report/:id' element={<UpdateReport />} />     
           {/* test billing */}
           <Route path='test-billing' element={<BillingMain />} />
 

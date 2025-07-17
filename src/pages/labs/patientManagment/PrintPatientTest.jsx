@@ -122,16 +122,15 @@ const PrintA4 = ({ formData }) => {
         {/* Patient & Lab Info */}
         <div className="details-row">
           <div className="details-block">
-            <p><strong>MR #:</strong> {safe(formData.patient?.patient_MRNo)}</p>
+            <p><strong>MR-NO #:</strong> {safe(formData.patient?.name)}</p>
             <p><strong>Patient Name:</strong> {safe(formData.patient?.Name)}</p>
             <p><strong>Gender:</strong> {safe(formData.patient?.Gender)}</p>
             <p><strong>Age:</strong> {safe(formData.patient?.Age)}</p>
             <p><strong>Contact #:</strong> {safe(formData.patient?.ContactNo)}</p>
           </div>
           <div className="details-block">
-            <p><strong>Receipt No:</strong> {safe(formData.receiptNo)}</p>
             <p><strong>Sample Date:</strong> {safe(formData.sampleDate)}</p>
-            <p><strong>Print Date:</strong> {safe(formData.reportDate || currentDate)}</p>
+            <p><strong>Report Date Date:</strong> {safe(formData.reportDate || currentDate)}</p>
             <p><strong>Print Time:</strong> {currentTime}</p>
             <p><strong>Referred By:</strong> {safe(formData.referredBy)}</p>
           </div>

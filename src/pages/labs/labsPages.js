@@ -16,6 +16,8 @@ import SampleCollection from './SampleCollection/SampleCollection';
 
 //TestReport Page
 import TestReportPage from './testReport/TestReportPage';
+import UpdateReport from './testReport/updateReport';
+
 
 // Test Billing
 import BillingMain from './testBilling/BillingMain';
@@ -31,5 +33,5 @@ export {
     SampleCollection,
     TestReportPage,
     BillingMain,
-
+    UpdateReport,
 }

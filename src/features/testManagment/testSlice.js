@@ -2,9 +2,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Set base URL for Axios
-// const API_URL = 'http://localhost:5000/testManagement'; // Update to your backend URL
-const API_URL = import.meta.env.VITE_REACT_APP_API_URL; // Update to your backend URL
+const API_URL = import.meta.env.VITE_REACT_APP_API_URL; 
 
 
 const getAuthHeaders = () => {

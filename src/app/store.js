@@ -11,9 +11,9 @@ import WardReducer from "../features/ward/Wardslice";
 import InventoryReducer from "../features/inventory/InventorySlice";
 import MedicineReducer from "../features/medicine/MedicineSlice"
 import authReducer from '../features/auth/authSlice';
-import patientTestReducer from "../features/patienttestSlice/patientTestSlice"
+import patientTestReducer from "../features/patientTest/patientTestSlice"
 import testReducer from "../features/testManagment/testSlice";
-
+import testResultReducer from "../features/testResult/TestResultSlice"
 
 const store = configureStore({
   reducer: {
@@ -32,7 +32,7 @@ const store = configureStore({
     medicine: MedicineReducer,
     patientTest: patientTestReducer,
     labtest: testReducer,
-
+   testResult : testResultReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
 });
