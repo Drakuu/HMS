@@ -26,7 +26,7 @@ const testResultSchema = new mongoose.Schema({
     }],
     status: {
         type: String,
-        enum: ['draft', 'completed', 'verified', 'reported'],
+        enum: ['pending', 'completed', 'processing', 'verified', 'cancelled', 'draft'],
         default: 'draft'
     },
     performedBy: { type: String },

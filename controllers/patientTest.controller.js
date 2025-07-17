@@ -133,7 +133,7 @@ const createPatientTest = async (req, res) => {
                         testCode: testDoc.testCode,
                         testPrice: testDoc.testPrice,
                     },
-                     sampleStatus: 'pending',
+                    sampleStatus: 'pending',
                     reportStatus: 'not_started',
                     testDate: new Date(),
                     statusHistory: [{
@@ -177,7 +177,7 @@ const createPatientTest = async (req, res) => {
             message: 'Lab test order created successfully',
             data: {
                 patientTestId: patientTest._id,
-                 tokenNumber,
+                tokenNumber,
                 patient: {
                     mrNo: patientTest.patient_Detail.patient_MRNo,
                     name: patientTest.patient_Detail.patient_Name,
@@ -287,10 +287,18 @@ const getPatientTestById = async (req, res) => {
                 message: 'Patient test not found'
             });
         }
+        const testIds = patientTest.selectedTests?.map(t => t.test);
+
+        const testDefinitions = await hospitalModel.TestManagment.find({
+            _id: { $in: testIds }
+        });
 
         return res.status(200).json({
             success: true,
-            data: patientTest
+            data: {
+                patientTest,
+                testDefinitions
+            }
         });
 
     } catch (error) {
@@ -306,9 +314,7 @@ const getPatientTestById = async (req, res) => {
 const getPatientTestByMRNo = async (req, res) => {
     try {
         const { mrNo } = req.params;
-
-    
- console.log("Looking for MR No:", `"${mrNo}"`);
+        console.log("Looking for MR No:", `"${mrNo}"`);
 
         const patientTest = await hospitalModel.PatientTest.findOne({
             "patient_Detail.patient_MRNo": mrNo.trim()
@@ -320,7 +326,7 @@ const getPatientTestByMRNo = async (req, res) => {
                 message: 'Patient test not found'
             });
         }
-
+        console.log(`the patient test`, patientTest)
         return res.status(200).json({
             success: true,
             data: patientTest
@@ -417,5 +423,5 @@ module.exports = {
     getPatientTestById,
     restorePatientTest,
     softDeletePatientTest,
-   getPatientTestByMRNo,
+    getPatientTestByMRNo,
 };
