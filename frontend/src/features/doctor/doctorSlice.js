@@ -21,12 +21,15 @@ export const createDoctor = createAsyncThunk(
       const response = await axios.post(`${API_URL}/doctor/create-doctor`, doctorData, {
         headers: getAuthHeader(),
       });
+      console.log("Create doctor response:", response.data);
       return response.data;
     } catch (error) {
+      console.error("Detailed create doctor error:", error.response?.data || error.message);
       if (error.response) {
         return rejectWithValue({
           message: error.response.data.message || 'Failed to submit doctor data',
-          statusCode: error.response.status
+          statusCode: error.response.status,
+          errors: error.response.data.errors // Include validation errors if available
         });
       }
       return rejectWithValue({
@@ -44,8 +47,8 @@ export const fetchAllDoctors = createAsyncThunk(
       const response = await axios.get(`${API_URL}/doctor/get-doctors`, {
         headers: getAuthHeader(),
       });
-
-      return response.data;
+console.log('the data is ', response.data?.information?.doctors)
+      return response.data?.information?.doctors ;
     } catch (error) {
       if (error.response) {
         return rejectWithValue(error.response.data.message || 'Failed to fetch doctors');
@@ -64,10 +67,10 @@ export const fetchDoctorById = createAsyncThunk(
       });
       // console.log("the data in doctor by id is ", response.data?.information?.doctor)
       console.log("the data in patient by id is ", response.data?.information?.patients)
-      return{
-       doctor: response.data?.information?.doctor,
+      return {
+        doctor: response.data?.information?.doctor,
         patients: response.data?.information?.patients
-      } 
+      }
     } catch (error) {
       if (error.response) {
         return rejectWithValue(error.response.data.message || 'Failed to fetch doctor by ID');
@@ -128,7 +131,7 @@ export const fetchDoctorsByDepartmentName = createAsyncThunk(
 
 const initialState = {
   doctors: [],
-   patients: [],
+  patients: [],
   isLoading: false,
   isError: false,
   errorMessage: '',
@@ -161,7 +164,10 @@ const doctorSlice = createSlice({
       .addCase(createDoctor.fulfilled, (state, action) => {
         state.isLoading = false;
         state.status = 'succeeded';
-        state.doctors = action.payload.information.doctors;
+        // state.doctors = action.payload.information.doctors;
+         if (action.payload.data?.doctor) {
+        state.doctors.push(action.payload.data.doctor);
+      }
       })
       .addCase(createDoctor.rejected, (state, action) => {
         state.isLoading = false;
@@ -176,7 +182,8 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchAllDoctors.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.doctors = action.payload.information?.doctors || [];
+         state.doctors = action.payload ;
+        //  console.log('the data in case ', action.payload)
       })
       .addCase(fetchAllDoctors.rejected, (state, action) => {
         state.isLoading = false;
@@ -191,8 +198,8 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchDoctorById.fulfilled, (state, action) => {
         state.isLoading = false;
-         state.currentDoctor = action.payload?.doctor || null;
-         state.patients = action.payload?.patients || [];
+        state.currentDoctor = action.payload?.doctor || null;
+        state.patients = action.payload?.patients || [];
       })
       .addCase(fetchDoctorById.rejected, (state, action) => {
         state.isLoading = false;

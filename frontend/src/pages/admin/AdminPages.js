@@ -1,7 +1,16 @@
-import AdminDashboard from "./AdminDashboard";
+import AdminDashboard from "./dashboard/AdminDashboard";
 import StaffPannel from "../reception/hr/staff/StaffPannel"
 
-export { 
-    AdminDashboard, 
-    StaffPannel
-    };
+// docotrs imports
+import AddNewDoctor from './doctor/AddNewDoctor';
+import DoctorPannel from './doctor/DoctorPannel';
+import DoctorDetails from './doctor/DoctorDetails';
+
+export {
+    AdminDashboard,
+    AddNewDoctor,
+    DoctorPannel,
+    DoctorDetails,
+    StaffPannel,
+    
+};

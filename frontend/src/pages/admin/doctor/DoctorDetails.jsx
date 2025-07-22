@@ -2,9 +2,10 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
-import { fetchDoctorById } from '../../../../features/doctor/doctorSlice';
+import { fetchDoctorById } from '../../../features/doctor/doctorSlice';
 import { FaUserMd, FaIdCard, FaEnvelope, FaPhone, FaMapMarkerAlt, FaStethoscope, FaFileSignature, FaMoneyBillWave, FaFileContract } from 'react-icons/fa';
 import DoctorPatients from './DoctorPatients';
+import {getRoleRoute} from "../../../utility/Routes.Util"
 
 const DoctorDetails = () => {
   const { doctorId } = useParams();
@@ -60,7 +61,7 @@ console.log(currentDoctor)
     <div className="container mx-auto p-4 border border-primary-600 rounded-lg ">
       <div className="flex items-center text-sm text-gray-500 mb-4">
         <button
-          onClick={() => navigate('/receptionist/doctors')}
+          onClick={() => navigate(getRoleRoute('doctors'))}
           className="text-primary-600 hover:text-primary-800"
         >
           Doctors
@@ -92,16 +93,16 @@ console.log(currentDoctor)
                   : `https://ui-avatars.com/api/?name=${encodeURIComponent(currentDoctor?.doctor_Image?.filePath
                     || "D")}&background=random`
               }
-              alt={currentDoctor?.doctor_Name}
+              alt={currentDoctor?.user.user_Name}
               className="w-32 h-32 rounded-full object-cover border-4 border-white shadow"
               onError={(e) => {
-                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentDoctor?.doctor_Name || "D")}&background=random`;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentDoctor?.user.user_Name || "D")}&background=random`;
               }}
             />
           </div>
           <div>
-            <h2 className="text-xl font-bold">{currentDoctor?.doctor_Name}</h2>
-            <p className="text-primary-600">{currentDoctor?.doctor_Identifier}</p>
+            <h2 className="text-xl font-bold">{currentDoctor?.user.user_Name}</h2>
+            <p className="text-primary-600">{currentDoctor?.user?.user_Identifier}</p>
             <div className="mt-2">
               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${currentDoctor?.doctor_Status === 'Available'
                 ? 'bg-green-100 text-green-800'
@@ -125,10 +126,10 @@ console.log(currentDoctor)
                   Basic Information
                 </h3>
                 <div className="space-y-3 ">
-                  <DetailItem icon={<FaIdCard />} label="Name" value={currentDoctor?.doctor_Name} />
-                  <DetailItem icon={<FaEnvelope />} label="Email" value={currentDoctor?.doctor_Email} />
-                  <DetailItem icon={<FaPhone />} label="Contact" value={currentDoctor?.doctor_Contact} />
-                  <DetailItem icon={<FaMapMarkerAlt />} label="Address" value={currentDoctor?.doctor_Address} />
+                  <DetailItem icon={<FaIdCard />} label="Name" value={currentDoctor?.user.user_Name} />
+                  <DetailItem icon={<FaEnvelope />} label="Email" value={currentDoctor?.user.user_Email} />
+                  <DetailItem icon={<FaPhone />} label="Contact" value={currentDoctor?.user.user_Contact} />
+                  <DetailItem icon={<FaMapMarkerAlt />} label="Address" value={currentDoctor?.user.user_Address} />
                 </div>
               </div>
 

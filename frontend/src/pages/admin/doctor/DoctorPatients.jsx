@@ -9,7 +9,7 @@ import {
     FaTint
 } from 'react-icons/fa';
 import { HiStatusOnline } from 'react-icons/hi';
-import DateRangePicker from '../../../../components/common/DateRangePicker';
+import DateRangePicker from '../../../components/common/DateRangePicker';
 
 
 const DoctorPatients = ({ doctorId, patients = [] }) => {
@@ -103,7 +103,7 @@ const DoctorPatients = ({ doctorId, patients = [] }) => {
                             className="w-full "
                         />
                     </div>
-                    <div c lassName="flex flex-col xl:flex-row space-x-2 space-y-3">
+                    <div className="flex flex-col xl:flex-row space-x-2 space-y-3">
                         <div className='py-2'>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Blood Type</label>
                             <select

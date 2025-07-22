@@ -39,14 +39,14 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
       color: "bg-sky-700"
     },
   };
-console.log(`the current user in navabr `, currentUser?.user.user_Access )
-  const config = roleConfig[currentUser?.user.user_Access] || roleConfig.receptionist;
+// console.log(`the current user in navabr `, currentUser?.user_Access )
+  const config = roleConfig[currentUser?.user_Access] || roleConfig.receptionist;
   // console.log(config)
 
   // User initials for avatar
   const getUserInitials = () => {
-    if (!currentUser?.user.user_Email) return "U";
-    const names = currentUser.user.user_Email.split('@')[0].split('.');
+    if (!currentUser?.user_Email) return "U";
+    const names = currentUser.user_Email.split('@')[0].split('.');
     return names.map(name => name[0]?.toUpperCase()).join('');
   };
 
@@ -94,10 +94,10 @@ console.log(`the current user in navabr `, currentUser?.user.user_Access )
                 </div>
                 <div className="text-left hidden lg:block">
                   <p className="text-sm font-medium text-white">
-                    {currentUser?.user.user_Email}
+                    {currentUser?.user_Email}
                   </p>
                   <p className="text-xs text-white/80 capitalize">
-                    {currentUser?.user.user_Access}
+                    {currentUser?.user_Access}
                   </p>
                 </div>
                 <ChevronDown className={`w-4 h-4 text-white transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />

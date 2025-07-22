@@ -8,22 +8,29 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 const opts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: JWT_SECRET, // It's recommended to use environment variables for secrets.
+  secretOrKey: JWT_SECRET,
 };
 
 passport.use(
   new JwtStrategy(opts, async (jwt_payload, done) => {
     try {
-      const user = await hospitalModel.User.findOne({
-        user_Email: jwt_payload.identifier,
-      });
-      console.log("The user was is:" , jwt_payload, user)
-      if (user) {
-        return done(null, user); // Authentication successful
+      // const user = await hospitalModel.User.findOne({
+      //   $or: [
+      //     { user_Email: jwt_payload.user_Email },
+      //     { user_Identifier: jwt_payload.user_Identifier }
+      //   ]
+      // });
+
+      // console.log("The JWT payload is:", jwt_payload);
+      // console.log("Authenticated user:", user);
+
+      if (jwt_payload) {
+        return done(null, jwt_payload); // Authentication successful
       } else {
         return done(null, false, { message: "User not found" }); // User not found
       }
     } catch (error) {
+      console.error("Error during authentication:", error);
       return done(error, false, { message: "Error during authentication" }); // General error
     }
   })

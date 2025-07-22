@@ -1,83 +1,161 @@
 const hospitalModel = require("../models/index.model");
 const utils = require("../utils/utilsIndex");
+const bcrypt = require("bcrypt");
 
 const createDoctor = async (req, res) => {
-
-  // Run this directly in MongoDB shell or via a temporary route
   try {
-    const { doctor_Name, doctor_Email, doctor_Contact, doctor_Address, doctor_Department, doctor_CNIC, doctor_Type, doctor_Specialization, doctor_Qualifications, doctor_LicenseNumber, doctor_Fee, doctor_Contract, } = req.body;
+    // Destructure from form data
+    const {
+      user_Name,
+      user_Email,
+      user_Contact,
+      user_Address,
+      user_CNIC,
+      user_Password,
+      doctor_Department,
+      doctor_Type,
+      doctor_Specialization,
+      doctor_LicenseNumber,
+      doctor_Fee,
+      doctor_Qualifications,
+      doctor_Contract,
+    } = req.body;
 
-    const doctor_Identifier = await utils.generateUniqueDoctorId(doctor_Name);
+    console.log("request body ", req.body);
 
-    const existingDoctor = await hospitalModel.Doctor.findOne({
-      $or: [
-        { doctor_Identifier },
-        { doctor_CNIC: { $ne: null, $eq: doctor_CNIC } },
-        { doctor_Contact: { $ne: null, $eq: doctor_Contact } },
-        doctor_Email ? { doctor_Email } : false
-      ].filter(Boolean) // Remove false values
-    });
+    const qualifications = Array.isArray(doctor_Qualifications)
+      ? doctor_Qualifications
+      : [doctor_Qualifications].filter(Boolean);
 
-    if (existingDoctor) {
-      let conflicts = [];
-
-      if (existingDoctor.doctor_Identifier === doctor_Identifier) conflicts.push('ID');
-      if (existingDoctor.doctor_CNIC === doctor_CNIC) conflicts.push('CNIC');
-      if (existingDoctor.doctor_Contact === doctor_Contact) conflicts.push('contact');
-      if (doctor_Email && existingDoctor.doctor_Email === doctor_Email) conflicts.push('email');
-
-      return res.status(409).json({
+    // Validate required fields
+    if (!user_Name || !user_Contact || !user_CNIC || !user_Password) {
+      return res.status(400).json({
         success: false,
-        message: `Doctor with matching ${conflicts.join(', ')} already exists`,
-        conflicts,
+        message: "Required fields are missing"
       });
     }
 
-    const doctor_ImagePath = req.files?.doctor_Image
-      ? `/uploads/doctor/images/${req.files.doctor_Image[0].filename}`
-      : null;
-    const doctor_AgreementPath = req.files?.doctor_Agreement
-      ? `/uploads/doctor/agreements/${req.files.doctor_Agreement[0].filename}`
-      : null;
+    // Validate contract data exists
+    if (!doctor_Contract || typeof doctor_Contract !== 'object') {
+      return res.status(400).json({
+        success: false,
+        message: "Contract data is missing or invalid"
+      });
+    }
+    // Extract and validate contract fields
+    const {
+      doctor_Percentage,
+      hospital_Percentage,
+      contract_Time,
+      doctor_JoiningDate
+    } = doctor_Contract;
 
+    // Generate ID
+    const user_Identifier = await utils.generateUniqueDoctorId(user_Name.trim());
 
+    // Handle file uploads
+    const doctor_Image = req.files?.doctor_Image?.[0];
+    const doctor_Agreement = req.files?.doctor_Agreement?.[0];
+
+    // Create user
+    const newUser = await hospitalModel.User.create({
+      user_Identifier,
+      user_Name,
+      user_Email,
+      user_CNIC,
+      user_Password: await bcrypt.hash(user_Password, 10),
+      user_Access: 'Doctor',
+      user_Address,
+      user_Contact,
+      isVerified: true
+    });
+
+    // Create doctor
     const newDoctor = await hospitalModel.Doctor.create({
-      doctor_Identifier,
-      doctor_Image: { filePath: doctor_ImagePath },
-      doctor_Name,
-      doctor_Email,
-      doctor_Contact,
-      doctor_Address,
+      user: newUser._id,
       doctor_Department,
-      doctor_CNIC,
       doctor_Type,
       doctor_Specialization,
       doctor_Qualifications,
       doctor_LicenseNumber,
-      doctor_Fee,
+      doctor_Fee: Number(doctor_Fee),
+      doctor_Image: doctor_Image ? {
+        filePath: `/uploads/doctor/images/${doctor_Image.filename}`
+      } : undefined,
       doctor_Contract: {
-        ...doctor_Contract,
-        doctor_Agreement: { filePath: doctor_AgreementPath },
-      },
+        doctor_Percentage,
+        hospital_Percentage,
+        contract_Time,
+        doctor_JoiningDate,
+        doctor_Agreement: doctor_Agreement ? {
+          filePath: `/uploads/doctor/agreements/${doctor_Agreement.filename}`
+        } : undefined
+      }
+    });
+    console.log("New doctor created: ", newDoctor);
+    // Update user reference
+    await hospitalModel.User.findByIdAndUpdate(newUser._id, {
+      doctorProfile: newDoctor._id
     });
 
-    return res.status(200).json({
+    return res.status(201).json({
       success: true,
-      message: "Doctor created successfully",
-      information: { newDoctor },
+      data: {
+        doctor: newDoctor,
+        user: newUser
+      }
     });
+
   } catch (error) {
-    console.error("Error creating doctor:", error);
+    console.error('Creation error:', error);
+
+    // Handle specific MongoDB errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+
+      let fieldName = field;
+      if (field === 'user_Email') fieldName = 'email';
+      if (field === 'user_CNIC') fieldName = 'CNIC';
+      if (field === 'user_Contact') fieldName = 'contact number';
+
+      return res.status(409).json({
+        success: false,
+        message: `This ${fieldName} (${value}) is already registered. Please use a different ${fieldName}.`,
+        errorType: 'DUPLICATE_KEY',
+        field: fieldName,
+        value: value
+      });
+    }
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: errors
+      });
+    }
+
+    // Handle other errors
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "An unexpected error occurred while creating the doctor",
+      error: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        stack: error.stack
+      } : undefined
     });
   }
 };
 
 const getAllDoctors = async (req, res) => {
   try {
-    const doctors = await hospitalModel.Doctor.find({ deleted: false });
+    const doctors = await hospitalModel.Doctor.find({ deleted: false }).populate({
+      path: 'user',
+      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isActive user_Address' // Only include these fields from User
+    });
 
     if (!doctors || doctors.length === 0) {
       return res.status(200).json({
@@ -112,6 +190,9 @@ const getDoctorById = async (req, res) => {
 
     const doctor = await hospitalModel.Doctor.findOne({
       _id: doctorId,
+    }).populate({
+      path: 'user',
+      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isActive user_Address' // Only include these fields from User
     });
 
     if (!doctor) {

@@ -1,7 +1,10 @@
 import { Routes, Route } from "react-router-dom";
-import { 
-  AdminDashboard ,
+import {
+  AdminDashboard,
   StaffPannel,
+  AddNewDoctor,
+  DoctorPannel,
+  DoctorDetails,
 
 } from "../pages/admin/AdminPages";
 import DynamicLayout from '../layouts/DynamicLayout';
@@ -15,6 +18,13 @@ const AdminRoutes = () => {
 
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="StaffPannel" element={<StaffPannel />} />
+
+          {/* Doctor routes */}
+          <Route path="doctors" element={<DoctorPannel />} />
+          <Route path="add-doctor" element={<AddNewDoctor mode="create" />} />
+          <Route path="edit-doctor/:doctorId" element={<AddNewDoctor mode="edit" />} />
+          <Route path="doctor-details/:doctorId" element={<DoctorDetails />} />
+
 
         </Route>
       </Route>

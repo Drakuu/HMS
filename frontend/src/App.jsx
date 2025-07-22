@@ -5,9 +5,10 @@ import AdminRoutes from "./routes/AdminRoutes";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Landing_Page from "./pages/landing-page/Index";
-import LabRoutes from './routes/LabRoutes'
-import Unauthorized from "./pages/auth/Unauthorized"
-import Profiles from "./pages/auth/ProfileModel"
+import LabRoutes from './routes/LabRoutes';
+import DoctorRoutes from './routes/DoctorRoutes';
+import Unauthorized from "./pages/auth/Unauthorized";
+import Profiles from "./pages/auth/ProfileModel";
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/receptionist/*" element={<ReceptionRoutes />} />
         <Route path="/admin/*" element={<AdminRoutes />} />
         <Route path="/lab/*" element={<LabRoutes />} />
+        <Route path="/doctor/*" element={<DoctorRoutes />} />
 
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

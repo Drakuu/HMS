@@ -1,7 +1,7 @@
 // features/auth/authSlice.js
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -13,16 +13,15 @@ export const loginUser = createAsyncThunk(
         user_Email: email,
         user_Password: password,
       });
-      
+      console.log('response ',response)
+
       const { jwtLoginToken, user } = response.data.information;
       const decodedToken = jwtDecode(jwtLoginToken);
-      console.log("TYhe decodedToken",decodedToken)
+      // console.log("TYhe decodedToken",decodedToken)
       return {
         token: jwtLoginToken,
-        user: {
           user,
-          exp: decodedToken.exp,
-        },
+        exp: decodedToken.exp,
       };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed');
@@ -30,7 +29,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Async thunk for logout
 export const logoutUser = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
@@ -48,7 +46,7 @@ const authSlice = createSlice({
   initialState: {
     token: localStorage.getItem('jwtLoginToken') || null,
     user: JSON.parse(localStorage.getItem('user')) || null,
-    status: 'idle', 
+    status: 'idle',
     error: null,
   },
   reducers: {
@@ -67,7 +65,7 @@ const authSlice = createSlice({
         state.status = 'succeeded';
         state.token = action.payload.token;
         state.user = action.payload.user;
-        
+
         // Store in localStorage
         localStorage.setItem('jwtLoginToken', action.payload.token);
         localStorage.setItem('user', JSON.stringify(action.payload.user));
@@ -81,7 +79,7 @@ const authSlice = createSlice({
         state.user = null;
         state.status = 'idle';
         state.error = null;
-        
+
         // Clear localStorage
         localStorage.removeItem('jwtLoginToken');
         localStorage.removeItem('user');
@@ -89,8 +87,8 @@ const authSlice = createSlice({
   },
 });
 
-export const { initializeAuth } = authSlice.actions;
 
+export const { initializeAuth } = authSlice.actions;
 export const selectCurrentToken = (state) => state.auth.token;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectAuthStatus = (state) => state.auth.status;

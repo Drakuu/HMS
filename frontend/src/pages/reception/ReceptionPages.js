@@ -7,9 +7,9 @@ import AdminDashboard from './dashboards/AdminDashboard';
 // depatments imports
 import Departments from './hr/departments/Departments';
 // docotrs imports
-import AddNewDoctor from './hr/doctor/AddNewDoctor';
-import DoctorPannel from './hr/doctor/DoctorPannel';
-import DoctorDetails from './hr/doctor/DoctorDetails';
+// import AddNewDoctor from './hr/doctor/AddNewDoctor';
+// import DoctorPannel from './hr/doctor/DoctorPannel';
+// import DoctorDetails from './hr/doctor/DoctorDetails';
 //staff imports
 import AddStaff from './hr/staff/AddStaff';
 // room manahment imports
@@ -47,9 +47,7 @@ export {
   AdmittedPatientDetails,
   OTPatientDetails,
   IPDAdmission,
-  DoctorPannel,
   Ward,
-  AddNewDoctor,
   NewOpd,
   OTMain,
   PatientAppointment,
@@ -61,5 +59,7 @@ export {
   Inventory,
   BillList,
   Calendar,
-  DoctorDetails,
+  // AddNewDoctor,
+  // DoctorPannel,
+  // DoctorDetails,
 };

@@ -21,13 +21,14 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   const [expandedMenus, setExpandedMenus] = useState({});
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
-console.log("The dat in routeing is : ", userRole)
+// console.log("The dat in routeing is : ", userRole)
   // Get the base path based on user role
   const getBasePath = () => {
     switch (userRole?.toLowerCase()) {
       case 'admin': return '/admin';
       case 'receptionist': return '/receptionist';
       case 'lab': return '/lab';
+      case 'doctor': return '/doctor';
       default: return '/';
     }
   };
@@ -46,11 +47,27 @@ console.log("The dat in routeing is : ", userRole)
         ],
       },
       {
-        name: 'System Settings',
+        name: 'Doctors Managment',
         icon: <AdminIcon className="text-lg" />,
         links: [
-          { href: '/admin/system/users', label: 'User Management' },
-          { href: '/admin/system/settings', label: 'System Settings' },
+          { href: 'doctors', label: `All Doctor's` },
+        ],
+      },
+    ],
+    doctor: [
+      {
+        name: 'Dashboards',
+        icon: <DashboardIcon className="text-lg" />,
+        links: [
+          { href: 'dashboard', label: 'Admin Dashboard' },
+        ],
+      },
+      {
+        name: 'Appoinments',
+        icon: <AdminIcon className="text-lg" />,
+        links: [
+          { href: 'accept-apponment', label: 'Accept Appoinment' },
+          { href: 'reconsider', label: 'Reconsider' },
         ],
       },
     ],
@@ -71,7 +88,7 @@ console.log("The dat in routeing is : ", userRole)
         links: [
           { href: 'departments', label: 'Departments' },
           { href: 'staff', label: 'Staff' },
-          { href: 'doctors', label: 'Doctors' },
+          // { href: 'doctors', label: 'Doctors' },
         ],
       },
       {

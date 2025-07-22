@@ -1,8 +1,8 @@
 const adminRoleCheck = async (req, res, next) => {
   try {
     const user = req.user;
-
-    if (user.staffType && ['Admin', 'Receptionist'].includes(user.staffType)) {
+// console.log('the user is ', user)
+    if (user.user_Access && ['Admin', 'Receptionist'].includes(user.user_Access)) {
       return next();
     }
 

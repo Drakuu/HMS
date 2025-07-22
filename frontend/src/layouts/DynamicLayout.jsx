@@ -20,13 +20,13 @@ const DynamicLayout = () => {
     localStorage.removeItem('user');
     navigate('/login');
   };
-  console.log("The users are in her in layout: ", user)
+  // console.log("The users are in her in layout: ", user)
 
   return (
     <div className="flex h-screen bg-primary-50">
       {/* Dynamic Sidebar */}
       <DynamicSidebar 
-        userRole={user?.user.user_Access} 
+        userRole={user?.user_Access} 
         isOpen={sidebarOpen} 
         toggleSidebar={toggleSidebar}
       />

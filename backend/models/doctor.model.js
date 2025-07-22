@@ -2,14 +2,9 @@ const mongoose = require("mongoose");
 
 const doctorSchema = new mongoose.Schema(
   {
-    doctor_Identifier: { type: String, unique: true, required: true, },
+     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     doctor_Image: { filePath: { type: String }, },
-    doctor_Name: { type: String, required: true, },
-    doctor_Email: { type: String, unique: true, sparse: true, default: undefined },
-    doctor_Contact: { type: String, sparse: true, unique: true, },
-    doctor_Address: { type: String, },
     doctor_Department: { type: String },
-    doctor_CNIC: { type: String, unique: true, },
     doctor_Type: { type: String, },
     doctor_Specialization: { type: String, },
     doctor_Qualifications: [{ type: String }],

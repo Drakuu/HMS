@@ -1,10 +1,8 @@
 const bcrypt = require("bcrypt");
-const userModel = require("../models/user.model"); // ✅ make sure the path is correct
+const userModel = require("../models/user.model");
 const { sendverficationcode } = require("../middleware/Email");
 const JWT_SECRET = process.env.JWT_SECRET;
-const jwt = require("jsonwebtoken"); // ✅ Required for JWT
-
-
+const jwt = require("jsonwebtoken");
 
 const signUp = async (req, res) => {
   try {
@@ -48,7 +46,6 @@ const signUp = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error during signup", error: error.message });
   }
 };
-
 
 const VerifyEmail = async (req, res) => {
   try {
@@ -94,11 +91,8 @@ const VerifyEmail = async (req, res) => {
   }
 };
 
-
-//login
 const login = async (req, res) => {
   try {
-    // console.log("here");
     const { user_Email, user_Password } = req.body;
 
     if (!user_Email || !user_Password) {
@@ -109,8 +103,8 @@ const login = async (req, res) => {
       });
     }
 
-    const user = await userModel.findOne({ user_Email });
-// console.log("thwe user", user)
+    const user = await userModel.findOne({ user_Email }).populate('doctorProfile');
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -135,24 +129,40 @@ const login = async (req, res) => {
         message: "Invalid email or password",
       });
     }
-    
 
-    const jwtLoginToken = jwt.sign(
-      { 
-        user_Email: user.user_Email,
-        user_Access: user.user_Access,
-       },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    // Explicitly construct user data to include in JWT payload
+    const userPayload = {
+      id: user._id,
+      user_Name: user.user_Name,
+      user_Email: user.user_Email,
+      user_CNIC: user.user_CNIC,
+      user_Identifier: user.user_Identifier,
+      user_Contact: user.user_Contact,
+      user_Address: user.user_Address,
+      user_Access: user.user_Access,
+      doctorProfile: user.doctorProfile || null,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    };
 
-// console.log("tHE TIOKEN WAS: ", jwtLoginToken)
+    const jwtLoginToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: "7d" });
+    // Console the JWT Token
+    // console.log("JWT Token:", jwtLoginToken);
+
+    // Decode the JWT Token
+    const decodedToken = jwt.verify(jwtLoginToken, JWT_SECRET);
+
+    // Console the Decoded JWT Token
+    // console.log("Decoded Token:", decodedToken);
+
+
     return res.status(200).json({
       success: true,
       status: 200,
       message: "User login successful",
       information: {
-        user,
+        user: userPayload,
         jwtLoginToken,
       },
     });
@@ -167,9 +177,8 @@ const login = async (req, res) => {
 };
 
 
-
-module.exports = { 
-  signUp ,
+module.exports = {
+  signUp,
   VerifyEmail,
   login
 };

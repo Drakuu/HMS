@@ -1,17 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { createDoctor, resetDoctorState, updateDoctorById, fetchDoctorById } from '../../../../features/doctor/doctorSlice';
+import { createDoctor, resetDoctorState, updateDoctorById, fetchDoctorById } from '../../../features/doctor/doctorSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { faGraduationCap, } from "@fortawesome/free-solid-svg-icons";
+import { getallDepartments } from "../../../features/department/DepartmentSlice";
+import { InputField } from '../../../components/common/FormFields';
+import { FormGrid } from '../../../components/common/FormSection';
+// import { FormHeader, SectionHeader, ImageUpload, QualificationsList, AgreementUpload, } from "./subcmp";
 import {
-  faUser, faEnvelope, faPhone, faMapMarkerAlt, faStethoscope,
-  faGraduationCap, faIdCard, faPercentage, faCalendarAlt,
-  faFileContract, faMoneyBillWave, faClock, faFileImage,
-  faTableList, faUserDoctor, faFileSignature
-} from "@fortawesome/free-solid-svg-icons";
-import { getallDepartments } from "../../../../features/department/DepartmentSlice";
-import { InputField } from '../../../../components/common/FormFields';
+  FormContainer,
+  FormHeader,
+  FormSection,
+  FileUpload,
+  ImageUpload,
+  QualificationsList
+} from '../../../components/indexCmp';
+import { getRoleRoute } from "../../../utility/Routes.Util";
+
+const validateEmail = (email) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
+};
 
 const DoctorForm = ({ mode = 'create' }) => {
   const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
@@ -34,6 +45,7 @@ const DoctorForm = ({ mode = 'create' }) => {
     doctor_Qualifications: [],
     doctor_LicenseNumber: '',
     doctor_Fee: 0,
+    doctor_password: '',
     doctor_Contract: {
       doctor_Percentage: 0,
       hospital_Percentage: 0,
@@ -51,43 +63,11 @@ const DoctorForm = ({ mode = 'create' }) => {
   const [isEditMode, setIsEditMode] = useState(mode === 'edit');
   const [emailError, setEmailError] = useState(false);
 
-  // const validateEmail = (email) => {
-  //   if (!email) {
-  //     setEmailError(true);
-  //     toast.error("Email is required");
-  //     return false;
-  //   }
-
-  //   // Basic email format validation
-  //   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-  //     setEmailError(true);
-  //     toast.error("Please enter a valid email address");
-  //     return false;
-  //   }
-
-  //   // Check against existing doctors in Redux store
-  //   const emailExists = doctors.some(doctor => {
-  //     return isEditMode
-  //       ? doctor.doctor_Email === email && doctor._id !== doctorId
-  //       : doctor.doctor_Email === email;
-  //   });
-
-  //   if (emailExists) {
-  //     setEmailError(true);
-  //     toast.error("Email already exists in our records");
-  //     return false;
-  //   }
-
-  //   setEmailError(false);
-  //   return true;
-  // };
-
   const handleEmailChange = (e) => {
     const { value } = e.target;
     setFormData(prev => ({ ...prev, doctor_Email: value }));
-    setEmailError(false); // Reset error state on change
+    setEmailError(false);
 
-    // Only validate if email is not empty and has proper format
     if (value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
       validateEmail(value);
     }
@@ -101,14 +81,24 @@ const DoctorForm = ({ mode = 'create' }) => {
   }, [dispatch, doctorId, isEditMode]);
 
   useEffect(() => {
+    if (status === 'succeeded') {
+      const timer = setTimeout(() => {
+        navigate(getRoleRoute('doctors'));
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [status, navigate]);
+
+  useEffect(() => {
     if (isEditMode && currentDoctor) {
       setFormData({
-        doctor_Name: currentDoctor.doctor_Name || '',
-        doctor_Email: currentDoctor.doctor_Email || '',
-        doctor_Contact: currentDoctor.doctor_Contact || '',
-        doctor_Address: currentDoctor.doctor_Address || '',
-        doctor_Department: currentDoctor.doctor_Department || '',
-        doctor_CNIC: currentDoctor.doctor_CNIC || '',
+        doctor_Name: currentDoctor.user.user_Name || '',
+        doctor_Email: currentDoctor.user.user_Email || '',
+        doctor_Password: currentDoctor.user.user_Password || '',
+        doctor_Contact: currentDoctor.user.user_Contact || '',
+        doctor_Address: currentDoctor.user.user_Address || '',
+        doctor_Department: currentDoctor.user.user_Department || '',
+        doctor_CNIC: currentDoctor.user.user_CNIC || '',
         doctor_Type: currentDoctor.doctor_Type || '',
         doctor_Specialization: currentDoctor.doctor_Specialization || '',
         doctor_Qualifications: currentDoctor.doctor_Qualifications || [],
@@ -200,9 +190,10 @@ const DoctorForm = ({ mode = 'create' }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     const name = e.target.name;
-    const validImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    const validAgreementTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
     if (!file) return;
+
+    console.log("Selected file:", file); // Debug log
 
     // Size validation
     if (file.size > 10 * 1024 * 1024) {
@@ -211,25 +202,27 @@ const DoctorForm = ({ mode = 'create' }) => {
     }
 
     // Type validation
-    if (name === "doctor_Image" && !validImageTypes.includes(file.type)) {
-      toast.error("Invalid image format. Please upload JPEG, JPG, or PNG");
-      return;
-    }
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    const validAgreementTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
-    if (name === "doctor_Agreement" && !validAgreementTypes.includes(file.type)) {
-      toast.error("Invalid file format. Please upload PDF, DOC, or DOCX");
-      return;
-    }
-
-    // Process valid files
     if (name === "doctor_Image") {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+      if (!validImageTypes.includes(file.type)) {
+        toast.error("Invalid image format. Please upload JPEG, JPG, or PNG");
+        return;
+      }
+
+      // Create a URL for the file
+      const imageUrl = URL.createObjectURL(file);
+      console.log("Generated image URL:", imageUrl); // Debug log
+
+      setPreviewImage(imageUrl);
       setImageFile(file);
-    } else if (name === "doctor_Agreement") {
+    }
+    else if (name === "doctor_Agreement") {
+      if (!validAgreementTypes.includes(file.type)) {
+        toast.error("Invalid file format. Please upload PDF, DOC, or DOCX");
+        return;
+      }
       setAgreementFile(file);
       setAgreementPreview(file.name);
     }
@@ -238,42 +231,58 @@ const DoctorForm = ({ mode = 'create' }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate email before submission
-    // if (!validateEmail(formData.doctor_Email)) return;
+    // Validate required fields
+    if (!formData.doctor_Name.trim()) {
+      toast.error("Doctor name is required");
+      return;
+    }
 
-    if (!isEditMode) {
-      if (!imageFile) {
-        toast.error("Please upload a doctor image");
-        return;
-      }
-      if (!agreementFile) {
-        toast.error("Please upload an agreement file");
-        return;
-      }
+    // In handleSubmit
+    if (!/^\d{4}-\d{7}$/.test(formData.doctor_Contact)) {
+      toast.error("Contact must be in format 03XX-XXXXXXX");
+      return;
+    }
+
+    if (!isEditMode && !formData.doctor_password) {
+      toast.error("Password is required");
+      return;
     }
 
     const formToSubmit = new FormData();
 
-    // Append form data
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key === 'doctor_Qualifications') {
-        value.forEach((qual, i) => formToSubmit.append(`doctor_Qualifications[${i}]`, qual));
-      } else if (key !== 'doctor_Contract') {
-        formToSubmit.append(key, value);
-      }
+    // Append user data
+    formToSubmit.append('user_Name', formData.doctor_Name);
+    formToSubmit.append('user_Email', formData.doctor_Email || '');
+    formToSubmit.append('user_Contact', formData.doctor_Contact);
+    formToSubmit.append('user_Address', formData.doctor_Address);
+    formToSubmit.append('user_CNIC', formData.doctor_CNIC);
+    formToSubmit.append('user_Password', formData.doctor_password);
+
+    // Append doctor data
+    formToSubmit.append('doctor_Department', formData.doctor_Department);
+    formToSubmit.append('doctor_Type', formData.doctor_Type);
+    formToSubmit.append('doctor_Specialization', formData.doctor_Specialization);
+    formToSubmit.append('doctor_LicenseNumber', formData.doctor_LicenseNumber);
+    formToSubmit.append('doctor_Fee', String(Number(formData.doctor_Fee)));
+
+    // Append qualifications
+    formData.doctor_Qualifications.forEach((qual, i) => {
+      formToSubmit.append(`doctor_Qualifications[${i}]`, qual);
     });
 
-    // Append contract data
-    Object.entries(formData.doctor_Contract).forEach(([key, value]) => {
-      formToSubmit.append(`doctor_Contract[${key}]`, value);
-    });
+    // In handleSubmit, when appending contract data:
+    formToSubmit.append('doctor_Contract[doctor_Percentage]', String(Number(formData.doctor_Contract.doctor_Percentage)));
+    formToSubmit.append('doctor_Contract[hospital_Percentage]', String(Number(formData.doctor_Contract.hospital_Percentage)));
+    formToSubmit.append('doctor_Contract[contract_Time]', formData.doctor_Contract.contract_Time);
+    formToSubmit.append('doctor_Contract[doctor_JoiningDate]', formData.doctor_Contract.doctor_JoiningDate);
 
+    // Append files
+    if (imageFile) formToSubmit.append('doctor_Image', imageFile);
+    if (agreementFile) formToSubmit.append('doctor_Agreement', agreementFile);
 
-    if (imageFile) {
-      formToSubmit.append('doctor_Image', imageFile);
-    }
-    if (agreementFile) {
-      formToSubmit.append('doctor_Agreement', agreementFile);
+    // Debug: Log FormData contents
+    for (let [key, value] of formToSubmit.entries()) {
+      console.log(key, value);
     }
 
     try {
@@ -285,16 +294,19 @@ const DoctorForm = ({ mode = 'create' }) => {
         toast.success("Doctor created successfully!");
         resetLocalForm();
       }
-      navigate('/receptionist/doctors');
+      navigate(getRoleRoute('doctors'));
     } catch (err) {
-      if (err.statusCode === 409) {
-        toast.error("This email is already registered to another doctor");
-        setEmailError(true);
+      if (err.payload?.statusCode === 409) {
+        toast.error("This email or CNIC is already registered");
       } else {
-        toast.error(err.message || `Failed to ${isEditMode ? 'update' : 'create'} doctor`);
+        const errorMsg = err.payload?.errors
+          ? Object.values(err.payload.errors).join(', ')
+          : err.payload?.message || `Failed to ${isEditMode ? 'update' : 'create'} doctor`;
+        toast.error(errorMsg);
       }
     }
-  };
+  }
+
   const formatPhoneNumber = (value) => {
     if (!value) return value;
     const phoneNumber = value.replace(/[^\d]/g, '');
@@ -337,10 +349,17 @@ const DoctorForm = ({ mode = 'create' }) => {
 
   const handlePercentageChange = (e) => {
     const { name, value } = e.target;
-    const numericValue = parseFloat(value) || 0;
 
-    const clampedValue = Math.min(100, Math.max(0, numericValue))
-    const roundedValue = parseFloat(clampedValue.toFixed(2))
+    // Ensure we have a valid number
+    const numericValue = value === '' ? 0 : parseFloat(value);
+
+    if (isNaN(numericValue)) {
+      toast.error("Please enter a valid number for percentage");
+      return;
+    }
+
+    const clampedValue = Math.min(100, Math.max(0, numericValue));
+    const roundedValue = parseFloat(clampedValue.toFixed(2));
 
     if (name === "contract_doctor_Percentage") {
       setFormData(prev => ({
@@ -444,6 +463,16 @@ const DoctorForm = ({ mode = 'create' }) => {
       className: emailError ? "border-red-500" : ""
     },
     {
+      label: "Password",
+      name: "doctor_password",
+      icon: "lock",
+      placeholder: "Enter password",
+      type: "password",
+      value: formData.doctor_password,
+      onChange: handleChange,
+      required: !isEditMode // Only required for new doctors
+    },
+    {
       label: "Contact Number",
       name: "doctor_Contact",
       icon: "phone",
@@ -524,6 +553,7 @@ const DoctorForm = ({ mode = 'create' }) => {
   ];
 
 
+  // Form configuration
   const formConfig = {
     title: isEditMode ? "Edit Doctor" : "Doctor Registration",
     description: isEditMode ? "Update the doctor details below" : "Please fill in the doctor details below",
@@ -532,84 +562,41 @@ const DoctorForm = ({ mode = 'create' }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
-      {/* Header Section */}
-      <div className="bg-primary-600 rounded-t-md text-white px-6 py-8 shadow-md">
-        <div className="flex items-center">
-          <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
-          <div>
-            <h1 className="text-3xl font-bold">{formConfig.title}</h1>
-            <p className="text-primary-100 mt-1">{formConfig.description}</p>
-          </div>
-        </div>
-      </div>
+    <FormContainer>
+      <FormHeader
+        title={formConfig.title}
+        description={formConfig.description}
+        bgColor="bg-primary-600"
+        textColor="text-white"
+      />
 
-      {/* Form Content */}
       <form className="w-full p-6" onSubmit={handleSubmit}>
-        {/* Doctor Image Upload */}
-        <div className="mb-8">
-          <div className="flex items-center mb-6">
-            <div className="h-10 w-1 bg-primary-600 mr-3 rounded-full"></div>
-            <h2 className="text-xl font-semibold text-gray-800">Profile Picture</h2>
-            {!isEditMode && <span className="text-red-500 ml-1">*</span>}
-          </div>
-
-          <div className="flex justify-center">
-            <label htmlFor="doctor_Image" className="cursor-pointer">
-              <div className="w-48 h-48 rounded-lg border-4 border-dashed border-primary-300 flex items-center justify-center hover:border-primary-500 transition-colors">
-                {previewImage ? (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={previewImage}
-                      alt="Doctor Preview"
-                      className="w-full h-full rounded-lg object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="text-center text-primary-800">
-                    <FontAwesomeIcon icon={faFileImage} className="text-5xl mb-2" />
-                    <p className="text-sm font-medium">Upload Doctor Image</p>
-                    <span className="text-xs text-gray-500">JPG, JPEG, PNG</span>
-                  </div>
-                )}
-              </div>
-            </label>
-            <input
-              type="file"
-              id="doctor_Image"
-              name="doctor_Image"
-              className="hidden"
-              onChange={handleFileChange}
-              accept="image/*"
+        {/* Profile Picture Section */}
+        <FormSection title="Profile Picture" showHeader={false}>
+          <div className="mb-6">
+            <ImageUpload
+              previewImage={previewImage}
+              handleFileChange={handleFileChange}
+              label="Doctor Image"
               required={!isEditMode}
+              helpText="JPG, JPEG, PNG (max 10MB)"
+              containerClass="w-48 h-48 mx-auto"
+              name="doctor_Image" // Make sure this matches your handleFileChange check
             />
           </div>
-          <span className="text-xs place-content-center flex text-gray-600">
-            Img size must be less than 10mb <span className="text-red-400">*</span>
-          </span>
-        </div>
+        </FormSection>
 
-        {/* Basic Details Section */}
-        <div className="mb-8">
-          <div className="flex items-center mb-6">
-            <div className="h-10 w-1 bg-primary-600 mr-3 rounded-full"></div>
-            <h2 className="text-xl font-semibold text-gray-800">Basic Information</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Basic Information Section */}
+        <FormSection title="Basic Information">
+          <FormGrid cols={{ base: 1, md: 2 }} gap={6}>
             {basicInfoFields.map((field, index) => (
               <InputField key={index} {...field} />
             ))}
-          </div>
-        </div>
+          </FormGrid>
+        </FormSection>
 
         {/* Qualifications Section */}
-        <div className="mb-8">
-          <div className="flex items-center mb-6">
-            <div className="h-10 w-1 bg-primary-600 mr-3 rounded-full"></div>
-            <h2 className="text-xl font-semibold text-gray-800">Qualifications</h2>
-          </div>
-
+        <FormSection title="Qualifications">
           <div className="flex gap-4 mb-6">
             <div className="flex-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -631,75 +618,29 @@ const DoctorForm = ({ mode = 'create' }) => {
               Add
             </button>
           </div>
-
-          <div className="space-y-2 ">
-            {formData.doctor_Qualifications?.map((qualification, index) => (
-              <div key={index} className="flex border border-primary-500 border-t-primary-200 items-center justify-between bg-gray-50 py-2 px-4 rounded-md">
-                <span className="text-gray-800 underline italic font-medium">{qualification}</span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveQualification(index)}
-                  className="bg-red-500 px-2 py-1 text-white rounded-md hover:bg-gray-300 focus:outline-none"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+          <QualificationsList
+            items={formData.doctor_Qualifications}
+            onRemove={handleRemoveQualification}
+          />
+        </FormSection>
 
         {/* Contract Details Section */}
-        <div className="mb-8">
-          <div className="flex items-center mb-6">
-            <div className="h-10 w-1 bg-primary-600 mr-3 rounded-full"></div>
-            <h2 className="text-xl font-semibold text-gray-800">Contract Details</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormSection title="Contract Details">
+          <FormGrid cols={{ base: 1, md: 2 }} gap={6}>
             {contractFields.map((field, index) => (
               <InputField key={index} {...field} />
             ))}
-
-            {/* Agreement File Input */}
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Agreement File {!isEditMode && <span className="text-red-500">*</span>}
-              </label>
-              <label htmlFor="doctor_Agreement" className="cursor-pointer">
-                <div className="border-2 border-dashed border-primary-300 rounded-md p-4 text-center hover:border-primary-500 transition-colors">
-                  {agreementPreview ? (
-                    <div className="text-primary-800">
-                      <FontAwesomeIcon icon={faFileContract} className="text-3xl mb-2" />
-                      <p className="text-sm font-medium">
-                        {isEditMode && !agreementFile ? "Current: " : ""}
-                        {agreementPreview}
-                      </p>
-                      {isEditMode && !agreementFile && (
-                        <p className="text-xs text-gray-500 mt-1">Click to upload new file</p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-primary-800">
-                      <FontAwesomeIcon icon={faFileContract} className="text-3xl mb-2" />
-                      <p className="text-sm font-medium">Upload Agreement File</p>
-                      <p className="text-xs text-gray-500">PDF, DOC, DOCX</p>
-                    </div>
-                  )}
-                </div>
-              </label>
-              <input
-                type="file"
-                id="doctor_Agreement"
-                name="doctor_Agreement"
-                onChange={handleFileChange}
-                className="hidden"
-                accept=".pdf,.doc,.docx"
-                required={!isEditMode}
-              />
-            </div>
-          </div>
-          {/* Move this inside the agreement file input div, right after the input */}
-        </div>
+            <FileUpload
+              previewText={agreementPreview}
+              handleFileChange={handleFileChange}
+              label="Doctor Agreement"
+              required={!isEditMode}
+              helpText="PDF, DOC, DOCX (max 10MB)"
+              name="doctor_Agreement"
+              accept=".pdf,.doc,.docx"
+            />
+          </FormGrid>
+        </FormSection>
 
         {/* Form Actions */}
         <div className="flex justify-between pt-6 border-t border-gray-200">
@@ -713,8 +654,7 @@ const DoctorForm = ({ mode = 'create' }) => {
           <button
             type="submit"
             disabled={status === 'loading'}
-            className={`px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+            className={`px-6 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {status === 'loading' ? (
               <span className="flex items-center justify-center">
@@ -730,7 +670,7 @@ const DoctorForm = ({ mode = 'create' }) => {
           </button>
         </div>
       </form>
-    </div>
+    </FormContainer>
   );
 };
 

@@ -3,7 +3,7 @@ const doctorRoleCheck = async (req, res, next) => {
     const user = req.user;
 
     // Check if staff member is a doctor
-    if (user.staffType && user.staffType === 'Doctor') {
+    if (user.user_Access && user.user_Access === 'Doctor') {
       // Additional doctor-specific checks can go here
       return next();
     }

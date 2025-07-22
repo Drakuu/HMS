@@ -5,9 +5,10 @@ import { useNavigate } from "react-router-dom";
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { AiOutlineDelete, AiOutlineEdit, AiOutlineEye } from "react-icons/ai";
-import { fetchAllDoctors, deleteDoctorById } from "../../../../features/doctor/doctorSlice";
+import { fetchAllDoctors, deleteDoctorById } from "../../../features/doctor/doctorSlice";
 import DeleteConfirmationModal from './DeleteDoctor';
 import { toast } from "react-toastify";
+import { getRoleRoute } from "../../../utility/Routes.Util"
 
 const statusBadge = (status) => {
   return (
@@ -31,20 +32,24 @@ const DoctorList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [doctorToDelete, setDoctorToDelete] = useState(null);
   const { doctors, status, error } = useSelector((state) => state.doctor);
-const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
+  const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
   useEffect(() => {
     dispatch(fetchAllDoctors());
   }, [dispatch]);
 
+  useEffect(() => {
+    console.log("Redux doctors data:", doctors);
+  }, [doctors]);
+
   const filteredDoctors = Array.isArray(doctors)
     ? doctors.filter((doc) => {
       const matchesSearch = search.toLowerCase() === "" ||
-        doc.doctor_Name?.toLowerCase().includes(search.toLowerCase()) ||
-        doc.doctor_Identifier?.toLowerCase().includes(search.toLowerCase()) ||
-        doc.doctor_Email?.toLowerCase().includes(search.toLowerCase()) ||
+        doc.user.user_Name?.toLowerCase().includes(search.toLowerCase()) ||
+        doc.user.user_Identifier?.toLowerCase().includes(search.toLowerCase()) ||
+        doc.user.user_Email?.toLowerCase().includes(search.toLowerCase()) ||
         doc.doctor_Department?.toLowerCase().includes(search.toLowerCase()) ||
-        doc.doctor_CNIC?.toLowerCase().includes(search.toLowerCase()) ||
+        doc.user.user_CNIC?.toLowerCase().includes(search.toLowerCase()) ||
         (Array.isArray(doc.doctor_Qualifications) &&
           doc.doctor_Qualifications.some(q => q.toLowerCase().includes(search.toLowerCase()))) ||
         doc.doctor_Specialization?.toLowerCase().includes(search.toLowerCase());
@@ -60,7 +65,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
     : [];
 
   const handleAddDoctor = () => {
-    navigate('/receptionist/add-doctor');
+    navigate(getRoleRoute('add-doctor'))
   };
 
   const departmentOptions = [...new Set(doctors?.map(doc => doc.doctor_Department).filter(Boolean))];
@@ -109,7 +114,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex justify-end gap-2">
               {/* Department Filter Dropdown */}
               <Menu as="div" className="relative inline-block text-left">
                 <div>
@@ -127,7 +132,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-primary ring-opacity-5 focus:outline-none z-10">
+                  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-primary ring-opacity-5 focus:outline-none z-100">
                     <div className="px-1 py-1">
                       <Menu.Item>
                         {({ active }) => (
@@ -173,7 +178,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-primary ring-opacity-5 focus:outline-none z-10">
+                  <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-primary ring-opacity-5 focus:outline-none z-100">
                     <div className="px-1 py-1">
                       <Menu.Item>
                         {({ active }) => (
@@ -248,22 +253,22 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredDoctors.length > 0 ? (
                   filteredDoctors.map((doc) => (
-                    <tr key={doc.doctor_Identifier} className="hover:bg-primary-50 transition-colors cursor-pointer   {`hover:bg-primary-50 transition-colors cursor-pointer ${viewLoading === doc._id ? 'bg-blue-50' : ''}`}  "
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`View details of Dr. ${doc.doctor_Name}`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setViewLoading(doc._id);
-                        navigate(`/receptionist/doctor-details/${doc._id}`);
-                      }
-                    }}
+                    <tr key={doc._id} className="hover:bg-primary-50 transition-colors cursor-pointer   {`hover:bg-primary-50 transition-colors cursor-pointer ${viewLoading === doc._id ? 'bg-blue-50' : ''}`}  "
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View details of Dr. ${doc.doctor_Name}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setViewLoading(doc._id);
+                          navigate(getRoleRoute(`doctor-details/${doc._id}`));
+                        }
+                      }}
                       onClick={(e) => {
                         // Only navigate if the click wasn't on a button
                         if (!e.target.closest('button')) {
                           setViewLoading(doc._id);
-                          navigate(`/receptionist/doctor-details/${doc._id}`);
+                          navigate(getRoleRoute(`doctor-details/${doc._id}`));
                         }
                       }}
                     >
@@ -273,18 +278,18 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                             <img
                               className="h-10 w-10 rounded-full object-cover"
                               src={
-                                doc.doctor_Image?.filePath 
+                                doc.doctor_Image?.filePath
                                   ? `${API_URL}${doc.doctor_Image.filePath}`
-                                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.doctor_Name || "D")}&background=random`
+                                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.user?.user_Name || "D")}&background=random`
                               }
-                              alt={doc.doctor_Name}
+                              alt={doc.user?.user_Name}
                             />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-primary-900 group-hover:text-primary-600">
-                              {doc.doctor_Name}
+                              {doc.user?.user_Name}
                             </div>
-                            <div className="text-sm text-primary-500">{doc.doctor_Identifier}</div>
+                            <div className="text-sm text-primary-500">{doc.user?.user_Identifier}</div>
                           </div>
                         </div>
                       </td>
@@ -292,13 +297,13 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                         <div className="text-sm text-primary-900">{doc.doctor_Department || "-"}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-primary-900">{doc.doctor_CNIC || "-"}</div>
+                        <div className="text-sm text-primary-900">{doc.user?.user_CNIC || "-"}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-primary-900">{doc.doctor_Specialization || "-"}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-primary-900">{doc.doctor_Email}</div>
+                        <div className="text-sm text-primary-900">{doc.user?.user_Email}</div>
                         <div className="text-sm text-primary-500">{doc.doctor_Contact}</div>
                       </td>
                       <td className="px-6 py-4">
@@ -316,7 +321,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                           <button
                             onClick={() => {
                               //  e.stopPropagation(); 
-                              navigate(`/receptionist/edit-doctor/${doc._id}`)
+                              navigate(`/admin/edit-doctor/${doc._id}`)
                             }}
                             className="text-primary-600 p-1 rounded-md border border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors duration-200"
                             title="Edit doctor"
@@ -339,7 +344,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                         </div>
                       </td>
                     </tr>
-                    
+
                   ))
                 ) : (
                   <tr>
@@ -357,7 +362,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
                       </div>
                     </td>
                   </tr>
-                  
+
                 )}
               </tbody>
             </table>
@@ -391,7 +396,7 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
         )}
       </div>
     </div>
-  );        
+  );
 };
 
 export default DoctorList;
