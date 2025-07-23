@@ -97,7 +97,7 @@ const DoctorForm = ({ mode = 'create' }) => {
         doctor_Password: currentDoctor.user.user_Password || '',
         doctor_Contact: currentDoctor.user.user_Contact || '',
         doctor_Address: currentDoctor.user.user_Address || '',
-        doctor_Department: currentDoctor.user.user_Department || '',
+        doctor_Department: currentDoctor.doctor_Department || '',
         doctor_CNIC: currentDoctor.user.user_CNIC || '',
         doctor_Type: currentDoctor.doctor_Type || '',
         doctor_Specialization: currentDoctor.doctor_Specialization || '',

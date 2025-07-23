@@ -123,7 +123,7 @@ const NewOpd = ({ mode = "create" }) => {
 
         return doctorsList.map(doc => ({
             id: doc.doctor_Identifier,
-            name: doc.doctor_Name,
+            name: doc.user.user_Name,
             cnic: doc.doctor_CNIC,
             gender: doc.doctor_Gender || "Male",
             qualification: Array.isArray(doc.doctor_Qualifications)

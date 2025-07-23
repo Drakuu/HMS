@@ -16,12 +16,17 @@ import {
   Science as LabIcon,
   Settings as AdminIcon,
 } from '@mui/icons-material';
+import {
+  Settings,
+  Logout
+} from '@mui/icons-material';
+
 
 const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   const [expandedMenus, setExpandedMenus] = useState({});
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
-// console.log("The dat in routeing is : ", userRole)
+  // console.log("The dat in routeing is : ", userRole)
   // Get the base path based on user role
   const getBasePath = () => {
     switch (userRole?.toLowerCase()) {
@@ -43,7 +48,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <DashboardIcon className="text-lg" />,
         links: [
           { href: 'dashboard', label: 'Admin Dashboard' },
-          { href: 'hr-dashboard', label: 'HR Dashboard' },
         ],
       },
       {
@@ -56,20 +60,68 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
     ],
     doctor: [
       {
-        name: 'Dashboards',
+        name: 'Dashboard',
         icon: <DashboardIcon className="text-lg" />,
         links: [
-          { href: 'dashboard', label: 'Admin Dashboard' },
-        ],
+          { href: 'dashboard', label: 'Dashboard' }
+        ]
       },
       {
-        name: 'Appoinments',
+        name: 'My Appointments',
+        icon: <AppointmentsIcon className="text-lg" />,
+        links: [
+          { href: 'aappointments', label: 'My Appointments' }
+        ]
+      },
+      {
+        name: 'Patient Records',
+        icon: <GroupsIcon className="text-lg" />,
+        links: [
+          { href: 'patient-records', label: 'Patient Records' }
+        ]
+      },
+      {
+        name: 'Prescriptions',
+        icon: <PharmacyIcon className="text-lg" />,
+        links: [
+          { href: 'prescriptions', label: 'Prescriptions' }
+        ]
+      },
+      {
+        name: 'Reports',
+        icon: <InventoryIcon className="text-lg" />,
+        links: [
+          { href: 'reports', label: 'Reports' }
+        ]
+      },
+      {
+        name: 'Notes / Diagnosis',
+        icon: <LabIcon className="text-lg" />,
+        links: [
+          { href: 'notes', label: 'Notes / Diagnosis' }
+        ]
+      },
+      {
+        name: 'Notifications',
         icon: <AdminIcon className="text-lg" />,
         links: [
-          { href: 'accept-apponment', label: 'Accept Appoinment' },
-          { href: 'reconsider', label: 'Reconsider' },
-        ],
+          { href: 'notifications', label: 'Notifications' }
+        ]
       },
+      {
+        name: 'Settings',
+        icon: <Settings className="text-lg" />, // From lucide-react or replace with MUI icon
+        links: [
+          { href: 'settings', label: 'Settings' }
+        ]
+      },
+      {
+        name: 'Logout',
+        icon: <Logout className="text-lg" />, // From lucide-react or replace with MUI icon
+        links: [
+          { href: 'logout', label: 'Logout' }
+        ]
+      }
     ],
     receptionist: [
       {
@@ -226,7 +278,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   return (
     <div className={`fixed lg:relative z-30 h-full w-64 bg-primary-600 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
       {/* Sidebar Header */}
-      <div className="p-4 border-b border-primary-600 flex items-center justify-center">
+      <div className="p-4 border-b border-primary-300 flex items-center justify-center">
         <h1 className="text-xl py-1.5 font-semibold">Al-Shahbaz Hospital</h1>
       </div>
 
@@ -235,24 +287,40 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         {menuItems.map((menu, index) => (
           <div key={index} className="mb-1">
             {/* Main Menu Item */}
-            <div
-              className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${activeMenu === menu.name
-                ? 'bg-primary-700'
-                : 'hover:bg-primary-700'
-                }`}
-              onClick={() => toggleMenu(menu.name)}
-            >
-              <div className="flex items-center">
+            {menu.links.length === 1 ? (
+              // Direct Link (No dropdown)
+              <Link
+                to={menu.links[0].href}
+                onClick={() => handleSubMenuClick(menu.links[0].label)}
+                className={`flex items-center px-4 py-3 transition-colors ${activeSubMenu === menu.links[0].label
+                  ? 'bg-primary-700'
+                  : 'hover:bg-primary-700'
+                  }`}
+              >
                 <span className="mr-3">{menu.icon}</span>
                 <span className="font-medium">{menu.name}</span>
+              </Link>
+            ) : (
+              // Dropdown toggle logic
+              <div
+                className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${activeMenu === menu.name
+                  ? 'bg-primary-700'
+                  : 'hover:bg-primary-700'
+                  }`}
+                onClick={() => toggleMenu(menu.name)}
+              >
+                <div className="flex items-center">
+                  <span className="mr-3">{menu.icon}</span>
+                  <span className="font-medium">{menu.name}</span>
+                </div>
+                {menu.links.length > 0 && (
+                  <ChevronDown
+                    className={`w-5 h-5 transition-transform ${expandedMenus[menu.name] ? 'rotate-180' : ''
+                      }`}
+                  />
+                )}
               </div>
-              {menu.links.length > 0 && (
-                <ChevronDown
-                  className={`w-5 h-5 transition-transform ${expandedMenus[menu.name] ? 'rotate-180' : ''
-                    }`}
-                />
-              )}
-            </div>
+            )}
 
             {/* Submenu Items */}
             {expandedMenus[menu.name] && menu.links.length > 0 && (
@@ -278,7 +346,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
 
       {/* User Info */}
       <div className="p-4 border-t border-primary-400 text-center">
-        <p className="text-lg font-medium tracking-wide">Logged in as: {userRole}</p>
+        <p className="text-lg font-medium-">You must be: {userRole}</p>
       </div>
     </div>
   );

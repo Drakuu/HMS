@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import {
   DoctorDashboard,
+AcceptAppointment,
 
 } from "../pages/doctor/doctorPages";
 import DynamicLayout from '../layouts/DynamicLayout';
@@ -13,6 +14,7 @@ const DoctorRoutes = () => {
         <Route element={<DynamicLayout />}>
 
           <Route path="dashboard" element={<DoctorDashboard />} />
+          <Route path="aappointments" element={<AcceptAppointment />} />
 
         
         </Route>
