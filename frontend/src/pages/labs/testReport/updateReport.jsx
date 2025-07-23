@@ -15,6 +15,7 @@ import {
   FiInfo,
   FiAlertCircle,
   FiCheckCircle,
+  FiLock,
 } from "react-icons/fi";
 import { fetchPatientTestById } from "../../../features/patientTest/patientTestSlice";
 import { updatePatientTestResults } from "../../../features/testResult/TestResultSlice";
@@ -26,6 +27,8 @@ const UpdateReport = () => {
   const { patientTestById, status, error } = useSelector(
     (state) => state.patientTest
   );
+  const [initialValues, setInitialValues] = useState({});
+
   const [formData, setFormData] = useState({
     results: {},
     status: "completed",
@@ -34,6 +37,23 @@ const UpdateReport = () => {
   });
 
   const [activeTestIndex, setActiveTestIndex] = useState(0);
+console.log("THe selected tests are", patientTestById);
+
+  // Check if latest status is completed
+  const isReportCompleted = () => {
+    const selectedTest = selectedTests[activeTestIndex];
+    if (
+      !selectedTest?.statusHistory ||
+      selectedTest.statusHistory.length === 0
+    ) {
+      return false;
+    }
+
+    // Get the latest status (last item in array)
+    const latestStatus =
+      selectedTest.statusHistory[selectedTest.statusHistory.length - 1];
+    return latestStatus?.status === "completed";
+  };
 
   // Extract patient data
   const patientData = patientTestById?.patientTest
@@ -55,7 +75,6 @@ const UpdateReport = () => {
 
   // Get all selected tests
   const selectedTests = patientTestById?.patientTest?.selectedTests || [];
-
   // Get all test definitions
   const testDefinitions = patientTestById?.testDefinitions || [];
 
@@ -69,19 +88,13 @@ const UpdateReport = () => {
     const testResults = selectedTests.map((test) => {
       const testDefinition = testDefinitions.find((td) => td._id === test.test);
       const currentResults = formData.results[test.test] || [];
-
       return {
         testName: test.testDetails.testName,
         fields: currentResults.map((result) => ({
           fieldName: result.fieldName,
           value: result.value,
           unit: result.unit,
-          normalRange: result.normalRange
-            ? {
-                min: result.normalRange.min,
-                max: result.normalRange.max,
-              }
-            : null,
+          normalRange: result.normalRange,
           notes: result.notes,
         })),
         notes: formData.notes,
@@ -101,7 +114,6 @@ const UpdateReport = () => {
       return;
     }
 
-    // console.log("the updateprint from is: ",printData )
     const printContent = ReactDOMServer.renderToStaticMarkup(
       <PrintTestReport
         patientTest={printData.patientData.printData.patientTest}
@@ -111,173 +123,183 @@ const UpdateReport = () => {
 
     printWindow.document.open();
     printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-                <head>
-                    <title>Print Test Report</title>
-                    <style>
-                        @page {
-                            size: A4;
-                            margin: 5mm 10mm;
-                        }
-                        
-                        body {
-                            margin: 0;
-                            padding: 5mm;
-                            color: #333;
-                            width: 190mm;
-                            height: 277mm;
-                            position: relative;
-                            font-size: 13px;
-                            line-height: 1.3;
-                            -webkit-print-color-adjust: exact;
-                            print-color-adjust: exact;
-                            font-family: Arial, sans-serif;
-                        }
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Test Report</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 5mm 10mm;
+            }
+            
+            body {
+              margin: 0;
+              padding: 5mm;
+              color: #333;
+              width: 190mm;
+              height: 277mm;
+              position: relative;
+              font-size: 13px;
+              line-height: 1.3;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              font-family: Arial, sans-serif;
+            }
 
-                        .header {
-                            text-align: center;
-                            margin-bottom: 10px;
-                            border-bottom: 2px solid #2b6cb0;
-                            padding-bottom: 10px;
-                        }
+            .header {
+              text-align: center;
+              margin-bottom: 10px;
+              border-bottom: 2px solid #2b6cb0;
+              padding-bottom: 10px;
+            }
 
-                        .hospital-name {
-                            font-size: 24px;
-                            font-weight: bold;
-                            color: #2b6cb0;
-                            margin-bottom: 5px;
-                        }
+            .hospital-name {
+              font-size: 24px;
+              font-weight: bold;
+              color: #2b6cb0;
+              margin-bottom: 5px;
+            }
 
-                        .hospital-subtitle {
-                            font-size: 14px;
-                            color: #555;
-                            margin-bottom: 5px;
-                        }
+            .hospital-subtitle {
+              font-size: 14px;
+              color: #555;
+              margin-bottom: 5px;
+            }
 
-                        .patient-info {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-bottom: 15px;
-                        }
+            .patient-info {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 15px;
+            }
 
-                        .patient-info td {
-                            padding: 3px 5px;
-                            vertical-align: top;
-                        }
+            .patient-info td {
+              padding: 3px 5px;
+              vertical-align: top;
+            }
 
-                        .patient-info .label {
-                            font-weight: bold;
-                            width: 120px;
-                        }
+            .patient-info .label {
+              font-weight: bold;
+              width: 120px;
+            }
 
-                        .test-section {
-                            margin-bottom: 20px;
-                        }
+            .test-section {
+              margin-bottom: 20px;
+            }
 
-                        .test-title {
-                            font-weight: bold;
-                            font-size: 16px;
-                            margin-bottom: 5px;
-                            color: #2b6cb0;
-                        }
+            .test-title {
+              font-weight: bold;
+              font-size: 16px;
+              margin-bottom: 5px;
+              color: #2b6cb0;
+            }
 
-                        .test-table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-bottom: 10px;
-                        }
+            .test-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 10px;
+            }
 
-                        .test-table th {
-                            background-color: #f0f0f0;
-                            border: 1px solid #ddd;
-                            padding: 5px;
-                            text-align: left;
-                            font-weight: bold;
-                        }
+            .test-table th {
+              background-color: #f0f0f0;
+              border: 1px solid #ddd;
+              padding: 5px;
+              text-align: left;
+              font-weight: bold;
+            }
 
-                        .test-table td {
-                            border: 1px solid #ddd;
-                            padding: 5px;
-                        }
+            .test-table td {
+              border: 1px solid #ddd;
+              padding: 5px;
+            }
 
-                        .footer {
-                            position: absolute;
-                            bottom: 10mm;
-                            width: 100%;
-                            display: flex;
-                            justify-content: space-between;
-                        }
+            .footer {
+              position: absolute;
+              bottom: 10mm;
+              width: 100%;
+              display: flex;
+              justify-content: space-between;
+            }
 
-                        .signature {
-                            text-align: center;
-                            width: 150px;
-                            border-top: 1px solid #000;
-                            padding-top: 5px;
-                            margin-top: 30px;
-                            font-size: 12px;
-                        }
+            .signature {
+              text-align: center;
+              width: 150px;
+              border-top: 1px solid #000;
+              padding-top: 5px;
+              margin-top: 30px;
+              font-size: 12px;
+            }
 
-                        .normal-range {
-                            font-size: 11px;
-                            color: #666;
-                        }
+            .normal-range {
+              font-size: 11px;
+              color: #666;
+            }
 
-                        .abnormal {
-                            color: red;
-                            font-weight: bold;
-                        }
+            .abnormal {
+              color: red;
+              font-weight: bold;
+            }
 
-                        @media print {
-                            body {
-                                padding: 0;
-                                margin: 0;
-                                width: 210mm;
-                                height: 297mm;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>${printContent}</body>
-                <script>
-                    window.onload = function() {
-                        setTimeout(() => {
-                            window.print();
-                            window.close();
-                        }, 500);
-                    };
-                </script>
-            </html>
-        `);
+            @media print {
+              body {
+                padding: 0;
+                margin: 0;
+                width: 210mm;
+                height: 297mm;
+              }
+            }
+          </style>
+        </head>
+        <body>${printContent}</body>
+        <script>
+          window.onload = function() {
+            setTimeout(() => {
+              window.print();
+              window.close();
+            }, 500);
+          };
+        </script>
+      </html>
+    `);
     printWindow.document.close();
   };
 
-  // Initialize form data with test fields for all tests
-useEffect(() => {
-  if (selectedTests.length > 0 && testDefinitions.length > 0) {
-    const initialResults = {};
-    selectedTests.forEach((test) => {
-      const testDefinition = testDefinitions.find(
-        (td) => td._id === test.test
-      );
-      const testFields = testDefinition?.fields || [];
+  // Initialize form data with test fields for all tests and pre-populate existing values
+  useEffect(() => {
+    if (selectedTests.length > 0 && testDefinitions.length > 0) {
+      const initialResults = {};
+      const initialVals = {};
 
-      initialResults[test.test] = testFields.map((field) => ({
-        fieldName: field.name,
-        value: "",
-        notes: "",
-        unit: field.unit || "",
-        normalRange: field.normalRange || null,
-        fieldId: field._id,
+      selectedTests.forEach((test) => {
+        const testDefinition = testDefinitions.find(
+          (td) => td._id === test.test
+        );
+        const testFields = testDefinition?.fields || [];
+
+        initialResults[test.test] = testFields.map((field) => ({
+          fieldName: field.name,
+          value: field.value || "",
+          notes: field.note || "",
+          unit: field.unit || "",
+          normalRange: field.normalRange || null,
+          fieldId: field._id,
+        }));
+
+        // Store initial values for comparison
+        initialVals[test.test] = testFields.map((field) => ({
+          value: field.value || "",
+          notes: field.note || "",
+        }));
+      });
+
+      setFormData((prev) => ({
+        ...prev,
+        results: initialResults,
       }));
-    });
 
-    setFormData((prev) => ({
-      ...prev,
-      results: initialResults,
-    }));
-  }
-}, [selectedTests, testDefinitions]);
+      setInitialValues(initialVals);
+    }
+  }, [selectedTests, testDefinitions]);
 
   useEffect(() => {
     dispatch(fetchPatientTestById(id));
@@ -318,95 +340,102 @@ useEffect(() => {
     }
   };
 
-const handleChange = (e, index, testId) => {
-  const { name, value } = e.target;
+  const handleChange = (e, index, testId) => {
+    const { name, value } = e.target;
 
-  if (name.startsWith("results.")) {
-    const [_, fieldIndex, subField] = name.split(".");
-    setFormData((prev) => {
-      const updatedResults = [...(prev.results[testId] || [])];
-      updatedResults[fieldIndex] = {
-        ...updatedResults[fieldIndex],
-        [subField]: value,
+    if (name.startsWith("results.")) {
+      const [_, fieldIndex, subField] = name.split(".");
+
+      // Check if the field had an initial value from the database
+      const hadInitialValue =
+        initialValues[testId]?.[fieldIndex]?.[subField] !== "";
+
+      // Only allow updates if there was no initial value
+      if (!hadInitialValue) {
+        setFormData((prev) => {
+          const updatedResults = [...(prev.results[testId] || [])];
+          updatedResults[fieldIndex] = {
+            ...updatedResults[fieldIndex],
+            [subField]: value,
+          };
+
+          return {
+            ...prev,
+            results: {
+              ...prev.results,
+              [testId]: updatedResults,
+            },
+          };
+        });
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const addResultField = (testId) => {
+    setFormData((prev) => ({
+      ...prev,
+      results: {
+        ...prev.results,
+        [testId]: [
+          ...(prev.results[testId] || []),
+          {
+            fieldName: "",
+            value: "",
+            notes: "",
+            unit: "",
+            normalRange: null,
+            fieldId: null,
+          },
+        ],
+      },
+    }));
+  };
+
+  const removeResultField = (index, testId) => {
+    setFormData((prev) => ({
+      ...prev,
+      results: {
+        ...prev.results,
+        [testId]: (prev.results[testId] || []).filter((_, i) => i !== index),
+      },
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const requestData = {
+        results: Object.values(formData.results).flatMap((testResult) =>
+          testResult.map((field) => ({
+            fieldName: field.fieldName,
+            value: field.value,
+            notes: field.notes,
+          }))
+        ),
+        status: formData.status,
+        notes: formData.notes,
+        performedBy: formData.performedBy,
       };
+      const testId = Array.isArray(selectedTests)
+        ? selectedTests.map((test) => test.test)
+        : selectedTests?.test;
+      await dispatch(
+        updatePatientTestResults({
+          patientTestId: id,
+          testId: testId,
+          updateData: requestData,
+        })
+      ).unwrap();
 
-      return {
-        ...prev,
-        results: {
-          ...prev.results,
-          [testId]: updatedResults,
-        },
-      };
-    });
-  } else {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }
-};
-
-const addResultField = (testId) => {
-  setFormData((prev) => ({
-    ...prev,
-    results: {
-      ...prev.results,
-      [testId]: [
-        ...(prev.results[testId] || []),
-        {
-          fieldName: "",
-          value: "",
-          notes: "",
-          unit: "",
-          normalRange: null,
-          fieldId: null, // or generate a unique ID if needed
-        },
-      ],
-    },
-  }));
-};
-
-const removeResultField = (index, testId) => {
-  setFormData((prev) => ({
-    ...prev,
-    results: {
-      ...prev.results,
-      [testId]: (prev.results[testId] || []).filter((_, i) => i !== index),
-    },
-  }));
-};
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    // Transform the form data to match the expected structure
-    const requestData = {
-      results: Object.values(formData.results).flatMap((testResult) =>
-        testResult.map((field) => ({
-          fieldName: field.fieldName,
-          value: field.value,
-          notes: field.notes,
-        }))
-      ),
-      status: formData.status,
-      notes: formData.notes, // Overall report notes
-      performedBy: formData.performedBy,
-    };
-const testId = Array.isArray(selectedTests)
-  ? selectedTests.map(test => test.test)
-  : selectedTests?.test;
-    await dispatch(
-      updatePatientTestResults({
-        patientTestId: id,
-        testId: testId,
-        updateData: requestData,
-      })
-    ).unwrap();
-
-    alert("Test results updated successfully!");
-    navigate(-1);
-  } catch (error) {
-    alert(`Failed to update results: ${error.message || "Unknown error"}`);
-  }
-};
+      alert("Test results updated successfully!");
+      navigate(-1);
+    } catch (error) {
+      alert(`Failed to update results: ${error.message || "Unknown error"}`);
+    }
+  };
 
   if (status === "loading") {
     return (
@@ -576,12 +605,12 @@ const testId = Array.isArray(selectedTests)
               </div>
 
               {/* Test Navigation Card */}
-              <div className="bg-white rounded-xl p-6 shadow-md">
+              <div className="bg-white rounded-xl p-6 shadow-md ">
                 <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
                   <FiClipboard className="w-4 h-4 mr-2 text-green-600" />
                   Test Selection
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-3 overflow-y-auto ">
                   {selectedTests.map((test, index) => {
                     const testDefinition = testDefinitions.find(
                       (td) => td._id === test.test
@@ -758,11 +787,27 @@ const testId = Array.isArray(selectedTests)
                                     : isNormal === false
                                     ? "border-red-300 bg-red-50"
                                     : "border-gray-300"
+                                } ${
+                                  initialValues[
+                                    selectedTests[activeTestIndex].test
+                                  ]?.[index]?.value
+                                    ? "bg-gray-100 cursor-not-allowed"
+                                    : ""
                                 }`}
                                 placeholder="12.5"
                                 required
+                                disabled={
+                                  !!initialValues[
+                                    selectedTests[activeTestIndex].test
+                                  ]?.[index]?.value
+                                }
                               />
-                              {isNormal !== null && (
+                              {result.value && (
+                                <div className="absolute right-2 top-2">
+                                  <FiLock className="w-5 h-5 text-gray-400" />
+                                </div>
+                              )}
+                              {isNormal !== null && !result.value && (
                                 <div className="absolute right-2 top-2">
                                   {isNormal ? (
                                     <FiCheckCircle className="w-5 h-5 text-green-500" />
@@ -828,9 +873,20 @@ const testId = Array.isArray(selectedTests)
                                 selectedTests[activeTestIndex].test
                               )
                             }
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            className={`w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
+                              initialValues[
+                                selectedTests[activeTestIndex].test
+                              ]?.[index]?.notes
+                                ? "bg-gray-100 cursor-not-allowed"
+                                : ""
+                            }`}
                             placeholder="Optional notes"
                             required
+                            disabled={
+                              !!initialValues[
+                                selectedTests[activeTestIndex].test
+                              ]?.[index]?.notes
+                            }
                           />
                         </div>
                       </div>
@@ -860,21 +916,6 @@ const testId = Array.isArray(selectedTests)
                   </select>
                 </div>
 
-                {/* <div className="bg-white rounded-xl p-6 shadow-md">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Performed By
-                  </label>
-                  <input
-                    type="text"
-                    name="performedBy"
-                    value={formData.performedBy}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Technician name"
-                    required
-                  />
-                </div> */}
-                {/* Add Overall Notes Field */}
                 <div className="bg-white rounded-xl p-6 shadow-md">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Overall Report Notes

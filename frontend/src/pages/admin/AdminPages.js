@@ -5,6 +5,7 @@ import StaffPannel from "../reception/hr/staff/StaffPannel"
 import AddNewDoctor from './doctor/AddNewDoctor';
 import DoctorPannel from './doctor/DoctorPannel';
 import DoctorDetails from './doctor/DoctorDetails';
+import Departments from "../reception/hr/departments/Departments"
 
 export {
     AdminDashboard,
@@ -12,5 +13,6 @@ export {
     DoctorPannel,
     DoctorDetails,
     StaffPannel,
+    Departments
     
 };

@@ -15,8 +15,10 @@ export const getAllTestBills = createAsyncThunk(
   'billing/getAll',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${API_URL}/labBills`);
-      console.log('Fetched bills:', response.data.data);
+      const response = await axios.get(`${API_URL}/labBills`, {
+  headers: getAuthHeaders()
+});
+      // console.log('Fetched bills:', response.data.data);
       return response.data.data;
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to fetch bills';
@@ -42,6 +44,24 @@ export const getBillDetails = createAsyncThunk(
   }
 );
 
+export const processRefund = createAsyncThunk(
+  'billing/processRefund',
+  async ({ patientId, refundData }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/labBills/bill/refund-amount-by-lab/${patientId}`,
+        refundData,
+        { headers: getAuthHeaders() }
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to process refund';
+      console.error(message);
+      return rejectWithValue({ message, statusCode: error.response?.status || 500 });
+    }
+  }
+);
+
 const initialState = {
   allBills: {
     data: [],  // Changed from 'bills' to 'data'
@@ -52,7 +72,13 @@ const initialState = {
   currentBill: {
     data: null,
     status: 'idle'
+  },
+  refund: {
+    status: 'idle',
+    lastRefund: null,
+    error: null
   }
+
 };
 
 const billingSlice = createSlice({
@@ -61,6 +87,9 @@ const billingSlice = createSlice({
   reducers: {
     resetCurrentBill: (state) => {
       state.currentBill = initialState.currentBill;
+    },
+    resetRefundStatus: (state) => {
+      state.refund = initialState.refund;
     }
   },
   extraReducers: (builder) => {
@@ -86,9 +115,27 @@ const billingSlice = createSlice({
       })
       .addCase(getBillDetails.rejected, (state) => {
         state.currentBill.status = 'failed';
+      })
+      // Process Refund
+      .addCase(processRefund.pending, (state) => {
+        state.refund.status = 'loading';
+        state.refund.error = null;
+      })
+      .addCase(processRefund.fulfilled, (state, action) => {
+        state.refund.status = 'succeeded';
+        state.refund.lastRefund = action.payload;
+        // Update current bill if it's the same patient
+        if (state.currentBill.data && state.currentBill.data._id === action.meta.arg.patientId) {
+          state.currentBill.data.refunded = state.currentBill.data.refunded || [];
+          state.currentBill.data.refunded.push(action.payload.refundRecord);
+        }
+      })
+      .addCase(processRefund.rejected, (state, action) => {
+        state.refund.status = 'failed';
+        state.refund.error = action.payload?.message || 'Failed to process refund';
       });
   }
 });
 
-export const { resetCurrentBill } = billingSlice.actions;
+export const { resetCurrentBill, resetRefundStatus  } = billingSlice.actions;
 export default billingSlice.reducer;

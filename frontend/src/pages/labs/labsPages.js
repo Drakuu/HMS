@@ -22,6 +22,7 @@ import UpdateReport from './testReport/updateReport';
 // Test Billing
 import AllBillsPage from './testBilling/AllBills';
 import BillDetailPage from './testBilling/BillDetail';
+import ReportSummery from './testReport/ReportSummery';
 
 
 export {
@@ -37,4 +38,5 @@ export {
     AllBillsPage,
     UpdateReport,
     BillDetailPage,
+    ReportSummery
 }

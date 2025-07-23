@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     },
      doctorProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
     isVerified: { type: Boolean, default: false, },
+     isDeleted: { type: Boolean, default: false },
     verificationCode: { type: String, },
   },
   { timestamps: true, }

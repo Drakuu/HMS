@@ -67,7 +67,8 @@ const createDoctor = async (req, res) => {
       user_Access: 'Doctor',
       user_Address,
       user_Contact,
-      isVerified: true
+      isVerified: true,
+      isDeleted: false,
     });
 
     // Create doctor
@@ -154,7 +155,7 @@ const getAllDoctors = async (req, res) => {
   try {
     const doctors = await hospitalModel.Doctor.find({ deleted: false }).populate({
       path: 'user',
-      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isActive user_Address' // Only include these fields from User
+      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isVerified isDeleted  user_Address' // Only include these fields from User
     });
 
     if (!doctors || doctors.length === 0) {
@@ -192,7 +193,7 @@ const getDoctorById = async (req, res) => {
       _id: doctorId,
     }).populate({
       path: 'user',
-      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isActive user_Address' // Only include these fields from User
+      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isVerified isDeleted  user_Address' // Only include these fields from User
     });
 
     if (!doctor) {
@@ -208,10 +209,10 @@ const getDoctorById = async (req, res) => {
     }
 
     const patients = await hospitalModel.Patient.find({
-      "patient_HospitalInformation.doctor_Name": doctor.doctor_Name,
+      "patient_HospitalInformation.doctor_Name": doctor.user.user_Name,
       "patient_HospitalInformation.doctor_Department": doctor.doctor_Department,
     })
-    console.log("Doctor details: ", doctor.doctor_Name);
+    // console.log("Doctor details with patients: ", patients);
 
     // Mapping patients' information with the relevant doctor data
     const mappedPatients = patients.map((patient) => ({
@@ -398,7 +399,7 @@ const getAllDoctorsByDepartmentName = async (req, res) => {
     const department = await hospitalModel.Department.findOne({
       name: departmentName,
       deleted: false
-    });
+    })
 
     if (!department) {
       return res.status(404).json({
@@ -411,6 +412,9 @@ const getAllDoctorsByDepartmentName = async (req, res) => {
     const doctors = await hospitalModel.Doctor.find({
       doctor_Department: departmentName,
       deleted: false,
+    }).populate({
+      path: 'user',
+      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isVerified isDeleted  user_Address' // Only include these fields from User
     });
 
     return res.status(200).json({

@@ -5,6 +5,7 @@ import {
   AddNewDoctor,
   DoctorPannel,
   DoctorDetails,
+  Departments,
 
 } from "../pages/admin/AdminPages";
 import DynamicLayout from '../layouts/DynamicLayout';
@@ -24,7 +25,8 @@ const AdminRoutes = () => {
           <Route path="add-doctor" element={<AddNewDoctor mode="create" />} />
           <Route path="edit-doctor/:doctorId" element={<AddNewDoctor mode="edit" />} />
           <Route path="doctor-details/:doctorId" element={<DoctorDetails />} />
-
+          {/* Depatemrnts Routes*/}
+         <Route path="departments" element={<Departments />} />
 
         </Route>
       </Route>

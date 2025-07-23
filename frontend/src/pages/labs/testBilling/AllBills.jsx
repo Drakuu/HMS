@@ -13,7 +13,7 @@ const AllBills = () => {
     dispatch(getAllTestBills({ page: 1, limit: 10 }));
   }, [dispatch]);
 
-  console.log("Redux state data:", { bills, status });
+  // console.log("Redux state data:", { bills, status });
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

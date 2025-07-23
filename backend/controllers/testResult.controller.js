@@ -4,13 +4,11 @@ const mongoose = require("mongoose");
 const submitTestResults = async (req, res) => {
   const { patientTestId, testId } = req.params;
   const testIdArray = testId.split(','); // Split comma-separated string into array
-
+  
   try {
-    const { results, notes, status = "draft" } = req.body;
-    // const userlogin = req.user;
-    // console.log("the login user is ", userlogin)
-    // const performedBy = userlogin._id;
-    const performedBy = "";
+    const { results: testResults, notes, status = "draft" } = req.body; // Renamed to testResults
+    console.log("The user are ", req.user); 
+    const performedBy = req.user.user_Name // Replace with actual user ID from auth
 
     // Validate ObjectId format for patientTestId
     if (!mongoose.Types.ObjectId.isValid(patientTestId)) {
@@ -21,11 +19,11 @@ const submitTestResults = async (req, res) => {
     }
 
     // Validate all testIds
-    for (const testId of testIdArray) {
-      if (!mongoose.Types.ObjectId.isValid(testId)) {
+    for (const id of testIdArray) {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid testId format: ${testId}`,
+          message: `Invalid testId format: ${id}`,
         });
       }
     }
@@ -43,7 +41,7 @@ const submitTestResults = async (req, res) => {
       });
     }
 
-    // Process each testId
+    // Process each testId separately with its own results
     const updatePromises = testIdArray.map(async (testId) => {
       // Find the specific test in the patient's selectedTests
       const testToUpdate = patientTest.selectedTests.find(
@@ -55,44 +53,41 @@ const submitTestResults = async (req, res) => {
       }
 
       // 2. Get test details for normal ranges
-      const testDefinition = await hospitalModel.TestManagment.findById(
-        testToUpdate.test
-      );
-
+      const testDefinition = await hospitalModel.TestManagment.findById(testId);
       if (!testDefinition) {
         throw { testId, message: "Test definition not found" };
       }
 
-      // 3. Prepare results with normal range checks
-      const preparedResults = results
-        .filter((r) => r.value && r.value !== "")
-        .map((result) => {
-          const fieldDef = testDefinition.fields.find(
-            (f) => f.name === result.fieldName
-          );
-          if (!fieldDef) {
-            throw new Error(
-              `Field ${result.fieldName} not found in test definition for test ${testId}`
-            );
-          }
+      // Filter results for this specific test
+      const filteredResults = Array.isArray(testResults) 
+        ? testResults.filter(result => result.testId === testId || !result.testId)
+        : [];
 
-          const gender = patientTest.patient_Detail.patient_Gender.toLowerCase();
-          const normalRange =
-            fieldDef.normalRange[gender] || fieldDef.normalRange;
+      // 3. Prepare results with normal range checks only for fields that exist in this test
+      const preparedResults = testDefinition.fields.map((fieldDef) => {
+        // Find if there's a result for this field
+        const result = filteredResults.find(r => r.fieldName === fieldDef.name);
+        
+        if (!result || !result.value || result.value === "") {
+          return null; // Skip fields without values
+        }
 
-          return {
-            fieldName: result.fieldName,
-            value: result.value,
-            unit: fieldDef.unit,
-            normalRange: {
-              min: normalRange.min,
-              max: normalRange.max,
-            },
-            isNormal: checkIfNormal(result.value, normalRange),
-            notes: result.notes || "",
-            reportedAt: new Date(),
-          };
-        });
+        const gender = patientTest.patient_Detail.patient_Gender.toLowerCase();
+        const normalRange = fieldDef.normalRange[gender] || fieldDef.normalRange;
+
+        return {
+          fieldName: fieldDef.name,
+          value: result.value,
+          unit: fieldDef.unit,
+          normalRange: {
+            min: normalRange.min,
+            max: normalRange.max,
+          },
+          isNormal: checkIfNormal(result.value, normalRange),
+          notes: result.notes || "",
+          reportedAt: new Date(),
+        };
+      }).filter(Boolean); // Remove null entries
 
       // 4. Create or update test result
       let testResult = await hospitalModel.TestResult.findOne({
@@ -133,10 +128,10 @@ const submitTestResults = async (req, res) => {
       };
     });
 
-    const resultss = await Promise.allSettled(updatePromises);
+    const operationResults = await Promise.allSettled(updatePromises);
     
     // Check for any rejected promises (errors)
-    const errors = resultss.filter(r => r.status === 'rejected');
+    const errors = operationResults.filter(r => r.status === 'rejected');
     if (errors.length > 0) {
       console.error("Errors updating some tests:", errors);
       // You might want to handle partial failures differently
@@ -148,7 +143,7 @@ const submitTestResults = async (req, res) => {
       success: true,
       message: "Test results saved successfully",
       data: {
-        testResults: resultss.map(r => r.value || r.reason),
+        testResults: operationResults.map(r => r.value || { error: r.reason.message, testId: r.reason.testId }),
         patientDetails: {
           name: patientTest.patient_Detail.patient_Name,
           mrNo: patientTest.patient_Detail.patient_MRNo,
@@ -292,8 +287,91 @@ const getPatientByResultId = async (req, res) => {
   }
 };
 
+const getSummaryByDate = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate && !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide at least a startDate or endDate'
+      });
+    }
+
+    // Construct query
+    let query = {};
+
+    if (startDate && !endDate) {
+      const sDate = new Date(startDate);
+      query.createdAt = {
+        $gte: new Date(sDate.setHours(0, 0, 0, 0)),
+        $lt: new Date(sDate.setHours(23, 59, 59, 999))
+      };
+    } else if (startDate && endDate) {
+      const sDate = new Date(startDate);
+      const eDate = new Date(endDate);
+      query.createdAt = {
+        $gte: new Date(sDate.setHours(0, 0, 0, 0)),
+        $lte: new Date(eDate.setHours(23, 59, 59, 999))
+      };
+    }
+// console.log(`the endDate ${endDate} and startDate ${startDate}`)
+    // Find matching patients
+    const patients = await hospitalModel.PatientTest.find(query)
+      .sort({ createdAt: 1 })
+      .lean();
+
+    // Collect all patientTestIds
+    const patientTestIds = patients.map(patient => patient._id.toString());
+
+const testIds = patients.flatMap(patient =>
+  (patient.selectedTests || []).map(test => test.test.toString())
+);
+
+
+    // Find matching test results
+    const testResults = await hospitalModel.TestResult.find({
+      isDeleted: false,
+      patientTestId: { $in: patientTestIds },
+      testId: { $in: testIds }
+    }).lean();
+
+    // Optional: Group testResults by patientTestId
+    const testResultsMap = {};
+    testResults.forEach(result => {
+      const id = result.patientTestId.toString();
+      if (!testResultsMap[id]) testResultsMap[id] = [];
+      testResultsMap[id].push(result);
+    });
+
+    // Combine patient and test results
+    const responseData = patients.map(patient => ({
+      ...patient,
+      testResults: testResultsMap[patient._id.toString()] || []
+    }));
+// console.log("responseData: ", responseData)
+    return res.status(200).json({
+      success: true,
+      count: responseData.length,
+      data: responseData
+    });
+
+  } catch (error) {
+    console.error('Error fetching patient tests:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+
+
+
 module.exports = {
   submitTestResults,
   getAllTestResults,
   getPatientByResultId,
+  getSummaryByDate,
 };

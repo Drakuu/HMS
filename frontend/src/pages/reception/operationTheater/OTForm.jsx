@@ -73,6 +73,7 @@ const OTForm = ({ operation, onSubmit, onCancel }) => {
   useEffect(() => {   // if some one select department then fetch doctors
     if (formData.department) {
       dispatch(fetchDoctorsByDepartmentName(formData.department))
+      console.log("doc by dep",formData.department , doctors)
     }
   }, [formData.department, dispatch]);
 
@@ -351,8 +352,8 @@ const OTForm = ({ operation, onSubmit, onCancel }) => {
                   }));
                 }}
                 options={seniorDoctors.map(doctor => ({
-                  value: doctor.doctor_Name,
-                  label: `${doctor.doctor_Name} (${doctor.doctor_Specialization})`
+                  value: doctor.user.user_Name,
+                  label: `${doctor.user.user_Name} (${doctor.doctor_Specialization})`
                 }))}
                 required
                 disabled={isDoctorLoading || !formData.department}
@@ -377,8 +378,8 @@ const OTForm = ({ operation, onSubmit, onCancel }) => {
                   }));
                 }}
                 options={assistantDoctors.map(doctor => ({
-                  value: doctor.doctor_Name,
-                  label: `${doctor.doctor_Name} (${doctor.doctor_Type})`
+                  value: doctor.user.user_Name,
+                  label: `${doctor.user.user_Name} (${doctor.doctor_Type})`
                 }))}
                 disabled={isDoctorLoading || !formData.department}
               />

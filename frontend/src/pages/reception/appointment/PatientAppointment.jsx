@@ -572,7 +572,6 @@ const PatientAppointment = () => {
           />
         </div>
       </div>
-
     </div>
   );
 };

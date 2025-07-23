@@ -25,7 +25,7 @@ export const updatePatientTestResults = createAsyncThunk(
         updateData,
         getAuthHeaders()
       );
-// testId = formattedTestId
+      // testId = formattedTestId
       const response = await axios.patch(
         `${API_URL}/testResult/${patientTestId}/tests/${formattedTestId}/results`,
         updateData,
@@ -47,16 +47,50 @@ export const updatePatientTestResults = createAsyncThunk(
   }
 );
 
+export const getSummaryByDate = createAsyncThunk(
+  "patientTest/getSummaryByDate",
+  async (dateRange, { rejectWithValue }) => {
+    // console.log("The dateRange", dateRange)
+    try {
+      const startDate = dateRange.startDate || dateRange.date?.startDate;
+      let endDate = dateRange.endDate || dateRange.date?.endDate;
+
+      if (!startDate) {
+        throw new Error("Start date is required");
+      }
+
+      // If only startDate, use it as endDate too
+      if (!endDate) {
+        endDate = startDate;
+      }
+
+      const response = await axios.get(
+        `${API_URL}/testResult/get-patient-summery-by-date?startDate=${startDate}&endDate=${endDate}`,
+        { headers: getAuthHeaders() }
+      );
+
+      return response.data.data;
+    } catch (error) {
+      // error handling
+    }
+  }
+);
+
+
+
 // 🔧 Initial State
 const initialState = {
   patient: null,
   allPatientTests: [],
+  summaryByDate: [],
+
   status: {
     submit: "idle",
     fetch: "idle",
     fetchAll: "idle",
     fetchById: "idle",
     update: "idle",
+    summary: "idle",
   },
   patientTestById: null,
   isLoading: false,
@@ -118,7 +152,25 @@ const testResultSlice = createSlice({
         state.isLoading = false;
         state.isError = true;
         state.error = action.payload.message || "Failed to update test results";
-      });
+      })
+      .addCase(getSummaryByDate.pending, (state) => {
+        state.status.summary = "pending";
+        state.isLoading = true;
+        state.isError = false;
+        state.error = null;
+      })
+      .addCase(getSummaryByDate.fulfilled, (state, action) => {
+        state.status.summary = "succeeded";
+        state.isLoading = false;
+        state.summaryByDate = action.payload; // all filtered tests
+      })
+      .addCase(getSummaryByDate.rejected, (state, action) => {
+        state.status.summary = "failed";
+        state.isLoading = false;
+        state.isError = true;
+        state.error =
+          action.payload.message || "Failed to fetch summary by date";
+      })
   },
 });
 

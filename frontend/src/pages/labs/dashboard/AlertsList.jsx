@@ -1,64 +1,144 @@
-// import React from 'react';
-// import { AlertTriangle } from 'lucide-react';
-
-// const alerts = [
-//   "Critical Blood Work - Patient ID: 4829",
-//   "Sample #BS-2024-0156 Expires In 1 Hour",
-//   "Toxicology Report Needed ASAP - ID: 9847",
-//   "Urine Sample Batch #UR-445 Expired",
-//   "Cardiac Enzymes – Emergency Case",
-// ];
-
-// const AlertsList = () => (
-//   <div className="bg-white shadow-md p-4 rounded-xl flex flex-col gap-3 mr-4 hover:shadow-2xl transition-shadow duration-300 border border-grey-100">
-//     <h3 className="font-bold mb-2">Alerts</h3>
-//     <ul className="space-y-2">
-//       {alerts.map((alert, i) => (
-//         <li key={i} className="bg-red-50 border border-red-200 p-2 rounded-md text-sm text-red-800 flex items-center gap-2">
-//           <span><AlertTriangle className="w-5 h-5 text-red-500" />
-// </span>
-//           {alert}
-//         </li>
-//       ))}
-//     </ul>
-//   </div>
-// );
-
-// export default AlertsList;
-
-
 import React from 'react';
-import { AlertTriangle, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { AlertTriangle, Clock, Bell, ChevronRight } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
-const alerts = [
-  { message: "Critical Blood Work - Patient ID: 4829", timeStatus: "2 Min Ago" },
-  { message: "Sample #BS-2024-0156", timeStatus: "Expires in 1 Hour" },
-  { message: "Toxicology Report Needed ASAP - ID: 9847", timeStatus: "2 Min Ago" },
-  { message: "Urine Sample Batch #UR-445", timeStatus: "Expired" },
-  { message: "Cardiac Enzymes – Emergency Case", timeStatus: "2 Min Ago" },
-];
+const AlertsList = () => {
+  // Get test history from Redux store
+  const testHistory = useSelector((state) => state.patientTest.testHistory);
+  
+  // Process test history to generate dynamic alerts
+  const generateAlerts = () => {
+    if (!testHistory || testHistory.length === 0) return [];
+    
+    const alerts = [];
+    
+    // 1. Check for expired samples (assuming testDate exists)
+    const now = new Date();
+    testHistory.forEach(test => {
+      test.selectedTests.forEach(selectedTest => {
+        const testDate = new Date(selectedTest.testDate);
+        const hoursDiff = Math.abs(now - testDate) / 36e5;
+        
+        // Alert for samples older than 24 hours
+        if (hoursDiff > 24 && selectedTest.sampleStatus !== 'collected') {
+          alerts.push({
+            id: `${test._id}-${selectedTest._id}-expired`,
+            message: `Sample for ${selectedTest.testDetails.testName} expired`,
+            timeStatus: `${Math.floor(hoursDiff)} hours ago`,
+            priority: "high",
+            testType: selectedTest.testDetails.testName,
+            patient: test.patient_Detail.patient_Name
+          });
+        }
+        
+        // Alert for critical tests (assuming some tests are marked critical)
+        if (selectedTest.testDetails.testCode === 'cns') { // Example critical test code
+          alerts.push({
+            id: `${test._id}-${selectedTest._id}-critical`,
+            message: `Critical test pending: ${selectedTest.testDetails.testName}`,
+            timeStatus: `${Math.floor(hoursDiff)} hours ago`,
+            priority: "critical",
+            testType: selectedTest.testDetails.testName,
+            patient: test.patient_Detail.patient_Name
+          });
+        }
+      });
+      
+      // Alert for unpaid tests
+      if (test.paymentStatus === 'pending' && test.finalAmount > 0) {
+        alerts.push({
+          id: `${test._id}-payment`,
+          message: `Unpaid test for ${test.patient_Detail.patient_Name}`,
+          timeStatus: "Pending payment",
+          priority: "medium",
+          testType: "Payment",
+          patient: test.patient_Detail.patient_Name
+        });
+      }
+    });
+    
+    return alerts;
+  };
 
-const AlertsList = () => (
-  <div className="bg-white shadow-md p-4 rounded-xl flex flex-col gap-3 mr-4 hover:shadow-2xl transition-shadow duration-300 border border-grey-100">
-    <h3 className="font-bold mb-2">Alerts</h3>
-    <ul className="space-y-2">
-      {alerts.map((alert, i) => (
-        <li key={i} className="bg-red-50 p-3 rounded-md text-sm text-red-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-          {/* Left: Alert icon + Message */}
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <span className='text-gray-600 font-bold'>{alert.message}</span>
-          </div>
+  const alerts = generateAlerts();
+  
+  // If no alerts, show a peaceful message
+  if (alerts.length === 0) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-full flex flex-col items-center justify-center"
+      >
+        <div className="text-center">
+          <Bell className="w-10 h-10 text-green-500 mx-auto mb-3" />
+          <h3 className="text-lg font-semibold text-gray-700">All Clear!</h3>
+          <p className="text-gray-500 mt-1">No urgent alerts at this time</p>
+        </div>
+      </motion.div>
+    );
+  }
 
-          {/* Right: Timer icon + status */}
-          <div className="flex items-center gap-1 text-red-400 text-xs mt-1 sm:mt-0">
-            <Clock className="w-4 h-4" />
-            <span>{alert.timeStatus}</span>
-          </div>
-        </li>
-      ))}
-    </ul>
-  </div>
-);
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'critical': return 'bg-red-100 border-l-red-600';
+      case 'high': return 'bg-orange-100 border-l-orange-500';
+      case 'medium': return 'bg-amber-100 border-l-amber-400';
+      default: return 'bg-gray-100 border-l-gray-400';
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.3 }}
+      className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-full"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold">Alerts & Notifications</h3>
+        <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+          {alerts.length} New
+        </span>
+      </div>
+
+      <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+        {alerts.map((alert) => (
+          <motion.div
+            key={alert.id}
+            whileHover={{ scale: 1.01 }}
+            className={`p-4 rounded-lg border-l-4 ${getPriorityColor(alert.priority)} flex flex-col sm:flex-row justify-between gap-2 cursor-pointer transition-all`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`p-2 rounded-full ${alert.priority === 'critical' ? 'bg-red-200' : 'bg-amber-200'}`}>
+                <AlertTriangle className={`w-4 h-4 ${alert.priority === 'critical' ? 'text-red-600' : 'text-amber-600'}`} />
+              </div>
+              <div>
+                <p className="font-medium text-gray-800">{alert.message}</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                  <span className="text-xs text-gray-500">Patient: {alert.patient}</span>
+                  <span className="text-xs text-gray-500">Test: {alert.testType}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Clock className="w-3 h-3" />
+              <span>{alert.timeStatus}</span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-gray-100">
+        <button className="w-full flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-800">
+          <ChevronRight className="w-4 h-4" />
+          <span>View all alerts</span>
+        </button>
+      </div>
+    </motion.div>
+  );
+};
 
 export default AlertsList;

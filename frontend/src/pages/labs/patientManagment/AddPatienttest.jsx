@@ -166,7 +166,9 @@ const AddlabPatient = () => {
 
   const submitForm = async (shouldPrint) => {
     //console.log('Starting form submission, shouldPrint:', shouldPrint); // Debug log
-
+// console.log("testrows was is: ", testRows);
+const totalpaid = testRows.reduce((sum, row) => sum + row.paid, 0);
+//  console.log("TJe total paid is: ", totalpaid);
     const payload = {
       patient_MRNo: patient.MRNo,
       patient_CNIC: patient.CNIC,
@@ -178,10 +180,11 @@ const AddlabPatient = () => {
       isExternalPatient: mode === 'new',
       selectedTests: testRows.map(row => ({
         test: row.testId,
-        notes: row.notes || ""
+        notes: row.notes || "",
       })),
       discount: testRows.reduce((sum, r) => sum + (r.discount || 0), 0),
-      performedBy: ""
+      performedBy: "",
+      advancePayment: totalpaid,
     };
 
     try {

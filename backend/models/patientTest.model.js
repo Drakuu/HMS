@@ -1,4 +1,13 @@
 const mongoose = require('mongoose');
+const refundSchema = new mongoose.Schema({
+  performedByname: String,
+  performedByid: String,
+  refundAmount: Number,
+  refundReason: String
+}, {
+  timestamps: true,
+  _id: false // ❌ disables _id for refund entries
+});
 
 const patientTestSchema = new mongoose.Schema({
     isExternalPatient: { type: Boolean, default: false },
@@ -33,7 +42,8 @@ const patientTestSchema = new mongoose.Schema({
             changedBy: { type: String } 
         }]
     }],
-
+    refunded: [refundSchema],
+    advancePayment: { type: Number, },
     totalAmount: { type: Number, },
     discount: { type: Number, default: 0 },
     finalAmount: { type: Number, },
@@ -45,6 +55,6 @@ const patientTestSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-const PatientTest = mongoose.model('PatientTest', patientTestSchema);
+const PatientTest = mongoose.model('PatientTest' , patientTestSchema);
 
 module.exports = PatientTest

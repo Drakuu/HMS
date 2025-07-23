@@ -20,15 +20,20 @@ const TestInformationForm = ({
           className="border p-2 rounded flex-1"
         >
           <option value="">Select a Test</option>
-          {testList?.map((o) => (
-            <option key={o._id} value={o._id}>
-              {o.testName} - Rs {o.testPrice}
-            </option>
-          ))}
+          {!testList || testList.length === 0 ? (
+            <option value="" disabled>No tests available</option>
+          ) : (
+            testList.map((o) => (
+              <option key={o._id} value={o._id}>
+                {o.testName} - Rs {o.testPrice}
+              </option>
+            ))
+          )}
+
         </select>
 
-        <button 
-          type="button" 
+        <button
+          type="button"
           className="px-4 py-2 bg-primary-700 text-white rounded"
           onClick={handleTestAdd}
         >
@@ -53,56 +58,56 @@ const TestInformationForm = ({
                     <td className="border px-3 py-2 w-10">{r.quantity}</td>
                     <td className="border px-3 py-2 min-w-[150px]">{r.testName}</td>
                     <td className="border px-3 py-2 min-w-[120px]">
-                      <input 
-                        type="date" 
-                        value={r.sampleDate} 
-                        onChange={e => handleTestRowChange(i, 'sampleDate', e.target.value)} 
-                        className="border p-1 rounded w-full" 
+                      <input
+                        type="date"
+                        value={r.sampleDate}
+                        onChange={e => handleTestRowChange(i, 'sampleDate', e.target.value)}
+                        className="border p-1 rounded w-full"
                       />
                     </td>
                     <td className="border px-3 py-2 min-w-[120px]">
-                      <input 
-                        type="date" 
-                        value={r.reportDate} 
-                        onChange={e => handleTestRowChange(i, 'reportDate', e.target.value)} 
-                        className="border p-1 rounded w-full" 
+                      <input
+                        type="date"
+                        value={r.reportDate}
+                        onChange={e => handleTestRowChange(i, 'reportDate', e.target.value)}
+                        className="border p-1 rounded w-full"
                       />
                     </td>
                     <td className="border px-3 py-2 min-w-[100px]">
-                      <input 
-                        type="number" 
-                        min="0" 
-                        value={r.amount} 
-                        onChange={e => handleTestRowChange(i, 'amount', e.target.value)} 
-                        className="border p-1 rounded w-full" 
+                      <input
+                        type="number"
+                        min="0"
+                        value={r.amount}
+                        onChange={e => handleTestRowChange(i, 'amount', e.target.value)}
+                        className="border p-1 rounded w-full"
                       />
                     </td>
                     <td className="border px-3 py-2 min-w-[100px]">
-                      <input 
-                        type="number" 
-                        min="0" 
-                        value={r.discount} 
-                        onChange={e => handleTestRowChange(i, 'discount', e.target.value)} 
-                        className="border p-1 rounded w-full" 
+                      <input
+                        type="number"
+                        min="0"
+                        value={r.discount}
+                        onChange={e => handleTestRowChange(i, 'discount', e.target.value)}
+                        className="border p-1 rounded w-full"
                       />
                     </td>
                     <td className="border px-3 py-2 min-w-[80px] font-medium">{r.finalAmount}</td>
                     <td className="border px-3 py-2 min-w-[100px]">
-                      <input 
-                        type="number" 
-                        min="0" 
-                        value={r.paid} 
-                        onChange={e => handleTestRowChange(i, 'paid', e.target.value)} 
-                        className="border p-1 rounded w-full" 
+                      <input
+                        type="number"
+                        min="0"
+                        value={r.paid}
+                        onChange={e => handleTestRowChange(i, 'paid', e.target.value)}
+                        className="border p-1 rounded w-full"
                       />
                     </td>
                     <td className="border px-3 py-2 min-w-[100px] font-medium">
                       {Math.max(0, r.finalAmount - (r.paid || 0))}
                     </td>
                     <td className="border px-3 py-2 min-w-[80px]">
-                      <button 
-                        type="button" 
-                        onClick={() => handleRemoveRow(i)} 
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRow(i)}
                         className="text-red-600 hover:text-red-800 font-medium"
                       >
                         Remove
@@ -113,7 +118,7 @@ const TestInformationForm = ({
               </tbody>
             </table>
           </div>
-          
+
           <div className="mt-4 bg-gray-100 p-3 rounded">
             <div className="grid grid-cols-4 gap-4">
               <div className="col-span-2">

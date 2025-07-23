@@ -4,8 +4,9 @@ import { createDepartment, getallDepartments, updatedepartmentbyid } from '../..
 
 const DepartmentManagement = () => {
   const dispatch = useDispatch();
-  const departments = useSelector(state => state.department.departments);
+  const departments = useSelector(state => state.department.departments) || [];
 
+  // console.log("departments from Redux:", departments);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,10 +27,12 @@ const DepartmentManagement = () => {
 
 
 
-  const filteredDepts = departments.filter(dept =>
-    dept.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dept.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+const filteredDepts = Array.isArray(departments)
+  ? departments.filter(dept =>
+      dept.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dept.location?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  : [];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -253,14 +256,11 @@ const DepartmentManagement = () => {
                   <td className="px-6 py-4">{dept.status}</td>
                   <td className="px-6 py-4">
                     {dept.servicesOffered?.map(service => (
-                      <span key={service} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{service}</span>
+                      <span key={service} className="bg-primary-100 text-primary-800 text-xs mx-0.5 px-2 py-1 rounded">{service}</span>
                     ))}
                   </td>
-
-
-
                   <td className="px-6 py-4 ">
-                    <button onClick={() => handleEdit(dept)} className="text-primary-600 hover:underline mr-3">Edit</button>
+                    <button onClick={() => handleEdit(dept)} className="text-edit-600 border p-1 rounded-b-2xl hover:underline mr-3">Edit</button>
                   </td>
                 </tr>
               ))}

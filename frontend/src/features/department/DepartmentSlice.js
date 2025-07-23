@@ -21,7 +21,9 @@ export const updatedepartmentbyid = createAsyncThunk(
                 updatedData,
                 { headers: getAuthHeaders() }
             );
-            return response.data.updatedDepartment; // Assuming your API returns this
+            // console.log('the updated data in api', response)
+            return response.data;
+            // Assuming your API returns this
         } catch (error) {
             const message = error.response?.data?.message || error.message || 'Failed to update department';
             return rejectWithValue({ message, statusCode: error.response?.status || 500 });
@@ -111,24 +113,23 @@ const departmentSlice = createSlice({
                 state.error = action.payload?.message || 'Failed to fetch departments';
             })
             //updatedepartmentbyid//
-            .addCase(updatedepartmentbyid.pending,(state)=>{
-                state.loading=true;
-                state.error=null;
+            .addCase(updatedepartmentbyid.pending, (state) => {
+                state.loading = true;
+                state.error = null;
             })
             .addCase(updatedepartmentbyid.fulfilled, (state, action) => {
                 state.loading = false;
                 const updatedDepartment = action.payload;
+                // console.log('the updated dept is', action.payload )
                 const index = state.departments.findIndex(dep => dep._id === updatedDepartment._id);
                 if (index !== -1) {
                     state.departments[index] = updatedDepartment;
                 }
             })
-            .addCase(updatedepartmentbyid.rejected,(state,action)=>{
-                state.loading=false;
-                state.departments=action.payload?.mesaage ||'failed to update'
-
+            .addCase(updatedepartmentbyid.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Failed to update department';
             });
-            
     }
 });
 

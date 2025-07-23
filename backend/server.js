@@ -4,14 +4,15 @@ const connectDB = require('./config/db');
 const indexRouter = require('./routes/index.route');
 const cors = require('cors');
 const path = require('path');
+const initializeAdmin = require('./utils/initilization/initializeAdmin');
 
 const app = express();
 
 app.use(
   cors({
     // origin: [ 'https://hms.clickmasters.pk' ], // or '*' temporarily
-    origin: [ 'http://localhost:5173' ], 
-    methods: [ 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS' ],
+    origin: ['http://localhost:5173'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     credentials: true
   })
 );
@@ -19,14 +20,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Connect to MongoDB
-connectDB();
+connectDB()
+  .then(() => {
+    // Initialize super admin after successful DB connection
+    initializeAdmin();
+  })
+  .catch(err => {
+    console.error('❌ Database connection failed:', err);
+    process.exit(1);
+  });
 
 // Serve static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/', indexRouter);
 
 const PORT = process.env.PORT || 5000;
-const HOST = process.env.HOST || '0.0.0.0'; 
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.listen(PORT, HOST, () => {
   console.log(

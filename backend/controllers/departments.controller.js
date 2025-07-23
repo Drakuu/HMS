@@ -48,7 +48,7 @@ const updateDepartmentById = async (req, res) => {
     const { name, description, location, status, servicesOffered, } = req.body;
 
     try {
-        const department = await hospitalModel.departments.findById(id);
+        const department = await hospitalModel.Department.findById(id);
         if (!department) {
             return res.status(404).json({ message: "Department not found" });
         }

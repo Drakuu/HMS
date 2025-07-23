@@ -56,7 +56,7 @@ export const fetchPatientTestAll = createAsyncThunk(
       const response = await axios.get(`${API_URL}/patientTest`, {
         headers: getAuthHeaders()
       });
-      console.log("📄 All patient tests fetched:", response.data.data.patientTests);
+      // console.log("📄 All patient tests fetched:", response.data.data.patientTests);
       return response.data.data.patientTests;
     } catch (error) {
       const message = error.response?.data?.message || error.message || "Failed to fetch all patient tests";
@@ -97,12 +97,35 @@ export const fetchAllTests = createAsyncThunk(
   }
 );
 
+export const getTestHistory = createAsyncThunk(
+  "patientTest/getTestHistory",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/patientTest/test/patient-test-history`, {
+        headers: getAuthHeaders(),
+      });
+      return response.data.data;
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch test history";
+      return rejectWithValue({
+        message,
+        statusCode: error.response?.status || 500,
+      });
+    }
+  }
+);
+
 // 🔧 Initial State
 const initialState = {
   patient: null,
   allPatientTests: [],
   allPatients: [],
   tests: [],
+    testHistory: [],
+
   status: {
     submit: 'idle',
     fetch: 'idle',
@@ -226,6 +249,24 @@ const patienttestSlice = createSlice({
         state.isError = true;
         state.error = action.payload.message || 'Failed to fetch tests';
       })
+      
+      .addCase(getTestHistory.pending, (state) => {
+        state.status.fetchAll = "pending";
+        state.isLoading = true;
+        state.isError = false;
+        state.error = null;
+      })
+      .addCase(getTestHistory.fulfilled, (state, action) => {
+        state.status.fetchAll = "succeeded";
+        state.isLoading = false;
+        state.testHistory = action.payload; // all test records
+      })
+      .addCase(getTestHistory.rejected, (state, action) => {
+        state.status.fetchAll = "failed";
+        state.isLoading = false;
+        state.isError = true;
+        state.error = action.payload.message || "Failed to fetch test history";
+      });
   }
 });
 

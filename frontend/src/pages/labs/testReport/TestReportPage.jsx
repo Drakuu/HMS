@@ -4,7 +4,7 @@ import StatsCard from "./StatsCard";
 import Header from "./Header";
 const TestReportPage = () => {
   return (
-    <div className="p-6 bg-[#f1f5f9] min-h-screen">
+    <div className=" bg-[#f1f5f9] min-h-screen">
       <Header/>
       
       <div className="mt-5">

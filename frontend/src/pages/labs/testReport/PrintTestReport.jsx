@@ -1,19 +1,15 @@
-import React from 'react';
-
 const PrintTestReport = ({ patientTest, testDefinitions }) => {
   // Helper function to handle empty values
   const safeData = (value, fallback = 'N/A') => value || fallback;
-
+// console.log("The testDefinitions: in printing ", testDefinitions, "patientTest: ", patientTest);
   // Extract patient data
   const patientData = patientTest.patient_Detail;
-  const testData = patientTest.selectedTests[0];
-  const testDefinition = testDefinitions[0];
 
   // Format date to "DD-MM-YYYY" format
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0'); 
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
@@ -55,7 +51,7 @@ const PrintTestReport = ({ patientTest, testDefinitions }) => {
     }
     return false;
   };
-console.log(("The testDefinition.fields", testDefinition.fields))
+
   return (
     <html>
       <head>
@@ -84,16 +80,22 @@ console.log(("The testDefinition.fields", testDefinition.fields))
             .header {
               text-align: center;
               margin-bottom: 10px;
-              border-bottom: 2px solid #000;
+              border-bottom: 2px solid #2b6cb0;
               padding-bottom: 10px;
             }
 
             .hospital-name {
               font-size: 24px;
               font-weight: bold;
-              color: #000;
+              color: #2b6cb0;
               margin-bottom: 5px;
               text-transform: uppercase;
+            }
+
+            .hospital-subtitle {
+              font-size: 14px;
+              color: #555;
+              margin-bottom: 5px;
             }
 
             .patient-info {
@@ -126,7 +128,7 @@ console.log(("The testDefinition.fields", testDefinition.fields))
               font-weight: bold;
               font-size: 16px;
               margin-bottom: 5px;
-              text-transform: uppercase;
+              color: #2b6cb0;
             }
 
             .test-table {
@@ -151,22 +153,25 @@ console.log(("The testDefinition.fields", testDefinition.fields))
             }
 
             .footer {
-              margin-top: 30px;
+              position: absolute;
+              bottom: 10mm;
               width: 100%;
+              display: flex;
+              justify-content: space-between;
             }
 
             .signature {
               text-align: center;
               width: 150px;
-              display: inline-block;
-              margin: 0 10px;
+              border-top: 1px solid #000;
+              padding-top: 5px;
+              margin-top: 30px;
               font-size: 12px;
             }
 
-            .signature-line {
-              border-top: 1px solid #000;
-              margin-top: 50px;
-              padding-top: 5px;
+            .normal-range {
+              font-size: 11px;
+              color: #666;
             }
 
             .abnormal {
@@ -202,6 +207,7 @@ console.log(("The testDefinition.fields", testDefinition.fields))
 
         <div className="header">
           <div className="hospital-name">AL-SHAHBAZ MODERN DIAGNOSTIC CENTER</div>
+          <div className="hospital-subtitle">ISO Certified Laboratory | Quality Assured</div>
         </div>
 
         <table className="patient-info">
@@ -209,20 +215,24 @@ console.log(("The testDefinition.fields", testDefinition.fields))
             <tr>
               <td className="label">MR #</td>
               <td>{safeData(patientData.patient_MRNo)}</td>
+              <td className="label">Date</td>
+              <td>{formatDate(patientTest.createdAt)}</td>
             </tr>
             <tr>
               <td className="label">Patient Name</td>
               <td>{safeData(patientData.patient_Name)}</td>
+              <td className="label">Referred By</td>
+              <td>{safeData(patientTest.referredBy)}</td>
             </tr>
             <tr>
               <td className="label">Gender</td>
               <td>{safeData(patientData.patient_Gender)}</td>
+              <td className="label">Token #</td>
+              <td>{safeData(patientTest.tokenNumber)}</td>
             </tr>
             <tr>
               <td className="label">Patient Age</td>
               <td>{formatAge(patientData.patient_Age)}</td>
-            </tr>
-            <tr>
               <td className="label">Contact #</td>
               <td>{safeData(patientData.patient_ContactNo)}</td>
             </tr>
@@ -231,155 +241,57 @@ console.log(("The testDefinition.fields", testDefinition.fields))
 
         <div className="divider"></div>
 
-        <div className="test-section">
-          <div className="test-title">Clinical Pathology</div>
-          <table className="test-table">
-            <thead>
-              <tr>
-                <th>TEST NAME</th>
-                <th>RESULT</th>
-                <th>UNIT</th>
-                <th>REFERENCE RANGE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {testDefinition.fields && testDefinition.fields.map((field, index) => (
-                <React.Fragment key={index}>
-                  <tr>
-                    <td colSpan="4" style={{ fontWeight: 'bold', backgroundColor: '#f8f8f8' }}>
-                      {field.fieldname}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>{field.fieldName}</td>
+        {testDefinitions.map((testDef, index) => (
+          <div className="test-section" key={index}>
+            <div className="test-title">{testDef.testName}</div>
+            <table className="test-table">
+              <thead>
+                <tr>
+                  <th>Test Name</th>
+                  <th>Result</th>
+                  <th>Unit</th>
+                  <th>Reference Range</th>
+                </tr>
+              </thead>
+              <tbody>
+                {testDef.fields.map((field, idx) => (
+                  <tr key={idx}>
+                    {/* {console.log("THe field is", field)} */}
+                    <td>{field.fieldName || field.name}</td>
                     <td className={isAbnormal(field, field.value) ? 'abnormal' : ''}>
-                      {field.value || 'Pending'}
+                      {field.value || '/-'}
                     </td>
                     <td>{safeData(field.unit, '')}</td>
                     <td>{getNormalRange(field)}</td>
                   </tr>
-                </React.Fragment>
-              ))}
-              {/* Example data matching your image */}
-              <tr>
-                <td colSpan="4" style={{ fontWeight: 'bold', backgroundColor: '#f8f8f8' }}>
-                  Physical Examination
-                </td>
-              </tr>
-              <tr>
-                <td>Colour</td>
-                <td>Yellow</td>
-                <td></td>
-                <td>NIL</td>
-              </tr>
-              <tr>
-                <td>pH</td>
-                <td>6.5</td>
-                <td></td>
-                <td>4.5 - 7.6</td>
-              </tr>
-              <tr>
-                <td>Turbidity</td>
-                <td>Turbid</td>
-                <td></td>
-                <td>NIL</td>
-              </tr>
-              <tr>
-                <td colSpan="4" style={{ fontWeight: 'bold', backgroundColor: '#f8f8f8' }}>
-                  Chemical Examination
-                </td>
-              </tr>
-              <tr>
-                <td>Sp. Gravity</td>
-                <td>1.015</td>
-                <td></td>
-                <td>1.005 - 1.030</td>
-              </tr>
-              <tr>
-                <td>Albumin</td>
-                <td>Trace</td>
-                <td></td>
-                <td>NIL</td>
-              </tr>
-              <tr>
-                <td>Blood</td>
-                <td>Nil</td>
-                <td></td>
-                <td>NIL</td>
-              </tr>
-              <tr>
-                <td>Glucose</td>
-                <td>Nil</td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Ketones</td>
-                <td>Nil</td>
-                <td></td>
-                <td>NIL</td>
-              </tr>
-              <tr>
-                <td colSpan="4" style={{ fontWeight: 'bold', backgroundColor: '#f8f8f8' }}>
-                  Microscopic Examination
-                </td>
-              </tr>
-              <tr>
-                <td>Pus Cells</td>
-                <td>10---12</td>
-                <td>/HPF</td>
-                <td>M: 0-3 F: 0-5</td>
-              </tr>
-              <tr>
-                <td>Red Blood Cells</td>
-                <td>2-4</td>
-                <td>/HPF</td>
-                <td>M: 0-2 F: 0-3</td>
-              </tr>
-              <tr>
-                <td>Epithelial Cells</td>
-                <td>+</td>
-                <td>/HPF</td>
-                <td>M: 0-1 F: 0-10</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
 
         <div className="divider"></div>
 
         <div className="footer">
-          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-            <div style={{ fontWeight: 'bold' }}>Dr. Rabia Sadaf</div>
-            <div>Pathologist / MicroBiologist</div>
-            <div>Timing: Daily</div>
-            <div>11:00pm to 3:00pm</div>
+          <div className="signature">
+            <div>Performed By</div>
+            <div>Lab Technician</div>
           </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px' }}>
-            <div className="signature">
-              <div className="signature-line"></div>
-              <div>Dr. Mansoor Ghani</div>
-              <div>Radiologist / Ultrasound Specialist</div>
-              <div>Timing: Daily 5:00pm</div>
-              <div>Sat / Sun 10:00am to 4:00pm</div>
-            </div>
-
-            <div className="signature">
-              <div className="signature-line"></div>
-              <div>Dr. Zerlish Tehreem Arif</div>
-              <div>Managing Director</div>
-              <div>Head of All Diagnostic Departments</div>
-              <div>Timing: 09:00am - 02:00pm</div>
-            </div>
-
-            <div className="signature">
-              <div className="signature-line"></div>
-              <div>Dr. M. Arif Qureshi</div>
-              <div>Chief Executive Officer</div>
-              <div>Al-Shahbaz Modern Diagnostic Center</div>
-            </div>
+          <div className="signature">
+            <div>Verified By</div>
+            <div>Dr. Rabia Sadaf</div>
+            <div>Pathologist</div>
           </div>
+          <div className="signature">
+            <div>Approved By</div>
+            <div>Dr. M. Arif Qureshi</div>
+            <div>CEO</div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '11px' }}>
+          <p>This is a computer generated report and does not require signature</p>
+          <p>For any queries, please contact: +92-51-1234567 | info@alshahbazdiagnostics.com</p>
         </div>
       </body>
     </html>

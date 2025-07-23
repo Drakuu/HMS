@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { LogOut, Menu, User, Settings, ChevronDown } from "lucide-react";
-import logo from "../assets/landing-page/logo.png";
+import HospitalLogo from "../assets/images/logo1.png";
 import { Link } from 'react-router-dom';
 import AnimatedHeading from "./AnimationHeading";
 import { useSelector } from 'react-redux';
@@ -52,7 +52,7 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
 
   return (
     <div className={`${config.color} border-b border-gray-200 shadow-sm`}>
-      <div className="px-4 sm:px-6 py-2.5 flex items-center justify-between">
+      <div className="px-4 sm:px-6 py-2 flex items-center justify-between">
         {/* Left side - Menu button and logo */}
         <div className="flex items-center">
           <button
@@ -63,10 +63,10 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
             <Menu className="w-5 h-5" />
           </button>
 
-          <Link to={config.dashboardPath} className="group bg-primary-100 px-1.5 py-2.5 rounded-full flex items-center">
+          <Link className="group bg-white/30 backdrop-blur-lg border border-primary-300 p-2 rounded-full flex items-center">
             <img
-              className="w-11 h-auto transition-transform group-hover:scale-110"
-              src={logo}
+              className="w-10 h-auto transition-transform group-hover:scale-110"
+              src={HospitalLogo}
               alt="Hospital Logo"
             />
             {/* <span className="ml-3 text-white font-semibold text-lg hidden md:block">
@@ -88,8 +88,8 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center space-x-2 focus:outline-none"
             >
-              <div className="backdrop-blur-sm bg-white/10 rounded-lg p-2 flex items-center space-x-2 border border-white/30 shadow-sm hover:bg-white/20 transition-all">
-                <div className="w-9 h-9 rounded-full bg-primary-900/40 flex items-center justify-center text-primary-400 font-medium lg:text-xl">
+              <div className="backdrop-blur-sm bg-white/10 rounded-lg p-2 flex items-center space-x-2 border border-primary-300 shadow-sm hover:bg-white/20 transition-all">
+                <div className="w-9 h-9 rounded-full bg-primary-900/40 flex items-center border justify-center text-primary-300 font-medium lg:text-xl">
                   {getUserInitials()}
                 </div>
                 <div className="text-left hidden lg:block">

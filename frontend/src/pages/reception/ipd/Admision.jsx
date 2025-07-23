@@ -6,10 +6,7 @@ import {
   updatePatientWard,
   resetOperationStatus,
   selectFetchStatus,
-  selectDischargeStatus,
-  selectUpdateStatus,
-  selectDeleteStatus
-} from '../../../features/ipdPatient/IpdPatientSlice';
+  selectUpdateStatus} from '../../../features/ipdPatient/IpdPatientSlice';
 import {
   FiSearch, FiTrash2, FiEdit, FiCalendar,
   FiUser, FiHome,
@@ -28,7 +25,6 @@ const AdmittedPatients = () => {
   const { patientsList, errorMessage } = useSelector(state => state.ipdPatient);
   const fetchStatus = useSelector(selectFetchStatus);
   const updateStatus = useSelector(selectUpdateStatus);
-  const deleteStatus = useSelector(selectDeleteStatus);
   const [dateRange, setDateRange] = useState({
     start: '',
     end: ''
@@ -133,7 +129,7 @@ const AdmittedPatients = () => {
       // Fetch updated patient data after successful update
       dispatch(getAllAdmittedPatients());  // This ensures the table is updated with the latest data
     }
-  }, [updateStatus, dispatch]);
+  }, [updateStatus, dispatch, modals, editForm.status]);
 
 
   // Handlers
@@ -278,7 +274,7 @@ const AdmittedPatients = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex  gap-2 items-center">
+              <div className="flex text-gray-600 gap-2 items-center">
                 <div className="flex gap-2">
                   <input
                     type="date"

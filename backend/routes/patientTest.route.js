@@ -5,7 +5,7 @@ const passport = require("../middleware/passportAuth.middleware");
 const middleware = require("../middleware/index.middleware");
 
 router.post(
-  "/patient-test",
+  '/patient-test',
 //   passport.authenticate("jwt", { session: false }),
 //   middleware.adminRoleCheck,
   controller.patientTest.createPatientTest
@@ -40,5 +40,11 @@ router.patch('/:id/restore',
     controller.patientTest.restorePatientTest
 );
 
+
+
+router.get('/test/patient-test-history',
+  passport.authenticate("jwt", { session: false }),
+  controller.patientTest.PatientTestStates
+);
 
 module.exports = router;

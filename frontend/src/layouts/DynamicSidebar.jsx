@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import {
   Dashboard as DashboardIcon,
   Groups as GroupsIcon,
@@ -15,14 +15,50 @@ import {
   Inventory as InventoryIcon,
   Science as LabIcon,
   Settings as AdminIcon,
+  Logout,
+  Settings as SettingsIcon,
+  Description as ReportIcon,
+  NoteAlt as NotesIcon,
+  MedicalInformation as PrescriptionIcon,
+  EventNote as PatientRecordIcon,
+  PostAdd as NewOpdIcon,
+  AssignmentInd as StaffIcon,
+  Domain as DepartmentsIcon,
+  Medication as MedicineIcon,
+  Ballot as StockIcon,
+  CalendarMonth as HRDashboardIcon,
+  Assignment as TestIcon,
+  AssignmentTurnedIn as TestReportIcon,
+  Paid as BillingIcon,
+  FolderShared as PatientTestIcon,
+  Summarize as AllReportsIcon,
+  ReceiptLong as BillListIcon,
+  AssignmentOutlined as AllTestsIcon,
+  ListAlt as AllPatientsIcon,
 } from '@mui/icons-material';
 
 const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   const [expandedMenus, setExpandedMenus] = useState({});
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
-// console.log("The dat in routeing is : ", userRole)
-  // Get the base path based on user role
+  const sidebarRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        toggleSidebar();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, toggleSidebar]);
+
   const getBasePath = () => {
     switch (userRole?.toLowerCase()) {
       case 'admin': return '/admin';
@@ -35,7 +71,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
 
   const basePath = getBasePath();
 
-  // Role-specific menu configurations
   const menuConfigurations = {
     admin: [
       {
@@ -43,7 +78,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <DashboardIcon className="text-lg" />,
         links: [
           { href: 'dashboard', label: 'Admin Dashboard' },
-          { href: 'hr-dashboard', label: 'HR Dashboard' },
         ],
       },
       {
@@ -56,20 +90,68 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
     ],
     doctor: [
       {
-        name: 'Dashboards',
+        name: 'Dashboard',
         icon: <DashboardIcon className="text-lg" />,
         links: [
-          { href: 'dashboard', label: 'Admin Dashboard' },
-        ],
+          { href: 'dashboard', label: 'Dashboard' }
+        ]
       },
       {
-        name: 'Appoinments',
+        name: 'My Appointments',
+        icon: <AppointmentsIcon className="text-lg" />,
+        links: [
+          { href: 'aappointments', label: 'My Appointments' }
+        ]
+      },
+      {
+        name: 'Patient Records',
+        icon: <PatientRecordIcon className="text-lg" />,
+        links: [
+          { href: 'patient-records', label: 'Patient Records' }
+        ]
+      },
+      {
+        name: 'Prescriptions',
+        icon: <PrescriptionIcon className="text-lg" />,
+        links: [
+          { href: 'prescriptions', label: 'Prescriptions' }
+        ]
+      },
+      {
+        name: 'Reports',
+        icon: <ReportIcon className="text-lg" />,
+        links: [
+          { href: 'reports', label: 'Reports' }
+        ]
+      },
+      {
+        name: 'Notes / Diagnosis',
+        icon: <NotesIcon className="text-lg" />,
+        links: [
+          { href: 'notes', label: 'Notes / Diagnosis' }
+        ]
+      },
+      {
+        name: 'Notifications',
         icon: <AdminIcon className="text-lg" />,
         links: [
-          { href: 'accept-apponment', label: 'Accept Appoinment' },
-          { href: 'reconsider', label: 'Reconsider' },
-        ],
+          { href: 'notifications', label: 'Notifications' }
+        ]
       },
+      {
+        name: 'Settings',
+        icon: <SettingsIcon className="text-lg" />,
+        links: [
+          { href: 'settings', label: 'Settings' }
+        ]
+      },
+      {
+        name: 'Logout',
+        icon: <Logout className="text-lg" />,
+        links: [
+          { href: 'logout', label: 'Logout' }
+        ]
+      }
     ],
     receptionist: [
       {
@@ -88,7 +170,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         links: [
           { href: 'departments', label: 'Departments' },
           { href: 'staff', label: 'Staff' },
-          // { href: 'doctors', label: 'Doctors' },
         ],
       },
       {
@@ -158,7 +239,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
       },
       {
         name: 'Test Managment',
-        icon: <LabIcon className="text-lg" />,
+        icon: <TestIcon className="text-lg" />,
         links: [
           { href: 'add-test', label: 'Add Test' },
           { href: 'all-tests', label: 'All Test' },
@@ -166,40 +247,38 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
       },
       {
         name: 'Patient Managment',
-        icon: <LabIcon className="text-lg" />,
+        icon: <PatientTestIcon className="text-lg" />,
         links: [
           { href: 'patient-test', label: 'Patients Test' },
           { href: 'all-patients', label: 'All patients' },
         ],
       },
       {
-        name: 'Billing Managment',
-        icon: <LabIcon className="text-lg" />,
+        name: 'Report Managment',
+        icon: <TestReportIcon className="text-lg" />,
         links: [
-          { href: 'test-billing', label: 'Patients Bills' },
-          // { href: 'all-bills', label: 'All bills' },
+          { href: 'test-report', label: 'Patients Reports' },
+          { href: 'all-reports', label: 'All reports' },
         ],
       },
-      {
-        name: 'Report Managment',
-        icon: <LabIcon className="text-lg" />,
+        {
+        name: 'Ultrasound ',
+        icon: <TestReportIcon className="text-lg" />,
         links: [
           { href: 'test-report', label: 'Patients Reports' },
           { href: 'all-reports', label: 'All reports' },
         ],
       },
       {
-        name: 'Sample Managment',
-        icon: <LabIcon className="text-lg" />,
+        name: 'Billing Managment',
+        icon: <BillingIcon className="text-lg" />,
         links: [
-          { href: 'sample-collection', label: 'Patients Samples' },
-          { href: 'all-samples', label: 'All samples' },
+          { href: 'test-billing', label: 'Patients Bills' },
         ],
       },
     ],
   };
 
-  // Add base path to all links
   const menuItems = (menuConfigurations[userRole?.toLowerCase()] || [])
     .map(menu => ({
       ...menu,
@@ -224,37 +303,59 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   };
 
   return (
-    <div className={`fixed lg:relative z-30 h-full w-64 bg-primary-600 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-      {/* Sidebar Header */}
-      <div className="p-4 border-b border-primary-600 flex items-center justify-center">
+    <div 
+      ref={sidebarRef}
+      className={`fixed lg:relative z-30 h-full w-64 bg-primary-600 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0`}
+    >
+      <div className="p-4 border-b border-primary-300 flex items-center justify-between">
         <h1 className="text-xl py-1.5 font-semibold">Al-Shahbaz Hospital</h1>
+        <button 
+          onClick={toggleSidebar}
+          className="lg:hidden p-1 rounded-md hover:bg-primary-700 focus:outline-none"
+        >
+          <X className="h-6 w-6" />
+        </button>
       </div>
-
-      {/* Menu Items */}
       <div className="flex-1 overflow-y-auto no-scrollbar py-4">
         {menuItems.map((menu, index) => (
           <div key={index} className="mb-1">
-            {/* Main Menu Item */}
-            <div
-              className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${activeMenu === menu.name
-                ? 'bg-primary-700'
-                : 'hover:bg-primary-700'
+            {menu.links.length === 1 ? (
+              <Link
+                to={menu.links[0].href}
+                onClick={() => handleSubMenuClick(menu.links[0].label)}
+                className={`flex items-center px-4 py-3 transition-colors ${
+                  activeSubMenu === menu.links[0].label
+                    ? 'bg-primary-700'
+                    : 'hover:bg-primary-700'
                 }`}
-              onClick={() => toggleMenu(menu.name)}
-            >
-              <div className="flex items-center">
+              >
                 <span className="mr-3">{menu.icon}</span>
                 <span className="font-medium">{menu.name}</span>
-              </div>
-              {menu.links.length > 0 && (
-                <ChevronDown
-                  className={`w-5 h-5 transition-transform ${expandedMenus[menu.name] ? 'rotate-180' : ''
+              </Link>
+            ) : (
+              <div
+                className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${
+                  activeMenu === menu.name
+                    ? 'bg-primary-700'
+                    : 'hover:bg-primary-700'
+                }`}
+                onClick={() => toggleMenu(menu.name)}
+              >
+                <div className="flex items-center">
+                  <span className="mr-3">{menu.icon}</span>
+                  <span className="font-medium">{menu.name}</span>
+                </div>
+                {menu.links.length > 0 && (
+                  <ChevronDown
+                    className={`w-5 h-5 transition-transform ${
+                      expandedMenus[menu.name] ? 'rotate-180' : ''
                     }`}
-                />
-              )}
-            </div>
-
-            {/* Submenu Items */}
+                  />
+                )}
+              </div>
+            )}
             {expandedMenus[menu.name] && menu.links.length > 0 && (
               <div className="pl-9 py-2 space-y-1">
                 {menu.links.map((link, linkIndex) => (
@@ -262,10 +363,11 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                     key={linkIndex}
                     to={link.href}
                     onClick={() => handleSubMenuClick(link.label)}
-                    className={`block px-3 py-2 text-sm transition-colors rounded ${activeSubMenu === link.label
-                      ? 'bg-primary-600 text-white'
-                      : 'hover:bg-primary-600 text-white'
-                      }`}
+                    className={`block px-3 py-2 text-sm transition-colors rounded ${
+                      activeSubMenu === link.label
+                        ? 'bg-primary-600 text-white'
+                        : 'hover:bg-primary-600 text-white'
+                    }`}
                   >
                     {link.label}
                   </Link>
@@ -274,11 +376,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
             )}
           </div>
         ))}
-      </div>
-
-      {/* User Info */}
-      <div className="p-4 border-t border-primary-400 text-center">
-        <p className="text-lg font-medium tracking-wide">Logged in as: {userRole}</p>
       </div>
     </div>
   );

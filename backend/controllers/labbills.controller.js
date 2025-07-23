@@ -20,7 +20,7 @@ const getAllTestBills = async (req, res) => {
             .limit(parseInt(limit))
             .populate({
                 path: 'patientTestId',
-                select: 'patient_Detail totalAmount discount finalAmount paymentStatus labNotes tokenNumber'
+                select: 'patient_Detail totalAmount discount finalAmount paymentStatus labNotes tokenNumber, advancePayment, refunded'
             })
             .populate({
                 path: 'testId',
@@ -50,9 +50,11 @@ const getAllTestBills = async (req, res) => {
                     totalAmount: patientTest.totalAmount,
                     discount: patientTest.discount,
                     finalAmount: patientTest.finalAmount,
+                    advanceAmount: patientTest.advancePayment,
                     paymentStatus: patientTest.paymentStatus,
                     labNotes: patientTest.labNotes,
-                    tokenNumber: patientTest.tokenNumber
+                    tokenNumber: patientTest.tokenNumber,
+                    Refunded: patientTest.refunded,
                 },
                 patientDetails: patientTest.patient_Detail || {}
             };
@@ -96,7 +98,7 @@ const getAllTestBills = async (req, res) => {
 const getTestBillsByPatientTestId = async (req, res) => {
     try {
         const { patientTestId } = req.params;
-        console.log('the patient id is ', patientTestId);
+        // console.log('the patient id is ', patientTestId);
 
         // Validate the ID format first
         if (!mongoose.isValidObjectId(patientTestId)) {
@@ -127,7 +129,7 @@ const getTestBillsByPatientTestId = async (req, res) => {
 
         // 2. Get the PatientTest document using the first test result's patientTestId
         const patientTest = await hospitalModel.PatientTest.findById(patientTestId)
-            .select('patient_Detail totalAmount discount finalAmount paymentStatus labNotes tokenNumber')
+            .select('patient_Detail totalAmount discount finalAmount paymentStatus labNotes tokenNumber, advancePayment')
             .lean();
 
         if (!patientTest) {
@@ -157,7 +159,8 @@ const getTestBillsByPatientTestId = async (req, res) => {
                     finalAmount: patientTest.finalAmount,
                     paymentStatus: patientTest.paymentStatus,
                     labNotes: patientTest.labNotes,
-                    tokenNumber: patientTest.tokenNumber
+                    tokenNumber: patientTest.tokenNumber,
+                    advanceAmount: patientTest.advancePayment,
                 },
                 testResults: enhancedResults,
                 summary: {
@@ -178,7 +181,87 @@ const getTestBillsByPatientTestId = async (req, res) => {
     }
 };
 
+const refundAmountbylab = async (req, res) => {
+    const { patientId } = req.params;
+    const { refundAmount, refundReason } = req.body;
+    // console.log("TJe req.bodyreq.body: ", refundAmount,refundReason )
+    const loginuser=req.user
+    // console.log("The user is ", loginuser);
+    try {
+        const performedByid = loginuser.id
+        const performedByname = loginuser.user_Name
+        // Validate input parameters
+        if (!mongoose.isValidObjectId(patientId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid patientId format'
+            });
+        }
+
+        if (!refundAmount || isNaN(refundAmount) || refundAmount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid refund amount is required'
+            });
+        }
+
+        if (!refundReason || !performedByid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Refund reason and performedByid are required'
+            });
+        }
+
+        // Find the patient test record
+        const patientTest = await hospitalModel.PatientTest.findOne({
+            _id: patientId,
+            isDeleted: false
+        });
+
+        if (!patientTest) {
+            return res.status(404).json({
+                success: false,
+                message: 'Patient test record not found'
+            });
+        }
+
+        // Add the refund record
+        const updatedPatientTest = await hospitalModel.PatientTest.findByIdAndUpdate(
+            patientId,
+            {
+                $push: {
+                    refunded: {
+                        performedByid,
+                        performedByname,
+                        refundAmount,
+                        refundReason
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Refund record added successfully',
+            data: {
+                refundRecord: updatedPatientTest.refunded[updatedPatientTest.refunded.length - 1], // Return the last added refund
+                totalRefunds: updatedPatientTest.refunded.length
+            }
+        });
+
+    } catch (error) {
+        console.error('Error processing refund:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error processing refund',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     getAllTestBills,
     getTestBillsByPatientTestId,
+    refundAmountbylab
 };
