@@ -4,6 +4,7 @@ import { AddPatienttest, PatientTests, DashboardPannel, AddTest, AllTests, EditT
 import { Navigate, Route, Routes } from 'react-router-dom';
 import DynamicLayout from '../layouts/DynamicLayout';
 import ProtectedRoute from '../pages/auth/ProtectedRoute';
+import EditPatientTest from '../pages/labs/patientManagment/EditPatientTest';
 
 const LabRoutes = () => {
   return (
@@ -17,6 +18,12 @@ const LabRoutes = () => {
           {/* patient test routes */}
           <Route path="patient-test" element={<AddPatienttest />} />
           <Route path="all-patients" element={<PatientTests />} />
+          <Route path="patient-tests/edit/:id" element={<EditPatientTest />} />
+
+
+
+
+
 
           {/* test managemnt routes */}
           <Route path="add-test" element={<AddTest />} />

@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPatientTestAll } from '../../../features/patientTest/patientTestSlice';
 import { format } from 'date-fns';
-import { FiSearch, FiFilter, FiChevronDown, FiChevronUp, FiPrinter, FiDownload } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiChevronDown, FiChevronUp, FiPrinter, FiDownload, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { deletepatientTest } from '../../../features/patientTest/patientTestSlice';
+// 🔁 Change path according to your project structure
+import { useNavigate } from "react-router-dom";
+
+
 
 const PatientTestsTable = () => {
   const dispatch = useDispatch();
@@ -19,19 +24,42 @@ const PatientTestsTable = () => {
     dispatch(fetchPatientTestAll());
   }, [dispatch]);
 
+
+  //delete 
+  const navigate = useNavigate();
+
+  ////////
+  const handleEdit = (id) => {
+    navigate(`/lab/patient-tests/edit/${id}`);
+  };
+
+
+  //delete data
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this patient test record?')) {
+      try {
+        await dispatch(deletepatientTest(id)).unwrap();
+        // Optional: Show success notification
+        alert('Record deleted successfully');
+      } catch (error) {
+        console.error('Delete failed:', error);
+        alert(`Delete failed: ${error.message}`);
+      }
+    }
+  };
   const filteredTests = allPatientTests?.filter(test => {
     // Search filter
-    const matchesSearch = 
+    const matchesSearch =
       test.patient_Detail.patient_MRNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       test.patient_Detail.patient_Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       test.tokenNumber.toString().includes(searchTerm);
 
     // Status filter
-    const matchesStatus = 
+    const matchesStatus =
       !filters.status || test.paymentStatus === filters.status;
 
     // Gender filter
-    const matchesGender = 
+    const matchesGender =
       !filters.gender || test.patient_Detail.patient_Gender === filters.gender;
 
     return matchesSearch && matchesStatus && matchesGender;
@@ -98,7 +126,7 @@ const PatientTestsTable = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button 
+            <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
@@ -204,6 +232,9 @@ const PatientTestsTable = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
+                <th scope="col" className="px-3  py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  update/Delete
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -244,12 +275,30 @@ const PatientTestsTable = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full 
-                        ${test.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 
-                          test.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                          'bg-red-100 text-red-800'}`}>
+                        ${test.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                          test.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'}`}>
                         {test.paymentStatus}
                       </span>
                     </td>
+                    <td>
+                      <div className="flex items-center gap-5 ml-10">
+                        <button
+                          onClick={() => handleEdit(test._id)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <FiEdit className="h-4 w-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(test._id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <FiTrash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+
                   </tr>
                 ))
               ) : (

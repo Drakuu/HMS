@@ -97,6 +97,40 @@ export const fetchAllTests = createAsyncThunk(
   }
 );
 
+export const deletepatientTest = createAsyncThunk(
+  'patientTest/deletepatientTest',
+  async (id, { rejectWithValue }) => {
+    try {
+      await axios.delete(
+        `${API_URL}/patientTest/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return id;  // Just return the ID for the reducer
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to delete patient test';
+      return rejectWithValue({ message, statusCode: error.response?.status || 500 });
+    }
+  }
+);
+export const updatepatientTest = createAsyncThunk(
+  "patientTest/updatepatientTest",
+  async ({ id, updateData }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/patientTest/${id}`,
+        updateData,
+        { headers: getAuthHeaders() }
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to update patient test';
+      return rejectWithValue({ message, statusCode: error.response?.status || 500 });
+    }
+  }
+);
+
+
+
 // 🔧 Initial State
 const initialState = {
   patient: null,
@@ -226,6 +260,24 @@ const patienttestSlice = createSlice({
         state.isError = true;
         state.error = action.payload.message || 'Failed to fetch tests';
       })
+     .addCase(deletepatientTest.pending, (state) => {
+      state.status.delete = 'pending';
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase(deletepatientTest.fulfilled, (state, action) => {
+      state.status.delete = 'succeeded';
+      state.isLoading = false;
+      // Filter out the deleted test
+      state.allPatientTests = state.allPatientTests.filter(
+        test => test._id !== action.payload
+      );
+    })
+    .addCase(deletepatientTest.rejected, (state, action) => {
+      state.status.delete = 'failed';
+      state.isLoading = false;
+      state.error = action.payload.message;
+})
   }
 });
 

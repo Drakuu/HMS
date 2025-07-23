@@ -50,8 +50,8 @@ const AddlabPatient = () => {
 
   const handlePatientChange = (e) => {
     let { name, value } = e.target;
-    if (name === "CNIC" && value.length > 12) return;
-    if (name === "ContactNo" && value.length > 15) return;
+    if (name === "CNIC" && value.length > 13) return;
+    if (name === "ContactNo" && value.length > 11) return;
     setPatient({ ...patient, [name]: value });
   };
   const handleSearch = async () => {
@@ -328,7 +328,7 @@ const AddlabPatient = () => {
 
   return (
     <form onSubmit={handleSubmitOnly} className="p-6 bg-white rounded shadow-md space-y-10">
-      <div className="w-screen -ml-6 bg-teal-600 py-6 text-white text-3xl font-bold shadow">
+      <div className=" -ml-6 bg-teal-600 py-6 text-white text-3xl font-bold shadow">
         <h1 className="ml-4">Add Patient New Test</h1>
       </div>
 

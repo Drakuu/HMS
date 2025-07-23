@@ -37,8 +37,11 @@ router.delete('/:id',
 // Restore Soft Deleted Patient Test (Bonus)
 router.patch('/:id/restore', 
     // authMiddleware,
-    controller.patientTest.restorePatientTest
+    controller.patientTest.restorePatientTest,
+    controller.patientTest.updatePatientTest
 );
-
+router.patch('/:id',
+   controller.patientTest.updatePatientTest
+)
 
 module.exports = router;
