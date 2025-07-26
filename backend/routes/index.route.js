@@ -16,6 +16,8 @@ const testManagment = require('./testmanagement.route')
 const patientTest = require("./patientTest.route")
 const testResult = require("./testResult.route")
 const labBills = require("./labBills.route")
+const google_Drive = require("./google_Drive.router")
+const radiology = require("./radiologyRoutes");
 
 router.use("/user", user);
 router.use("/doctor", doctor);
@@ -33,6 +35,8 @@ router.use("/testManagement",testManagment)
 router.use("/patientTest",patientTest)
 router.use("/testResult",testResult)
 router.use("/labBills",labBills)
+router.use("/api/drive",google_Drive)
+router.use("/radiology",radiology);
 
 
 module.exports = router;

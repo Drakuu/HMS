@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronDown, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { ChevronDown, X } from "lucide-react";
 import {
   Dashboard as DashboardIcon,
   Groups as GroupsIcon,
@@ -35,7 +35,7 @@ import {
   ReceiptLong as BillListIcon,
   AssignmentOutlined as AllTestsIcon,
   ListAlt as AllPatientsIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
 const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   const [expandedMenus, setExpandedMenus] = useState({});
@@ -45,27 +45,38 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isOpen && sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+      if (
+        isOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
         toggleSidebar();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, toggleSidebar]);
 
   const getBasePath = () => {
     switch (userRole?.toLowerCase()) {
-      case 'admin': return '/admin';
-      case 'receptionist': return '/receptionist';
-      case 'lab': return '/lab';
-      case 'doctor': return '/doctor';
-      default: return '/';
+      case "admin":
+        return "/admin";
+      case "receptionist":
+        return "/receptionist";
+      case "lab":
+        return "/lab";
+      case "doctor":
+        return "/doctor";
+        case "radiology":
+        return "/radiology";
+      default:
+        return "/";
     }
   };
 
@@ -74,219 +85,196 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   const menuConfigurations = {
     admin: [
       {
-        name: 'Dashboards',
+        name: "Dashboards",
         icon: <DashboardIcon className="text-lg" />,
-        links: [
-          { href: 'dashboard', label: 'Admin Dashboard' },
-        ],
+        links: [{ href: "dashboard", label: "Admin Dashboard" }],
       },
       {
-        name: 'Doctors Managment',
+        name: "Doctors Managment",
         icon: <AdminIcon className="text-lg" />,
-        links: [
-          { href: 'doctors', label: `All Doctor's` },
-        ],
+        links: [{ href: "doctors", label: `All Doctor's` }],
       },
     ],
     doctor: [
       {
-        name: 'Dashboard',
+        name: "Dashboard",
         icon: <DashboardIcon className="text-lg" />,
-        links: [
-          { href: 'dashboard', label: 'Dashboard' }
-        ]
+        links: [{ href: "dashboard", label: "Dashboard" }],
       },
       {
-        name: 'My Appointments',
+        name: "My Appointments",
         icon: <AppointmentsIcon className="text-lg" />,
-        links: [
-          { href: 'aappointments', label: 'My Appointments' }
-        ]
+        links: [{ href: "aappointments", label: "My Appointments" }],
       },
       {
-        name: 'Patient Records',
+        name: "Patient Records",
         icon: <PatientRecordIcon className="text-lg" />,
-        links: [
-          { href: 'patient-records', label: 'Patient Records' }
-        ]
+        links: [{ href: "patient-records", label: "Patient Records" }],
       },
       {
-        name: 'Prescriptions',
+        name: "Prescriptions",
         icon: <PrescriptionIcon className="text-lg" />,
-        links: [
-          { href: 'prescriptions', label: 'Prescriptions' }
-        ]
+        links: [{ href: "prescriptions", label: "Prescriptions" }],
       },
       {
-        name: 'Reports',
+        name: "Reports",
         icon: <ReportIcon className="text-lg" />,
-        links: [
-          { href: 'reports', label: 'Reports' }
-        ]
+        links: [{ href: "reports", label: "Reports" }],
       },
       {
-        name: 'Notes / Diagnosis',
+        name: "Notes / Diagnosis",
         icon: <NotesIcon className="text-lg" />,
-        links: [
-          { href: 'notes', label: 'Notes / Diagnosis' }
-        ]
+        links: [{ href: "notes", label: "Notes / Diagnosis" }],
       },
       {
-        name: 'Notifications',
+        name: "Notifications",
         icon: <AdminIcon className="text-lg" />,
-        links: [
-          { href: 'notifications', label: 'Notifications' }
-        ]
+        links: [{ href: "notifications", label: "Notifications" }],
       },
       {
-        name: 'Settings',
+        name: "Settings",
         icon: <SettingsIcon className="text-lg" />,
-        links: [
-          { href: 'settings', label: 'Settings' }
-        ]
+        links: [{ href: "settings", label: "Settings" }],
       },
       {
-        name: 'Logout',
+        name: "Logout",
         icon: <Logout className="text-lg" />,
-        links: [
-          { href: 'logout', label: 'Logout' }
-        ]
-      }
+        links: [{ href: "logout", label: "Logout" }],
+      },
     ],
     receptionist: [
       {
-        name: 'Dashboards',
+        name: "Dashboards",
         icon: <DashboardIcon className="text-lg" />,
         links: [
-          { href: 'dashboard', label: 'Reception Dashboard' },
-          { href: 'hr-dashboard', label: 'HR Dashboard' },
-          { href: 'patient-dashboard', label: 'Patient Dashboard' },
-          { href: 'admin-dashboard', label: 'Admin Dashboard' },
+          { href: "dashboard", label: "Reception Dashboard" },
+          { href: "hr-dashboard", label: "HR Dashboard" },
+          { href: "patient-dashboard", label: "Patient Dashboard" },
+          { href: "admin-dashboard", label: "Admin Dashboard" },
         ],
       },
       {
-        name: 'HR',
+        name: "HR",
         icon: <GroupsIcon className="text-lg" />,
         links: [
-          { href: 'departments', label: 'Departments' },
-          { href: 'staff', label: 'Staff' },
+          { href: "departments", label: "Departments" },
+          { href: "staff", label: "Staff" },
         ],
       },
       {
-        name: 'Wards',
+        name: "Wards",
         icon: <RoomIcon className="text-lg" />,
-        links: [{ href: 'ward-management', label: 'Ward Management' }],
+        links: [{ href: "ward-management", label: "Ward Management" }],
       },
       {
-        name: 'Pharmacy',
+        name: "Pharmacy",
         icon: <PharmacyIcon className="text-lg" />,
         links: [
-          { href: 'Med-list', label: 'Medicine List' },
-          { href: 'prescription-management', label: 'Prescription Management' },
-          { href: 'stock-management', label: 'Stock Management' },
+          { href: "Med-list", label: "Medicine List" },
+          { href: "prescription-management", label: "Prescription Management" },
+          { href: "stock-management", label: "Stock Management" },
         ],
       },
       {
-        name: 'Appointments',
+        name: "Appointments",
         icon: <AppointmentsIcon className="text-lg" />,
-        links: [{ href: 'patient-appointment', label: 'Appointments' }],
+        links: [{ href: "patient-appointment", label: "Appointments" }],
       },
       {
-        name: 'OPD',
+        name: "OPD",
         icon: <HospitalIcon className="text-lg" />,
         links: [
-          { href: 'opd/newopd', label: 'New OPD' },
-          { href: 'OPD/manage', label: 'Manage OPD' },
+          { href: "opd/newopd", label: "New OPD" },
+          { href: "OPD/manage", label: "Manage OPD" },
         ],
       },
       {
-        name: 'IPD',
+        name: "IPD",
         icon: <IPDIcon className="text-lg" />,
         links: [
-          { href: 'ipd/Admitted', label: 'Admission list' },
-          { href: 'ipd/ssp', label: 'SSP Admissions' },
-          { href: 'ipd/private', label: 'Private Admissions' },
+          { href: "ipd/Admitted", label: "Admission list" },
+          { href: "ipd/ssp", label: "SSP Admissions" },
+          { href: "ipd/private", label: "Private Admissions" },
         ],
       },
       {
-        name: 'OT',
+        name: "OT",
         icon: <OTIcon className="text-lg" />,
-        links: [{ href: 'OTMain', label: 'OT Schedule' }],
+        links: [{ href: "OTMain", label: "OT Schedule" }],
       },
       {
-        name: 'Accounts',
+        name: "Accounts",
         icon: <AccountsIcon className="text-lg" />,
-        links: [{ href: 'account/bill-list', label: 'Bill list' }],
+        links: [{ href: "account/bill-list", label: "Bill list" }],
       },
       {
-        name: 'Inventory',
+        name: "Inventory",
         icon: <InventoryIcon className="text-lg" />,
-        links: [{ href: 'inventory', label: 'Inventory' }],
+        links: [{ href: "inventory", label: "Inventory" }],
       },
       {
-        name: 'Calendar',
+        name: "Calendar",
         icon: <CalendarIcon className="text-lg" />,
-        links: [{ href: 'calendar', label: 'Calendar' }],
+        links: [{ href: "calendar", label: "Calendar" }],
       },
     ],
     lab: [
       {
-        name: 'Dashboards',
+        name: "Dashboards",
         icon: <DashboardIcon className="text-lg" />,
-        links: [
-          { href: 'dashboard', label: 'Lab Dashboard' },
-        ],
+        links: [{ href: "dashboard", label: "Lab Dashboard" }],
       },
       {
-        name: 'Test Managment',
+        name: "Test Managment",
         icon: <TestIcon className="text-lg" />,
         links: [
-          { href: 'add-test', label: 'Add Test' },
-          { href: 'all-tests', label: 'All Test' },
+          { href: "add-test", label: "Add Test" },
+          { href: "all-tests", label: "All Test" },
         ],
       },
       {
-        name: 'Patient Managment',
+        name: "Patient Managment",
         icon: <PatientTestIcon className="text-lg" />,
         links: [
-          { href: 'patient-test', label: 'Patients Test' },
-          { href: 'all-patients', label: 'All patients' },
+          { href: "patient-test", label: "Patients Test" },
+          { href: "all-patients", label: "All patients" }, 
         ],
       },
       {
-        name: 'Report Managment',
+        name: "Report Managment",
         icon: <TestReportIcon className="text-lg" />,
         links: [
-          { href: 'test-report', label: 'Patients Reports' },
-          { href: 'all-reports', label: 'All reports' },
+          { href: "test-report", label: "Patients Reports" },
+          // { href: "all-reports", label: "All reports" },
         ],
       },
-        {
-        name: 'Ultrasound ',
-        icon: <TestReportIcon className="text-lg" />,
-        links: [
-          { href: 'test-report', label: 'Patients Reports' },
-          { href: 'all-reports', label: 'All reports' },
-        ],
-      },
+
       {
-        name: 'Billing Managment',
+        name: "Billing Managment",
         icon: <BillingIcon className="text-lg" />,
+        links: [{ href: "test-billing", label: "Patients Bills" }],
+      },
+    ],
+    radiology: [
+      {
+        name: "Ultrasound ",
+        icon: <TestReportIcon className="text-lg" />,
         links: [
-          { href: 'test-billing', label: 'Patients Bills' },
+          { href: "RadiologyPennal", label: "Ultrasound patient" }
         ],
       },
     ],
   };
 
-  const menuItems = (menuConfigurations[userRole?.toLowerCase()] || [])
-    .map(menu => ({
+  const menuItems = (menuConfigurations[userRole?.toLowerCase()] || []).map(
+    (menu) => ({
       ...menu,
-      links: menu.links.map(link => ({
+      links: menu.links.map((link) => ({
         ...link,
-        href: `${basePath}/${link.href}`
-      }))
-    }));
+        href: `${basePath}/${link.href}`,
+      })),
+    })
+  );
 
   const toggleMenu = (menuName) => {
     setExpandedMenus((prev) => ({
@@ -303,15 +291,15 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   };
 
   return (
-    <div 
+    <div
       ref={sidebarRef}
       className={`fixed lg:relative z-30 h-full w-64 bg-primary-600 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+        isOpen ? "translate-x-0" : "-translate-x-full"
       } lg:translate-x-0`}
     >
       <div className="p-4 border-b border-primary-300 flex items-center justify-between">
         <h1 className="text-xl py-1.5 font-semibold">Al-Shahbaz Hospital</h1>
-        <button 
+        <button
           onClick={toggleSidebar}
           className="lg:hidden p-1 rounded-md hover:bg-primary-700 focus:outline-none"
         >
@@ -327,8 +315,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                 onClick={() => handleSubMenuClick(menu.links[0].label)}
                 className={`flex items-center px-4 py-3 transition-colors ${
                   activeSubMenu === menu.links[0].label
-                    ? 'bg-primary-700'
-                    : 'hover:bg-primary-700'
+                    ? "bg-primary-700"
+                    : "hover:bg-primary-700"
                 }`}
               >
                 <span className="mr-3">{menu.icon}</span>
@@ -338,8 +326,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
               <div
                 className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${
                   activeMenu === menu.name
-                    ? 'bg-primary-700'
-                    : 'hover:bg-primary-700'
+                    ? "bg-primary-700"
+                    : "hover:bg-primary-700"
                 }`}
                 onClick={() => toggleMenu(menu.name)}
               >
@@ -350,7 +338,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                 {menu.links.length > 0 && (
                   <ChevronDown
                     className={`w-5 h-5 transition-transform ${
-                      expandedMenus[menu.name] ? 'rotate-180' : ''
+                      expandedMenus[menu.name] ? "rotate-180" : ""
                     }`}
                   />
                 )}
@@ -365,8 +353,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                     onClick={() => handleSubMenuClick(link.label)}
                     className={`block px-3 py-2 text-sm transition-colors rounded ${
                       activeSubMenu === link.label
-                        ? 'bg-primary-600 text-white'
-                        : 'hover:bg-primary-600 text-white'
+                        ? "bg-primary-600 text-white"
+                        : "hover:bg-primary-600 text-white"
                     }`}
                   >
                     {link.label}

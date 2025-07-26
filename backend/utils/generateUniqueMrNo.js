@@ -10,15 +10,18 @@ async function generateUniqueMrNo(appointmentDate) {
     const datePrefix = `${year}${month}${day}`;
 
     // Check both Appointment and Patient collections for existing MRNOs with this prefix
-    const [appointmentCount, patientCount] = await Promise.all([
+    const [appointmentCount, patientCount, RadiologyReportCount] = await Promise.all([
       hospitalModel.Appointment.countDocuments({
         appointmentMRNO: new RegExp(`^${datePrefix}-`)
       }),
       hospitalModel.Patient.countDocuments({
         patient_MRNo: new RegExp(`^${datePrefix}-`)
+      }),
+      hospitalModel.RadiologyReport.countDocuments({
+        patientMRNO: new RegExp(`^${datePrefix}-`)
       })
     ]);
-    const [regularPatientCount, externalPatientCount] = await Promise.all([
+    const [regularPatientCount, externalPatientCount, externalRadiologyReport ] = await Promise.all([
       hospitalModel.Patient.countDocuments({
         patient_MRNo: new RegExp(`^${datePrefix}-`),
         isExternal: false
@@ -26,10 +29,14 @@ async function generateUniqueMrNo(appointmentDate) {
       hospitalModel.Patient.countDocuments({
         patient_MRNo: new RegExp(`^${datePrefix}-`),
         isExternal: true
+      }),
+       hospitalModel.RadiologyReport.countDocuments({
+        patient_MRNo: new RegExp(`^${datePrefix}-`),
+        isExternal: true
       })
     ]);
 
-    const totalCount = appointmentCount + patientCount;
+    const totalCount = appointmentCount + patientCount + RadiologyReportCount;
     const mrNo = `${datePrefix}-${String(totalCount + 1).padStart(4, '0')}`;
     return mrNo;
   } catch (error) {

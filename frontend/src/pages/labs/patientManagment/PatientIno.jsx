@@ -2,6 +2,7 @@ import React from 'react';
 import { InputField } from "../../../components/common/FormFields";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import doctorList from "../../../utility/doctors";
 
 const PatientInfoForm = ({ 
   mode, 
@@ -12,6 +13,7 @@ const PatientInfoForm = ({
   handleDobChange,
   setMode 
 }) => {
+  
   return (
     <div className="space-y-4">
       <div className="flex gap-4 mb-4">
@@ -81,8 +83,25 @@ const PatientInfoForm = ({
               />
             </div>
 
-            <InputField name="ReferredBy" label="Referred By" icon="userMd" 
-              value={patient.ReferredBy} onChange={handlePatientChange} />
+            <div className="">
+              <label htmlFor="ReferredBy" className="block mb-1 font-medium text-gray-700">
+                Referred By
+              </label>
+              <select
+                id="ReferredBy"
+                name="ReferredBy"
+                value={patient.ReferredBy}
+                onChange={handlePatientChange}
+                className="border h-[42px] p-2 rounded w-full"
+              >
+                <option value="">Select Doctor</option>
+                {doctorList.map((doctor, index) => (
+                  <option key={index} value={doctor}>
+                    {doctor}
+                  </option>
+                ))}
+              </select>
+            </div>
           </>
         ) : (
           <>
@@ -130,8 +149,26 @@ const PatientInfoForm = ({
 
             <InputField name="ContactNo" label="Contact No" placeholder="Enter Contact No" icon="phone" 
               value={patient.ContactNo} onChange={handlePatientChange} />
-            <InputField name="ReferredBy" label="Referred By" icon="userMd" placeholder="Enter reference" 
-              value={patient.ReferredBy} onChange={handlePatientChange} />
+            
+            <div className="">
+              <label htmlFor="ReferredBy" className="block mb-1 font-medium text-gray-700">
+                Referred By
+              </label>
+              <select
+                id="ReferredBy"
+                name="ReferredBy"
+                value={patient.ReferredBy}
+                onChange={handlePatientChange}
+                className="border h-[42px] p-2 rounded w-full"
+              >
+                <option value="">Select Doctor</option>
+                {doctorList.map((doctor, index) => (
+                  <option key={index} value={doctor}>
+                    {doctor}
+                  </option>
+                ))}
+              </select>
+            </div>
             
             <div className="grid grid-cols-2 gap-4 col-span-2">
               <div>

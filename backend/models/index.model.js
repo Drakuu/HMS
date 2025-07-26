@@ -14,6 +14,7 @@ const PatientTest = require("./patientTest.model")
 const TestManagment = require('./testmanagement.model')
 const Appointment = require("./appointment.model")
 const TestResult = require("./testResult.model")
+const RadiologyReport = require("./RadiologyReport");
 
 const Hospital = {
     User,
@@ -32,7 +33,7 @@ const Hospital = {
     TestManagment,
     Appointment,
     TestResult,
-    
+    RadiologyReport
     
 };
 
