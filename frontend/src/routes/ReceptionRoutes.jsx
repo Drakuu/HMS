@@ -1,6 +1,27 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ReceptionDashboard, AdminDashboard, HRDashboard, PatientDashboard, Departments, OTPatientDetails, AddStaff, IPDAdmission, AdmittedPatientDetails, IPDForm,  NewOpd, ManageOpd, OTMain, PatientAppointment, Ward, Inventory, BillList, MedicineList, PrescriptionManagement, StockManagement, Calendar, 
+import {
+  ReceptionDashboard,
+   AdminDashboard,
+   HRDashboard,
+   PatientDashboard,
+   Departments,
+   OTPatientDetails,
+   IPDAdmission,
+   AdmittedPatientDetails,
+   IPDForm,
+   NewOpd,
+   ManageOpd,
+   OTMain,
+   PatientAppointment,
+   Ward,
+   Inventory,
+   BillList,
+   MedicineList,
+   PrescriptionManagement,
+   StockManagement,
+   Calendar,
+
 } from '../pages/reception/ReceptionPages';
 import DynamicLayout from '../layouts/DynamicLayout';
 import ProtectedRoute from '../pages/auth/ProtectedRoute';
@@ -20,13 +41,10 @@ const ReceptionRoutes = () => {
 
           {/* HR routes */}
           <Route path="departments" element={<Departments />} />
-          <Route path="staff" element={<AddStaff />} />
+          {/* <Route path="staff" element={<StaffListPage />} />
+          <Route path="staff/new" element={<AddStaff />} />
+          <Route path="staff/edit/:id" element={<AddStaff />} /> */}
 
-          {/* Doctor routes
-          <Route path="doctors" element={<DoctorPannel />} />
-          <Route path="add-doctor" element={<AddNewDoctor mode="create" />} />
-          <Route path="edit-doctor/:doctorId" element={<AddNewDoctor mode="edit" />} />
-          <Route path="doctor-details/:doctorId" element={<DoctorDetails />} /> */}
 
           {/* Rooms management */}
           <Route path="ward-management" element={<Ward />} />

@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/appointment.controller");
-// const passport = require("../middleware/passportAuth.middleware");
-
+// 
 router.post(
     "/create-appointment",
     // passport.authenticate("jwt", { session: false }),

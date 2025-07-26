@@ -5,7 +5,9 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const getAuthHeader = () => {
   const jwtLoginToken = localStorage.getItem('jwtLoginToken');
+  // console.log("JWT Token from localStorage:", jwtLoginToken); // 🔍 This logs the token
   if (!jwtLoginToken) {
+    console.warn("JWT token not found in localStorage!");
     throw new Error('No JWT token found. Please log in.');
   }
   return {
@@ -66,7 +68,7 @@ export const fetchDoctorById = createAsyncThunk(
         headers: getAuthHeader(),
       });
       // console.log("the data in doctor by id is ", response.data?.information?.doctor)
-      console.log("the data in patient by id is ", response.data?.information?.patients)
+      // console.log("the data in patient by id is ", response.data?.information)
       return {
         doctor: response.data?.information?.doctor,
         patients: response.data?.information?.patients
@@ -200,6 +202,7 @@ const doctorSlice = createSlice({
         state.isLoading = false;
         state.currentDoctor = action.payload?.doctor || null;
         state.patients = action.payload?.patients || [];
+        // console.log('the patient in state',state.patients)
       })
       .addCase(fetchDoctorById.rejected, (state, action) => {
         state.isLoading = false;

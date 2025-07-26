@@ -14,4 +14,7 @@ router.delete('/deleteTest/:id', controller.testManagement.deleteTest);
 
 router.patch('/recoverTest/:id', controller.testManagement.recoverTest);
 
+// New endpoint for common options
+router.get('/common-options', controller.testManagement.getCommonOptions);
+
 module.exports = router;

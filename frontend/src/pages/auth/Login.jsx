@@ -15,11 +15,11 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const resultAction = await dispatch(loginUser({ email, password }));
-    console.log(`the reslt action`, resultAction)
+    // console.log(`the reslt action`, resultAction)
 
     if (loginUser.fulfilled.match(resultAction)) {
       const userRole = resultAction.payload.user.user_Access;
-      console.log("The dat in login jsx is: ",resultAction.payload.user.user_Access )
+      // console.log("The dat in login jsx is: ",resultAction.payload.user.user_Access )
 
       navigate(`/${userRole}/dashboard`);
     }

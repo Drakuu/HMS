@@ -5,6 +5,11 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const getAuthHeaders = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+  //  console.log("JWT Token from localStorage:", jwtLoginToken);
+  if (!jwtLoginToken) {
+    console.warn("JWT token not found in localStorage!");
+    throw new Error('No JWT token found. Please log in.');
+  }
   return {
     headers: {
       Authorization: `Bearer ${jwtLoginToken}`,
@@ -35,6 +40,7 @@ export const fetchPatientById = createAsyncThunk(
         `${API_URL}/patient/get-patient-by-id/${patientId}`,
         getAuthHeaders()
       );
+      console.log('the response in slice ', response.data.information.patient)
       return response.data.information.patient;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -144,6 +150,7 @@ const patientSlice = createSlice({
       .addCase(fetchPatientById.fulfilled, (state, action) => {
         state.selectedPatientStatus = "succeeded";
         state.selectedPatient = action.payload;
+        console.log('the payload is ', action.payload)
       })
       .addCase(fetchPatientById.rejected, (state, action) => {
         state.selectedPatientStatus = "failed";

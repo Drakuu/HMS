@@ -87,6 +87,13 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
           { href: 'doctors', label: `All Doctor's` },
         ],
       },
+      {
+        name: 'Staff Managment',
+        icon: <AdminIcon className="text-lg" />,
+        links: [
+          { href: 'staff', label: `All Staff` },
+        ],
+      },
     ],
     doctor: [
       {
@@ -100,7 +107,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         name: 'My Appointments',
         icon: <AppointmentsIcon className="text-lg" />,
         links: [
-          { href: 'aappointments', label: 'My Appointments' }
+          { href: 'book-appointments', label: 'My Appointments' }
         ]
       },
       {
@@ -132,26 +139,12 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         ]
       },
       {
-        name: 'Notifications',
-        icon: <AdminIcon className="text-lg" />,
-        links: [
-          { href: 'notifications', label: 'Notifications' }
-        ]
-      },
-      {
         name: 'Settings',
         icon: <SettingsIcon className="text-lg" />,
         links: [
           { href: 'settings', label: 'Settings' }
         ]
       },
-      {
-        name: 'Logout',
-        icon: <Logout className="text-lg" />,
-        links: [
-          { href: 'logout', label: 'Logout' }
-        ]
-      }
     ],
     receptionist: [
       {
@@ -169,7 +162,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <GroupsIcon className="text-lg" />,
         links: [
           { href: 'departments', label: 'Departments' },
-          { href: 'staff', label: 'Staff' },
+          // { href: 'staff', label: 'Staff' },
         ],
       },
       {

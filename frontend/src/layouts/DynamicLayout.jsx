@@ -41,7 +41,7 @@ const DynamicLayout = () => {
         />
         
         {/* Content */}
-        <main className="flex-1 overflow-y-auto bg-primary-50 p-2 md:p-4 xl:p-6">
+        <main className="flex-1 overflow-y-auto bg-primary-50 p-2 lg:p-4">
            <Outlet /> 
         </main>
       </div>

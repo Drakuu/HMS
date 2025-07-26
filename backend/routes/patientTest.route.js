@@ -5,7 +5,7 @@ const passport = require("../middleware/passportAuth.middleware");
 const middleware = require("../middleware/index.middleware");
 
 router.post(
-  '/patient-test',
+  "/patient-test",
 //   passport.authenticate("jwt", { session: false }),
 //   middleware.adminRoleCheck,
   controller.patientTest.createPatientTest
@@ -37,14 +37,11 @@ router.delete('/:id',
 // Restore Soft Deleted Patient Test (Bonus)
 router.patch('/:id/restore', 
     // authMiddleware,
-    controller.patientTest.restorePatientTest
+    controller.patientTest.restorePatientTest,
+    controller.patientTest.updatePatientTest
 );
-
-
-
-router.get('/test/patient-test-history',
-  passport.authenticate("jwt", { session: false }),
-  controller.patientTest.PatientTestStates
-);
+router.patch('/:id',
+   controller.patientTest.updatePatientTest
+)
 
 module.exports = router;

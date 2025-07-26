@@ -1,15 +1,31 @@
-const adminRoleCheck = require("./adminRoleCheck.middleware");
-const doctorRoleCheck = require("./doctorRoleCheck.middleware");
-const nurseRoleCheck = require("./nurseRoleCheck.middleware");
 const passportAuth = require("./passportAuth.middleware");
-const superAdminRoleCheck = require("./superAdminRoleCheck.middleware");
+const { 
+  checkRole,
+  adminOnly,
+  doctorOnly,
+  nurseOnly,
+  receptionistOnly,
+  labOnly,
+  radiologyOnly,
+  patientOnly,
+  clinicalStaff,
+  diagnosticStaff,
+  frontOffice
+} = require("./roleMiddleware");
 
 const middleware = {
-  adminRoleCheck,
-  doctorRoleCheck,
-  nurseRoleCheck,
   passportAuth,
-  superAdminRoleCheck
+  checkRole,
+  adminOnly,
+  doctorOnly,
+  nurseOnly,
+  receptionistOnly,
+  labOnly,
+  radiologyOnly,
+  patientOnly,
+  clinicalStaff,
+  diagnosticStaff,
+  frontOffice
 };
 
 module.exports = middleware;

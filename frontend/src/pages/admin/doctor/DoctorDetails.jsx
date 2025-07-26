@@ -51,11 +51,6 @@ console.log(currentDoctor)
   }
 
   // Format qualifications for display
-  const formatQualifications = (quals) => {
-    if (!quals || quals.length === 0) return 'N/A';
-    if (Array.isArray(quals)) return quals.join(', ');
-    return quals;
-  };
 
   return (
     <div className="container mx-auto p-4 border border-primary-600 rounded-lg ">
