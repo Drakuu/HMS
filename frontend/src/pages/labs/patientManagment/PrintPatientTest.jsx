@@ -3,7 +3,7 @@ import Logo from '../../../assets/images/logo1.png';
 
 const PrintA4 = ({ formData }) => {
   const safe = (v, fallback = '_________') => v !== undefined && v !== null && v !== '' ? v : fallback;
-
+// console.log("")
   const formatCurrency = (amount) =>
     amount?.toLocaleString('en-PK', {
       style: 'currency',
@@ -46,7 +46,6 @@ const PrintA4 = ({ formData }) => {
             font-size: 16px;
             font-weight: bold;
             text-align: center;
-        
           }
           .urdu-name {
             font-family: 'Noto Nastaliq Urdu', serif;
@@ -118,13 +117,6 @@ const PrintA4 = ({ formData }) => {
             <div className="hospital-name text-center">AL-SHAHBAZ MODERN DIAGNOSTIC CENTER</div>
             <div className="urdu-name text-center">الشہباز ہسپتال</div>
           </div>
-          {/* <div className="hospital-info">
-            
-            <p><strong>PHC Reg No: RO-58414 </strong></p>
-            <p><strong>100% Committed to Quality Testing</strong></p>
-            <p>Opposite Al-Shahbaz Hospital, Thana Road, Kahuta</p>
-            <p>Tel: 051-3311342</p>
-          </div>*/}
         </div>
 
         {/* Patient & Lab Info */}
@@ -138,7 +130,7 @@ const PrintA4 = ({ formData }) => {
           </div>
           <div className="details-block">
             <p><strong>Sample Date:</strong> {safe(formData.sampleDate)}</p>
-            <p><strong>Report Date Date:</strong> {safe(formData.reportDate || currentDate)}</p>
+            <p><strong>Report Date:</strong> {safe(formData.reportDate || currentDate)}</p>
             <p><strong>Print Time:</strong> {currentTime}</p>
             <p><strong>Referred By:</strong> {safe(formData.referredBy)}</p>
           </div>
@@ -152,6 +144,7 @@ const PrintA4 = ({ formData }) => {
               <th>Test Name</th>
               <th>Price (PKR)</th>
               <th>Discount (PKR)</th>
+              <th>Advance (PKR)</th>
               <th>Final Amount (PKR)</th>
             </tr>
           </thead>
@@ -159,13 +152,15 @@ const PrintA4 = ({ formData }) => {
             {(formData.tests || []).map((test, index) => {
               const price = test.price || test.amount || 0;
               const discount = test.discount || 0;
-              const final = Math.max(0, price - discount);
+              const advance = test.advancePayment || 0;
+              const final = Math.max(0, price - discount - advance);
               return (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{safe(test.testName)}</td>
                   <td>{formatCurrency(price)}</td>
                   <td>{formatCurrency(discount)}</td>
+                  <td>{formatCurrency(advance)}</td>
                   <td>{formatCurrency(final)}</td>
                 </tr>
               );
@@ -173,47 +168,26 @@ const PrintA4 = ({ formData }) => {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Total</td>
+              <td colSpan="2" style={{ textAlign: 'right' }}>Subtotal</td>
+              <td>{formatCurrency(formData.subtotal)}</td>
+              <td>{formatCurrency(formData.totalDiscount)}</td>
+              <td>{formatCurrency(formData.totalAdvance)}</td>
               <td>{formatCurrency(formData.total)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Paid</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Total Paid</td>
               <td>{formatCurrency(formData.paid)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Remaining</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Remaining Balance</td>
               <td>{formatCurrency(formData.remaining)}</td>
             </tr>
           </tfoot>
         </table>
 
-        {/* Footer Signatures 
-        <div className="footer">
-          <div className="signature">Patient Signature</div>
-          <div className="signature">
-            <p><strong>Dr.Mansoor Ghani</strong></p>
-             <p>Radiologist / Ultrasound Specialist</p>
-              <p>Timing: Daily 5:00 Pm</p>
-               <p>Saturday , Sunday </p>
-               <p>10:00 am to 4:00 Pm</p>
-            </div>
-         <div className="signature">
-            <p><strong>Dr.Rabia Sadaf</strong></p>
-             <p>Pathologist / Microbiologist</p>
-              <p>Timing: Daily 5:00 Pm</p>
-               <p>Saturday , Sunday </p>
-               <p> 10:00 am to 4:00 Pm</p>
-            </div>
-             <div className="signature">
-            <p><strong>Dr. Zerlish Tehreen Arif</strong></p>
-             <p>Managing Director</p>
-              <p>Timing :Daily</p>
-               <p>Saturday , Sunday </p>
-               <p> 10:00 am to 4:00 Pm</p>
-            </div>
-        </div>*/}
         <hr/>
 
+        {/* Duplicate Section */}
         <div className="details-row">
           <div className="details-block">
             <p><strong>MR-NO #:</strong> {safe(formData.patient?.MRNo)}</p>
@@ -224,13 +198,13 @@ const PrintA4 = ({ formData }) => {
           </div>
           <div className="details-block">
             <p><strong>Sample Date:</strong> {safe(formData.sampleDate)}</p>
-            <p><strong>Report Date Date:</strong> {safe(formData.reportDate || currentDate)}</p>
+            <p><strong>Report Date:</strong> {safe(formData.reportDate || currentDate)}</p>
             <p><strong>Print Time:</strong> {currentTime}</p>
             <p><strong>Referred By:</strong> {safe(formData.referredBy)}</p>
           </div>
         </div>
 
-        {/* Test Table */}
+        {/* Duplicate Test Table */}
         <table>
           <thead>
             <tr>
@@ -238,6 +212,7 @@ const PrintA4 = ({ formData }) => {
               <th>Test Name</th>
               <th>Price (PKR)</th>
               <th>Discount (PKR)</th>
+              <th>Advance (PKR)</th>
               <th>Final Amount (PKR)</th>
             </tr>
           </thead>
@@ -245,13 +220,15 @@ const PrintA4 = ({ formData }) => {
             {(formData.tests || []).map((test, index) => {
               const price = test.price || test.amount || 0;
               const discount = test.discount || 0;
-              const final = Math.max(0, price - discount);
+              const advance = test.advancePayment || 0;
+              const final = Math.max(0, price - discount - advance);
               return (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{safe(test.testName)}</td>
                   <td>{formatCurrency(price)}</td>
                   <td>{formatCurrency(discount)}</td>
+                  <td>{formatCurrency(advance)}</td>
                   <td>{formatCurrency(final)}</td>
                 </tr>
               );
@@ -259,15 +236,18 @@ const PrintA4 = ({ formData }) => {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Total</td>
+              <td colSpan="2" style={{ textAlign: 'right' }}>Subtotal</td>
+              <td>{formatCurrency(formData.subtotal)}</td>
+              <td>{formatCurrency(formData.totalDiscount)}</td>
+              <td>{formatCurrency(formData.totalAdvance)}</td>
               <td>{formatCurrency(formData.total)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Paid</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Total Paid</td>
               <td>{formatCurrency(formData.paid)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Remaining</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Remaining Balance</td>
               <td>{formatCurrency(formData.remaining)}</td>
             </tr>
           </tfoot>

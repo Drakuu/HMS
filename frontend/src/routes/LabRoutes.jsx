@@ -1,14 +1,30 @@
-import { AddPatienttest, PatientTests, DashboardPannel, AddTest, AllTests, EditTest, TestsDetail,ReportSummery, SampleCollection, TestReportPage, AllBillsPage, UpdateReport, BillDetailPage,
-
-} from '../pages/labs/labsPages'
-import { Navigate, Route, Routes } from 'react-router-dom';
-import DynamicLayout from '../layouts/DynamicLayout';
-import ProtectedRoute from '../pages/auth/ProtectedRoute';
+import {
+  AddPatienttest,
+  // CreateRadiologyReport,
+  // RediologyPatientDetail,
+  // RadiologyPennal,
+  PatientTests,
+  DashboardPannel,
+  AddTest,
+  AllTests,
+  EditTest,
+  TestsDetail,
+  ReportSummery,
+  SampleCollection,
+  TestReportPage,
+  AllBillsPage,
+  UpdateReport,
+  BillDetailPage,
+  // RadiologySummer,
+} from "../pages/labs/labsPages";
+import { Navigate, Route, Routes } from "react-router-dom";
+import DynamicLayout from "../layouts/DynamicLayout";
+import ProtectedRoute from "../pages/auth/ProtectedRoute";
 
 const LabRoutes = () => {
   return (
     <Routes>
-      <Route element={<ProtectedRoute allowedRoles={['lab']} />}>
+      <Route element={<ProtectedRoute allowedRoles={["lab"]} />}>
         <Route element={<DynamicLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           {/* dashboard  */}
@@ -25,15 +41,28 @@ const LabRoutes = () => {
           <Route path="test/edit/:id" element={<EditTest mode="edit" />} />
 
           {/* test samples */}
-          <Route path='sample-collection' element={<SampleCollection />} />
+          <Route path="sample-collection" element={<SampleCollection />} />
 
           {/* test reports */}
-          <Route path='test-report' element={<TestReportPage />} />
-            <Route path='update-report/:id' element={<UpdateReport />} />     
-            <Route path='test-report-Summery/:date' element={<ReportSummery />} />     
+          <Route path="test-report" element={<TestReportPage />} />
+          <Route path="update-report/:id" element={<UpdateReport />} />
+          <Route path="test-report-Summery/:date" element={<ReportSummery />} />
           {/* test billing */}
-          <Route path='test-billing' element={<AllBillsPage />} />
+          <Route path="test-billing" element={<AllBillsPage />} />
           <Route path="bills/:id" element={<BillDetailPage />} />
+          {/* <Route
+            path="createradiologyreport"
+            element={<CreateRadiologyReport />}
+          />
+          <Route path="RadiologyPennal" element={<RadiologyPennal />} />
+          <Route
+            path="RediologyPatientDetail/:id"
+            element={<RediologyPatientDetail />}
+          />
+          <Route
+            path="radiology-summer/:date"
+            element={<RadiologySummer />}
+          /> */}
         </Route>
       </Route>
     </Routes>

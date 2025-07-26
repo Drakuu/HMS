@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const signUp = async (req, res) => {
   try {
     const {
+      user_Name,
       user_Email,
       user_Password,
       user_Contact,
@@ -27,6 +28,7 @@ const signUp = async (req, res) => {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const user = new userModel({
+      user_Name,
       user_Email,
       user_Password: hashedPassword,
       user_Contact,
@@ -104,7 +106,7 @@ const login = async (req, res) => {
     }
 
     const user = await userModel.findOne({ user_Email }).populate('doctorProfile');
-
+// console.log("The user are:L ", user);
     if (!user) {
       return res.status(404).json({
         success: false,

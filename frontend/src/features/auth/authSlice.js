@@ -17,7 +17,7 @@ export const loginUser = createAsyncThunk(
 
       const { jwtLoginToken, user } = response.data.information;
       const decodedToken = jwtDecode(jwtLoginToken);
-      // console.log("TYhe decodedToken",decodedToken)
+      // console.log("TYhe decodedToken",user)
       return {
         token: jwtLoginToken,
           user,
