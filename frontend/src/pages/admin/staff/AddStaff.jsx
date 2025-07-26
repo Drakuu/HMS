@@ -9,6 +9,7 @@ import {
 } from '../../../features/staff/Staffslice';
 import { getallDepartments } from '../../../features/department/departmentSlice';
 import StaffForm from './StaffForm';
+import { getRoleRoute } from "../../../utility/Routes.Util";
 
 const StaffFormPage = () => {
   const dispatch = useDispatch();
@@ -59,30 +60,37 @@ const StaffFormPage = () => {
   }, [dispatch, id, isEditing]);
 
   useEffect(() => {
-    if (isEditing && staffDetails) {
-      const formattedData = {
-        ...staffDetails,
-        dateOfBirth: staffDetails.dateOfBirth ?
-          new Date(staffDetails.dateOfBirth).toISOString() : '',
-        shiftTiming: {
-          start: staffDetails.shiftTiming?.start || '',
-          end: staffDetails.shiftTiming?.end || ''
-        },
-        emergencyContact: staffDetails.emergencyContact || initialFormData.emergencyContact
-      };
-      setFormData(formattedData);
-    }
-  }, [isEditing, staffDetails]);
+  if (isEditing && staffDetails) {
+    const formattedData = {
+      // Flatten the user object fields
+      user_Name: staffDetails.user?.user_Name || '',
+      user_Email: staffDetails.user?.user_Email || '',
+      user_Contact: staffDetails.user?.user_Contact || '',
+      user_Address: staffDetails.user?.user_Address || '',
+      user_CNIC: staffDetails.user?.user_CNIC || '',
+      user_Access: staffDetails.user?.user_Access || '',
+      // Other fields from staffDetails
+      designation: staffDetails.designation || '',
+      department: staffDetails.department || '',
+      qualifications: staffDetails.qualifications || [],
+      gender: staffDetails.gender || '',
+      dateOfBirth: staffDetails.dateOfBirth ? 
+        new Date(staffDetails.dateOfBirth).toISOString().split('T')[0] : '',
+      shift: staffDetails.shift || '',
+      shiftTiming: {
+        start: staffDetails.shiftTiming?.start || '',
+        end: staffDetails.shiftTiming?.end || ''
+      },
+      emergencyContact: staffDetails.emergencyContact || {
+        name: '',
+        relation: '',
+        phone: ''
+      }
+    };
+    setFormData(formattedData);
+  }
+}, [isEditing, staffDetails]);
 
-  useEffect(() => {
-    if (successMessage) {
-      toast.success(successMessage);
-      navigate('/receptionist/staff');
-    }
-    if (error) {
-      toast.error(error);
-    }
-  }, [successMessage, error, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -201,6 +209,10 @@ const StaffFormPage = () => {
       const dob = new Date(formData.dateOfBirth);
       const today = new Date();
 
+      if (new Date(formData.dateOfBirth) > today) {
+        toast.error("Date of birth cannot be in the future");
+        return;
+      }
       // Check if the date is valid
       if (isNaN(dob.getTime())) {
         toast.error("Please enter a valid date of birth");
@@ -221,45 +233,94 @@ const StaffFormPage = () => {
       // }
     }
 
+    const convertTo24Hour = (time12h) => {
+      if (!time12h) return null;
+
+      // Extract time, period (AM/PM)
+      const [time, period] = time12h.split(' ');
+      let [hours, minutes] = time.split(':');
+
+      hours = parseInt(hours, 10);
+      minutes = minutes || '00'; // Handle cases where minutes are missing
+
+      // Convert to 24-hour format
+      if (period === 'PM' && hours < 12) {
+        hours += 12;
+      } else if (period === 'AM' && hours === 12) {
+        hours = 0;
+      }
+
+      // Pad with leading zeros (e.g., "8" → "08")
+      const paddedHours = hours.toString().padStart(2, '0');
+      const paddedMinutes = minutes.padStart(2, '0');
+
+      return `${paddedHours}:${paddedMinutes}`;
+    };
+
     // Prepare submission data
     const submissionData = {
       ...formData,
       dateOfBirth: formData.dateOfBirth || null,
       shiftTiming: {
-        start: formData.shiftTiming.start || null,
-        end: formData.shiftTiming.end || null
-      }
+        start: formData.shiftTiming.start ? convertTo24Hour(formData.shiftTiming.start) : null,
+        end: formData.shiftTiming.end ? convertTo24Hour(formData.shiftTiming.end) : null,
+      },
+      user_Email: formData.user_Email || undefined, // Replace empty string with undefined
     };
+    console.log("Final submission data:", submissionData);
 
     // Proceed with submission
     try {
       if (isEditing) {
         await dispatch(updateStaff({ id, staffData: submissionData }));
+        toast.success("Staff member updated successfully");
+        navigate(getRoleRoute('staff')); // Navigate only after success
       } else {
-        await dispatch(createStaff(submissionData));
+        const result = await dispatch(createStaff(submissionData));
+        if (result.payload?.success) { // Check if creation was successful
+          toast.success("Staff member created successfully");
+          navigate(getRoleRoute('staff')); // Navigate only after success
+        }
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Submission failed");
+      if (error.response?.data?.errorType === 'DUPLICATE_KEY') {
+        toast.error(`This ${error.response.data.field} is already registered`);
+      } else {
+        toast.error(error.response?.data?.message || "Submission failed");
+      }
     }
   };
+
 
   const handleCancel = () => {
     navigate(-1);
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">
-          {isEditing ? 'Edit Staff Member' : 'Add New Staff Member'}
-        </h1>
-        <button
-          onClick={handleCancel}
-          className="px-4 py-2 border rounded hover:bg-gray-100"
-        >
-          Back to Staff List
-        </button>
+    <div className="container mx-auto ">
+   <div className="bg-primary-600 rounded-md text-white px-6 py-8 mb-6 shadow-md">
+  <div className="max-w-9xl mx-auto">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center">
+        <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
+        <div>
+          <h1 className="text-3xl font-bold">
+            {isEditing ? 'Edit Staff Member' : 'Add New Staff Member'}
+          </h1>
+          <p className="text-primary-100 mt-1">
+            {isEditing ? 'Update staff details and information' : 'Add new staff member to the system'}
+          </p>
+        </div>
       </div>
+      <button
+        onClick={handleCancel}
+        className="px-4 py-2 bg-white text-primary-600 rounded-md hover:bg-primary-50 transition-colors duration-200 font-medium"
+      >
+        Back to Staff List
+      </button>
+    </div>
+  </div>
+</div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
         <form onSubmit={handleSubmit}>

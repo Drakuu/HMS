@@ -66,7 +66,7 @@ const { selectedPatient: currentPatient, selectedPatientStatus: status, error } 
   if (!currentPatient) {
     return <div className="text-center py-8 text-primary-500">No patient data found</div>;
   }
-  console.log('the current patient is ', currentPatient);
+  // console.log('the current patient is ', currentPatient);
   // Safely get nested properties
   const patientData = {
     name: currentPatient.patient_Name || 'N/A',

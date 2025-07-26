@@ -80,6 +80,14 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
           { href: 'dashboard', label: 'Admin Dashboard' },
         ],
       },
+      
+        {
+        name: 'Departments',
+        icon: <GroupsIcon className="text-lg" />,
+        links: [
+          { href: 'departments', label: `All Departments` },
+        ],
+      },
       {
         name: 'Doctors Managment',
         icon: <AdminIcon className="text-lg" />,
@@ -94,6 +102,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
           { href: 'staff', label: `All Staff` },
         ],
       },
+    
     ],
     doctor: [
       {
@@ -155,14 +164,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
           { href: 'hr-dashboard', label: 'HR Dashboard' },
           { href: 'patient-dashboard', label: 'Patient Dashboard' },
           { href: 'admin-dashboard', label: 'Admin Dashboard' },
-        ],
-      },
-      {
-        name: 'HR',
-        icon: <GroupsIcon className="text-lg" />,
-        links: [
-          { href: 'departments', label: 'Departments' },
-          // { href: 'staff', label: 'Staff' },
         ],
       },
       {

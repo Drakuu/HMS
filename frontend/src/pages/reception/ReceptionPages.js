@@ -5,7 +5,7 @@ import PatientDashboard from './dashboards/patientdashboard';
 import AdminDashboard from './dashboards/AdminDashboard';
 // hr imports
 // depatments imports
-import Departments from './hr/departments/Departments';
+
 
 //staff imports
 
@@ -39,7 +39,6 @@ export {
   HRDashboard,
   PatientDashboard,
   AdminDashboard,
-  Departments,
   IPDForm,
   AdmittedPatientDetails,
   OTPatientDetails,

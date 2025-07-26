@@ -45,16 +45,22 @@ const createStaff = async (req, res) => {
     // Check for existing user
     const existingUser = await hospitalModel.User.findOne({
       $or: [
-        { user_Email: user_Email },
         { user_CNIC: user_CNIC },
-        { user_Contact: user_Contact }
+        { user_Contact: user_Contact },
+        ...(user_Email ? [{ user_Email: user_Email }] : [])
       ]
     });
 
     if (existingUser) {
+      let conflictField = '';
+      if (existingUser.user_CNIC === user_CNIC) conflictField = 'CNIC';
+      else if (existingUser.user_Contact === user_Contact) conflictField = 'phone number';
+      else if (user_Email && existingUser.user_Email === user_Email) conflictField = 'email';
+
       return res.status(400).json({
         success: false,
-        message: "User with this email, CNIC or phone already exists"
+        message: `User with this ${conflictField} already exists`,
+        conflictField
       });
     }
 
@@ -65,18 +71,20 @@ const createStaff = async (req, res) => {
     const profilePicture = req.files?.profilePicture?.[0];
 
     // Create user (basic info)
-    const newUser = await hospitalModel.User.create({
+    const userData = {
       user_Identifier,
       user_Name,
-      user_Email,
       user_CNIC,
       user_Password: await bcrypt.hash(user_Password, 10),
-      user_Access: user_Access, // Directly use user_Access as user_Access
+      user_Access,
       user_Address,
       user_Contact,
       isVerified: true,
       isDeleted: false,
-    });
+      ...(user_Email && { user_Email }) // Only include if email exists
+    };
+
+    const newUser = await hospitalModel.User.create(userData);
 
     // Prepare staff-specific data
     const staffData = {
@@ -91,7 +99,9 @@ const createStaff = async (req, res) => {
       shiftTiming,
       profilePicture: profilePicture ? {
         filePath: `/uploads/staff/profile/${profilePicture.filename}`
-      } : undefined
+      } : undefined,
+      isVerified: true,  
+      isDeleted: false
     };
 
     // Add role-specific fields if needed
@@ -274,7 +284,12 @@ const softDeleteStaff = async (req, res) => {
   try {
     const staff = await hospitalModel.Staff.findOneAndUpdate(
       { _id: id, isDeleted: false },
-      { $set: { isDeleted: true, isActive: false } },
+      {
+        $set: {
+          isDeleted: true,
+          isVerified: false,
+        }
+      },
       { new: true }
     );
 
@@ -287,7 +302,8 @@ const softDeleteStaff = async (req, res) => {
 
     // Also mark user as deleted
     await hospitalModel.User.findByIdAndUpdate(staff.user, {
-      isDeleted: true
+      isDeleted: true,
+      isVerified: false // Added this
     });
 
     res.status(200).json({
@@ -312,7 +328,7 @@ const restoreStaff = async (req, res) => {
   try {
     const staff = await hospitalModel.Staff.findOneAndUpdate(
       { _id: id, isDeleted: true },
-      { $set: { isDeleted: false, isActive: true } },
+      { $set: { isDeleted: false, isVerified: true } },
       { new: true }
     );
 
@@ -325,7 +341,8 @@ const restoreStaff = async (req, res) => {
 
     // Also restore the user
     await hospitalModel.User.findByIdAndUpdate(staff.user, {
-      isDeleted: false
+      isDeleted: false,
+      isVerified: true // Added this
     });
 
     res.status(200).json({
@@ -346,8 +363,10 @@ const restoreStaff = async (req, res) => {
 // Get all deleted staff (for admin)
 const getDeletedStaff = async (req, res) => {
   try {
-    const deletedStaff = await hospitalModel.Staff.find({ isDeleted: true })
-      .populate('user');
+    const deletedStaff = await hospitalModel.Staff.find({
+      isDeleted: true,
+      isVerified: false,
+    }).populate('user');
 
     res.status(200).json({
       success: true,

@@ -25,9 +25,8 @@ const SelectField = ({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md ${
-          disabled ? 'bg-gray-100' : 'bg-white'
-        }`}
+        className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md ${disabled ? 'bg-gray-100' : 'bg-white'
+          }`}
       >
         <option value="">{placeholder}</option>
         {options.map((option) => {

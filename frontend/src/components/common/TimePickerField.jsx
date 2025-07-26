@@ -20,8 +20,6 @@ const TimePickerField = ({
       return;
     }
     
-    // The timeValue comes as a string in "HH:mm" format from react-time-picker
-    // We need to convert it to our desired "h:mm AM/PM" format
     const [hours, minutes] = timeValue.split(':').map(Number);
     let period = 'AM';
     let displayHours = hours;
@@ -30,13 +28,12 @@ const TimePickerField = ({
       period = 'PM';
       if (hours > 12) displayHours = hours - 12;
     }
-    if (hours === 0) displayHours = 12; // Handle midnight
+    if (hours === 0) displayHours = 12;
     
     const formattedTime = `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
     onChange(formattedTime);
   };
 
-  // Convert our stored "h:mm AM/PM" format to "HH:mm" for the TimePicker
   const parseTimeForPicker = (timeStr) => {
     if (!timeStr) return null;
     
@@ -57,7 +54,13 @@ const TimePickerField = ({
           {required && <span className="text-red-500">*</span>}
         </label>
       )}
-      <div className="react-time-picker__wrapper">
+      <div className={`
+        react-time-picker__wrapper
+        border border-gray-300 rounded-md
+        focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500
+        ${disabled ? 'bg-gray-100' : 'bg-white'}
+        w-full
+      `}>
         <TimePicker
           value={parseTimeForPicker(value)}
           onChange={handleTimeChange}
@@ -65,6 +68,16 @@ const TimePickerField = ({
           clearIcon={null}
           format="h:mm a"
           disabled={disabled}
+          className={`
+            w-full
+            [&_.react-time-picker__inputGroup]:py-2
+            [&_.react-time-picker__inputGroup__input]:bg-transparent
+            [&_.react-time-picker__inputGroup__input]:text-gray-900
+            [&_.react-time-picker__inputGroup__input]:focus:outline-none
+            [&_.react-time-picker__button]:text-gray-500
+            [&_.react-time-picker__button]:hover:text-gray-700
+            ${disabled ? 'text-gray-500' : 'text-gray-900'}
+          `}
         />
       </div>
     </div>

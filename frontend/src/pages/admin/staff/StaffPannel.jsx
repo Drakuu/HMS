@@ -42,14 +42,7 @@ const StaffListPage = () => {
     }
   }, [dispatch, activeTab]);
 
-  useEffect(() => {
-    if (successMessage) {
-      toast.success(successMessage);
-    }
-    if (error) {
-      toast.error(error);
-    }
-  }, [successMessage, error]);
+
 
   const handleDelete = (id) => {
     setConfirmModal({
@@ -168,17 +161,32 @@ const StaffListPage = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Staff Management</h1>
-        {activeTab === 'active' && (
-          <button
-            onClick={handleAddNew}
-            className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 flex items-center"
-          >
-            <span>Add New Staff</span>
-          </button>
-        )}
+    <div className="container mx-auto">
+      <div className="bg-primary-600 rounded-md text-white px-6 py-8 mb-6 shadow-md">
+        <div className="max-w-9xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
+              <div>
+                <h1 className="text-3xl font-bold">Staff Management</h1>
+                <p className="text-primary-100 mt-1">
+                  {activeTab === 'active' ? 'Manage all active staff members' : 'View and restore deleted staff members'}
+                </p>
+              </div>
+            </div>
+            {activeTab === 'active' && (
+              <button
+                onClick={handleAddNew}
+                className="px-4 py-2 bg-white text-primary-600 rounded-md hover:bg-primary-50 transition-colors duration-200 font-medium flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                <span>Add New Staff</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <TabNavigation

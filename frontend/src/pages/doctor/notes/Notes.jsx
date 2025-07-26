@@ -127,19 +127,19 @@ const NotesAndDiagnostics = () => {
             <div className="flex border-b border-gray-200 mb-6">
                 <button
                     onClick={() => setActiveTab('notes')}
-                    className={`py-2 px-4 font-medium flex items-center ${activeTab === 'notes' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                    className={`py-2 px-4 font-medium flex items-center ${activeTab === 'notes' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500'}`}
                 >
                     Clinical Notes
-                    <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                    <span className="ml-2 bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-0.5 rounded-full">
                         {notes.length}
                     </span>
                 </button>
                 <button
                     onClick={() => setActiveTab('diagnostics')}
-                    className={`py-2 px-4 font-medium flex items-center ${activeTab === 'diagnostics' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+                    className={`py-2 px-4 font-medium flex items-center ${activeTab === 'diagnostics' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-gray-500'}`}
                 >
                     Diagnostics
-                    <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                    <span className="ml-2 bg-primary-100 text-primary-800 text-xs font-semibold px-2 py-0.5 rounded-full">
                         {diagnostics.length}
                     </span>
                 </button>
@@ -154,14 +154,14 @@ const NotesAndDiagnostics = () => {
                     <input
                         type="text"
                         placeholder="Search..."
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <button
                     onClick={() => activeTab === 'notes' ? setIsAddingNote(true) : setIsAddingDiagnostic(true)}
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
                 >
                     <FiPlus className="mr-2" />
                     Add {activeTab === 'notes' ? 'Note' : 'Diagnostic'}
@@ -183,7 +183,7 @@ const NotesAndDiagnostics = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={newNote.title}
                                     onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
                                 />
@@ -192,7 +192,7 @@ const NotesAndDiagnostics = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={newNote.patient}
                                     onChange={(e) => setNewNote({ ...newNote, patient: e.target.value })}
                                 />
@@ -202,7 +202,7 @@ const NotesAndDiagnostics = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
                             <textarea
                                 rows={4}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 value={newNote.content}
                                 onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
                             />
@@ -212,7 +212,7 @@ const NotesAndDiagnostics = () => {
                             <div className="flex">
                                 <input
                                     type="text"
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={currentTag}
                                     onChange={(e) => setCurrentTag(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && addTag()}
@@ -220,7 +220,7 @@ const NotesAndDiagnostics = () => {
                                 />
                                 <button
                                     onClick={addTag}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition-colors"
+                                    className="px-4 py-2 bg-primary-600 text-white rounded-r-md hover:bg-primary-700 transition-colors"
                                 >
                                     Add
                                 </button>
@@ -229,12 +229,12 @@ const NotesAndDiagnostics = () => {
                                 {newNote.tags.map((tag, index) => (
                                     <span
                                         key={index}
-                                        className="inline-flex items-center px-2 py-1 mr-2 mb-2 text-sm font-medium text-blue-800 bg-blue-100 rounded-full"
+                                        className="inline-flex items-center px-2 py-1 mr-2 mb-2 text-sm font-medium text-primary-800 bg-primary-100 rounded-full"
                                     >
                                         {tag}
                                         <button
                                             onClick={() => removeTag(tag)}
-                                            className="ml-1 text-blue-600 hover:text-blue-800"
+                                            className="ml-1 text-primary-600 hover:text-primary-800"
                                         >
                                             &times;
                                         </button>
@@ -277,7 +277,7 @@ const NotesAndDiagnostics = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Test Name</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={newDiagnostic.testName}
                                     onChange={(e) => setNewDiagnostic({ ...newDiagnostic, testName: e.target.value })}
                                 />
@@ -286,7 +286,7 @@ const NotesAndDiagnostics = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={newDiagnostic.patient}
                                     onChange={(e) => setNewDiagnostic({ ...newDiagnostic, patient: e.target.value })}
                                 />
@@ -297,7 +297,7 @@ const NotesAndDiagnostics = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Results</label>
                                 <textarea
                                     rows={2}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={newDiagnostic.result}
                                     onChange={(e) => setNewDiagnostic({ ...newDiagnostic, result: e.target.value })}
                                 />
@@ -306,7 +306,7 @@ const NotesAndDiagnostics = () => {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Interpretation</label>
                                 <textarea
                                     rows={2}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     value={newDiagnostic.interpretation}
                                     onChange={(e) => setNewDiagnostic({ ...newDiagnostic, interpretation: e.target.value })}
                                 />
@@ -359,12 +359,12 @@ const NotesAndDiagnostics = () => {
                                             <span className="text-xs text-gray-500">{note.date}</span>
                                         </div>
                                         <p className="text-sm text-gray-600 mb-3">{note.content}</p>
-                                        <p className="text-sm font-medium text-blue-600 mb-3">Patient: {note.patient}</p>
+                                        <p className="text-sm font-medium text-primary-600 mb-3">Patient: {note.patient}</p>
                                         <div className="flex flex-wrap">
                                             {note.tags.map((tag, index) => (
                                                 <span
                                                     key={index}
-                                                    className="inline-block px-2 py-1 mr-2 mb-2 text-xs font-medium text-blue-800 bg-blue-100 rounded-full"
+                                                    className="inline-block px-2 py-1 mr-2 mb-2 text-xs font-medium text-primary-800 bg-primary-100 rounded-full"
                                                 >
                                                     {tag}
                                                 </span>
@@ -372,7 +372,7 @@ const NotesAndDiagnostics = () => {
                                         </div>
                                     </div>
                                     <div className="bg-gray-50 px-5 py-3 flex justify-end space-x-2">
-                                        <button className="p-1 text-gray-500 hover:text-blue-600 transition-colors">
+                                        <button className="p-1 text-gray-500 hover:text-primary-600 transition-colors">
                                             <FiEdit2 />
                                         </button>
                                         <button className="p-1 text-gray-500 hover:text-red-600 transition-colors">
@@ -437,7 +437,7 @@ const NotesAndDiagnostics = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <button className="text-blue-600 hover:text-blue-900 mr-3">
+                                                <button className="text-primary-600 hover:text-primary-900 mr-3">
                                                     <FiEdit2 />
                                                 </button>
                                                 <button className="text-red-600 hover:text-red-900">

@@ -5,7 +5,6 @@ import {
    AdminDashboard,
    HRDashboard,
    PatientDashboard,
-   Departments,
    OTPatientDetails,
    IPDAdmission,
    AdmittedPatientDetails,
@@ -38,13 +37,6 @@ const ReceptionRoutes = () => {
           <Route path="hr-dashboard" element={<HRDashboard />} />
           <Route path="patient-dashboard" element={<PatientDashboard />} />
           <Route path="admin-dashboard" element={<AdminDashboard />} />
-
-          {/* HR routes */}
-          <Route path="departments" element={<Departments />} />
-          {/* <Route path="staff" element={<StaffListPage />} />
-          <Route path="staff/new" element={<AddStaff />} />
-          <Route path="staff/edit/:id" element={<AddStaff />} /> */}
-
 
           {/* Rooms management */}
           <Route path="ward-management" element={<Ward />} />

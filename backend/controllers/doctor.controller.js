@@ -189,10 +189,10 @@ const getAllDoctors = async (req, res) => {
 const getDoctorById = async (req, res) => {
   try {
     const { doctorId } = req.params;
-// console.log("the docotr id is ",doctorId)
+    // console.log("the docotr id is ",doctorId)
     const doctor = await hospitalModel.Doctor.findOne({
-      user: doctorId,
-       deleted: false,
+      _id: doctorId,
+      deleted: false,
     }).populate({
       path: 'user',
       select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isVerified isDeleted  user_Address' // Only include these fields from User
@@ -210,15 +210,23 @@ const getDoctorById = async (req, res) => {
       });
     }
 
+    console.log("Searching for patients with:", {
+      doctorName: doctor.user.user_Name,
+      department: doctor.doctor_Department
+    });
+
     const patients = await hospitalModel.Patient.find({
       "patient_HospitalInformation.doctor_Name": doctor.user.user_Name,
-      "patient_HospitalInformation.doctor_Department": doctor.doctor_Department,
-    })
+      "patient_HospitalInformation.doctor_Department": doctor.doctor_Department
+    });
+
+    console.log("Found patients:", patients);
+
     // console.log("Doctor details with patients: ", patients);
 
     // Mapping patients' information with the relevant doctor data
     const mappedPatients = patients.map((patient) => ({
-      _id : patient._id,
+      _id: patient._id,
       patient_MRNo: patient.patient_MRNo,
       patient_Name: patient.patient_Name,
       patient_ContactNo: patient.patient_ContactNo,

@@ -93,17 +93,30 @@ const VerifyEmail = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { user_Email, user_Password } = req.body;
+    let { user_Email, user_Password, user_Identifier } = req.body;
+    console.log("Login Request Body:", req.body);
 
-    if (!user_Email || !user_Password) {
+    // Trim all inputs
+    const input = (user_Email || user_Identifier)?.trim();
+    const password = user_Password?.trim();
+
+    if (!input || !password) {
       return res.status(400).json({
         success: false,
         status: 400,
-        message: "All fields required",
+        message: "Email or Identifier and password are required",
       });
     }
 
-    const user = await userModel.findOne({ user_Email }).populate('doctorProfile');
+    // Determine if the input is an email using a simple regex
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+
+    // Build the query accordingly
+    const query = isEmail
+      ? { user_Email: input }
+      : { user_Identifier: input };
+
+    const user = await userModel.findOne(query).populate('doctorProfile');
 
     if (!user) {
       return res.status(404).json({
@@ -121,16 +134,15 @@ const login = async (req, res) => {
       });
     }
 
-    const validPassword = await bcrypt.compare(user_Password, user.user_Password);
+    const validPassword = await bcrypt.compare(password, user.user_Password);
     if (!validPassword) {
       return res.status(400).json({
         success: false,
         status: 400,
-        message: "Invalid email or password",
+        message: "Invalid credentials",
       });
     }
 
-    // Explicitly construct user data to include in JWT payload
     const userPayload = {
       id: user._id,
       user_Name: user.user_Name,
@@ -147,15 +159,6 @@ const login = async (req, res) => {
     };
 
     const jwtLoginToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: "7d" });
-    // Console the JWT Token
-    // console.log("JWT Token:", jwtLoginToken);
-
-    // Decode the JWT Token
-    const decodedToken = jwt.verify(jwtLoginToken, JWT_SECRET);
-
-    // Console the Decoded JWT Token
-    // console.log("Decoded Token:", decodedToken);
-
 
     return res.status(200).json({
       success: true,
@@ -166,15 +169,19 @@ const login = async (req, res) => {
         jwtLoginToken,
       },
     });
+
   } catch (error) {
     console.log("Login error:", error);
     return res.status(500).json({
       success: false,
       status: 500,
-      message: error.message,
+      message: error.message || "Internal server error",
     });
   }
 };
+
+
+
 
 
 module.exports = {

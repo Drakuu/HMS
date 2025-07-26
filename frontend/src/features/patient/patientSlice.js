@@ -40,7 +40,7 @@ export const fetchPatientById = createAsyncThunk(
         `${API_URL}/patient/get-patient-by-id/${patientId}`,
         getAuthHeaders()
       );
-      console.log('the response in slice ', response.data.information.patient)
+      // console.log('the response in slice ', response.data.information.patient)
       return response.data.information.patient;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);

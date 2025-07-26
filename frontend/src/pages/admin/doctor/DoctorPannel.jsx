@@ -38,9 +38,9 @@ const DoctorList = () => {
     dispatch(fetchAllDoctors());
   }, [dispatch]);
 
-  useEffect(() => {
-    console.log("Redux doctors data:", doctors);
-  }, [doctors]);
+  // useEffect(() => {
+  //   console.log("Redux doctors data:", doctors);
+  // }, [doctors]);
 
   const filteredDoctors = Array.isArray(doctors)
     ? doctors.filter((doc) => {

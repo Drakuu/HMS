@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createDepartment, getallDepartments, updatedepartmentbyid } from '../../../../features/department/DepartmentSlice';
+import { createDepartment, getallDepartments, updatedepartmentbyid } from '../../../features/department/DepartmentSlice';
 
 const DepartmentManagement = () => {
   const dispatch = useDispatch();

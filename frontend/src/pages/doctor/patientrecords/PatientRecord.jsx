@@ -8,19 +8,24 @@ import { fetchDoctorById } from '../../../features/doctor/doctorSlice';
 import { AiOutlineEdit, AiOutlineEye } from 'react-icons/ai';
 import { getRoleRoute } from "../../../utility/Routes.Util"
 import { useNavigate } from 'react-router-dom';
+import DateRangePicker from '../../../components/common/DateRangePicker';
 const API_URL = import.meta.env.VITE_API_URL;
 
 
 const PatientRecord = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [dateRange, setDateRange] = useState({
+    start: new Date(), // Today by default
+    end: new Date()    // Today by default
+  });
   const { currentDoctor, patients, status, error } = useSelector(state => state.doctor);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
-
   // Get user ID from localStorage
   const user = JSON.parse(localStorage.getItem('user'));
-  const userId = user.id;
+  const userId = user.doctorProfile._id;
+  // console.log("currentDoctor", currentDoctor);
 
   useEffect(() => {
     if (userId) {
@@ -30,15 +35,49 @@ const PatientRecord = () => {
 
   // Filter patients based on search term
   const filteredPatients = patients?.filter(patient => {
-    const matchesSearch = patient.patient_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.patient_MRNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.patient_ContactNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      // patient.patient_ContactNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.patient_CNIC?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === 'all' ||
-      (filter === 'recent' && new Date(patient.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
-    return matchesSearch && matchesFilter;
+    try {
+      // Parse and normalize dates
+      const patientDate = new Date(patient.createdAt);
+      const startDate = new Date(dateRange.start);
+      const endDate = new Date(dateRange.end);
+
+      // Normalize to date-only (ignore time)
+      const patientDay = new Date(patientDate.toDateString());
+      const startDay = new Date(startDate.toDateString());
+      const endDay = new Date(endDate.toDateString());
+
+      // Debug logs
+      // console.log('Comparing dates:', {
+      //   patient: patientDay,
+      //   start: startDay,
+      //   end: endDay,
+      //   inRange: patientDay >= startDay && patientDay <= endDay
+      // });
+
+      
+      const dateInRange = patientDay >= startDay && patientDay <= endDay;
+
+      const matchesSearch = patient.patient_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.patient_MRNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.patient_ContactNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.patient_CNIC?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesFilter = filter === 'all' ||
+        (filter === 'recent' && new Date(patient.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+
+      return dateInRange && matchesSearch && matchesFilter;
+    } catch (error) {
+      console.error("Error filtering patient:", error);
+      return false;
+    }
   }) || [];
+
+// useEffect(() => {
+//   console.log("Date range updated - filtering patients", dateRange);
+//   console.log("Current patients data:", patients);
+// }, [dateRange, patients]);
+
+  // console.log("filteredPatients", filteredPatients);
 
   if (status === 'loading') {
     return (
@@ -65,12 +104,9 @@ const PatientRecord = () => {
     );
   }
 
-  if (!currentDoctor) {
-    return <div className="text-center py-8 text-primary-500">No data found</div>;
-  }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="p-2">
       {/* Doctor Profile Card */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
         <div className="bg-gradient-to-r from-primary-500 to-primary-700 p-4 text-white">
@@ -128,33 +164,55 @@ const PatientRecord = () => {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Header with Tabs */}
         <div className="border-b border-gray-200">
-          <div className="flex justify-between items-center px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-800">Patient Records</h2>
-            <div className="flex space-x-2">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaSearch className="text-gray-400" />
+          <div className="px-6 py-4">
+            <div className="flex flex-col gap-4">
+              {/* Title */}
+              <h2 className="text-lg font-semibold text-gray-800">Patient Records</h2>
+
+              {/* Filter Controls - Stack on mobile, row on desktop */}
+              <div className="flex flex-col md:flex-row gap-3 w-full">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaSearch className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search patients..."
+                    className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search patients..."
-                  className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaFilter className="text-gray-400" />
+
+                {/* Filter Dropdown */}
+                <div className="relative flex-1 md:flex-none md:w-48">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaFilter className="text-gray-400" />
+                  </div>
+                  <select
+                    className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                  >
+                    <option value="all">All Patients</option>
+                    <option value="recent">Recent (Last 7 days)</option>
+                  </select>
                 </div>
-                <select
-                  className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                >
-                  <option value="all">All Patients</option>
-                  <option value="recent">Recent (Last 7 days)</option>
-                </select>
+
+                {/* Date Range Picker - Full width on mobile, auto on desktop */}
+                <div className="flex-1 md:flex-none md:w-auto">
+                  <DateRangePicker
+                    startDate={dateRange.start}
+                    endDate={dateRange.end}
+                    onChange={(newRange) => {
+                      console.log("Date range changed:", newRange); // Debug log
+                      setDateRange(newRange);
+                    }}
+                    className="w-full"
+                    showQuickOptions={false} // Hide quick options in this compact view
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -177,7 +235,7 @@ const PatientRecord = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredPatients.length > 0 ? (
                 filteredPatients.map((patient) => (
-                  <PatientRow key={patient._id} patient={patient}   navigate={navigate} />
+                  <PatientRow key={patient._id} patient={patient} navigate={navigate} />
                 ))
               ) : (
                 <tr>

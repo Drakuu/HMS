@@ -49,8 +49,8 @@ export const fetchAllDoctors = createAsyncThunk(
       const response = await axios.get(`${API_URL}/doctor/get-doctors`, {
         headers: getAuthHeader(),
       });
-console.log('the data is ', response.data?.information?.doctors)
-      return response.data?.information?.doctors ;
+      // console.log('the data is ', response.data?.information?.doctors)
+      return response.data?.information?.doctors;
     } catch (error) {
       if (error.response) {
         return rejectWithValue(error.response.data.message || 'Failed to fetch doctors');
@@ -167,9 +167,9 @@ const doctorSlice = createSlice({
         state.isLoading = false;
         state.status = 'succeeded';
         // state.doctors = action.payload.information.doctors;
-         if (action.payload.data?.doctor) {
-        state.doctors.push(action.payload.data.doctor);
-      }
+        if (action.payload.data?.doctor) {
+          state.doctors.push(action.payload.data.doctor);
+        }
       })
       .addCase(createDoctor.rejected, (state, action) => {
         state.isLoading = false;
@@ -184,7 +184,7 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchAllDoctors.fulfilled, (state, action) => {
         state.isLoading = false;
-         state.doctors = action.payload ;
+        state.doctors = action.payload;
         //  console.log('the data in case ', action.payload)
       })
       .addCase(fetchAllDoctors.rejected, (state, action) => {
@@ -202,7 +202,7 @@ const doctorSlice = createSlice({
         state.isLoading = false;
         state.currentDoctor = action.payload?.doctor || null;
         state.patients = action.payload?.patients || [];
-        // console.log('the patient in state',state.patients)
+        // console.log('the patient in state', action.payload)
       })
       .addCase(fetchDoctorById.rejected, (state, action) => {
         state.isLoading = false;

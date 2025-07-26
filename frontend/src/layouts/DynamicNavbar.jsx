@@ -113,7 +113,7 @@ const DynamicNavbar = ({ toggleSidebar, onLogout }) => {
                     <p className="text-xs text-white/80 capitalize">{currentUser?.user_Access}</p>
                   </div>
                   <Link
-                    to="/profile"
+                    to='/profile'
                     className="flex items-center px-4 py-2 text-sm text-white hover:bg-white/20"
                   >
                     <User className="w-4 h-4 mr-2" />

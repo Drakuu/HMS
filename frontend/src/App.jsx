@@ -9,8 +9,14 @@ import LabRoutes from './routes/LabRoutes';
 import DoctorRoutes from './routes/DoctorRoutes';
 import Unauthorized from "./pages/auth/Unauthorized";
 import Profiles from "./pages/auth/ProfileModel";
+import ProfileRoutes from "./pages/profile/profileRoutes";
+import { selectCurrentUser } from './features/auth/authSlice';
+import { useSelector } from 'react-redux';
 
 const App = () => {
+  const currentUser = useSelector(selectCurrentUser);
+  const userAccess = currentUser?.user_Access?.toLowerCase();
+
   return (
     <Router>
       <Routes>
@@ -22,10 +28,13 @@ const App = () => {
         <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Protected routes */}
-        <Route path="/receptionist/*" element={<ReceptionRoutes />} />
-        <Route path="/admin/*" element={<AdminRoutes />} />
-        <Route path="/lab/*" element={<LabRoutes />} />
-        <Route path="/doctor/*" element={<DoctorRoutes />} />
+        {userAccess === 'admin' && <Route path="/admin/*" element={<AdminRoutes />} />}
+        {userAccess === 'receptionist' && <Route path="/receptionist/*" element={<ReceptionRoutes />} />}
+        {userAccess === 'lab' && <Route path="/lab/*" element={<LabRoutes />} />}
+        {userAccess === 'doctor' && <Route path="/doctor/*" element={<DoctorRoutes />} />}
+
+        {/* Unified profile route */}
+        <Route path="/profile" element={<ProfileRoutes />} />
 
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

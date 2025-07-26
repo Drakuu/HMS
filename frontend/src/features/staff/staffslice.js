@@ -9,6 +9,7 @@ export const createStaff = createAsyncThunk(
   async (staffData, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/staff/create-staff`, staffData);
+      console.log('the response data ', response.data)
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -22,7 +23,7 @@ export const getAllStaff = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API_URL}/staff/getall-staff`);
-      console.log("the staffs are ", response.data.data)
+      // console.log("the staffs are ", response.data.data)
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

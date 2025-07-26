@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../config/multer");
 const controller = require("../controllers/index.controller");
-const { passportAuth, checkRole , doctorOnly  } = require('../middleware/index.middleware');
+const { passportAuth, checkRole, doctorOnly } = require('../middleware/index.middleware');
 
 router.post(
   "/create-doctor",
@@ -15,9 +15,9 @@ router.post(
 
 router.get(
   "/get-doctors",
- passportAuth.authenticate("jwt", { session: false }),
-//  checkRole(['Doctor', 'Admin']),
-doctorOnly ,
+  passportAuth.authenticate("jwt", { session: false }),
+  checkRole(['Doctor', 'Admin', 'Receptionist']),
+  // doctorOnly,
   controller.doctor.getAllDoctors
 );
 
