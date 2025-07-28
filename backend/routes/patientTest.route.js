@@ -28,17 +28,28 @@ router.get('/mrno/:mrNo',
     controller.patientTest.getPatientTestByMRNo
 );
 
-// Soft Delete Patient Test
+//Soft Delete Patient Test
 router.delete('/:id', 
     // authMiddleware,
     controller.patientTest.softDeletePatientTest
+);
+router.delete('/:id', 
+    // authMiddleware,
+    controller.patientTest.deletepatientTest
 );
 
 // Restore Soft Deleted Patient Test (Bonus)
 router.patch('/:id/restore', 
     // authMiddleware,
-    controller.patientTest.restorePatientTest
+    controller.patientTest.restorePatientTest,
+    controller.patientTest.updatePatientTest
 );
+
+//update test
+
+router.patch('/:id',
+   controller.patientTest.updatePatientTest
+)
 
 
 

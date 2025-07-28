@@ -43,7 +43,6 @@ const HospitalDashboard = () => {
   const [editingCut, setEditingCut] = useState(false);
   const [tempCut, setTempCut] = useState(stats.hospitalCut);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    console.log(`the is receptio dasadfjsafg`)
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {

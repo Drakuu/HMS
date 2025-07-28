@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { AiOutlineDelete, AiOutlineEdit, AiOutlineEye } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { fetchAllDoctors, deleteDoctorById } from "../../../features/doctor/doctorSlice";
 import DeleteConfirmationModal from './DeleteDoctor';
 import { toast } from "react-toastify";
@@ -26,7 +26,7 @@ const DoctorList = () => {
   const [search, setSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState(null);
   const [specializationFilter, setSpecializationFilter] = useState(null);
-  const [viewLoading, setViewLoading] = useState(null);
+  const [, setViewLoading] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -38,9 +38,9 @@ const DoctorList = () => {
     dispatch(fetchAllDoctors());
   }, [dispatch]);
 
-  useEffect(() => {
-    console.log("Redux doctors data:", doctors);
-  }, [doctors]);
+  // useEffect(() => {
+  //   console.log("Redux doctors data:", doctors);
+  // }, [doctors]);
 
   const filteredDoctors = Array.isArray(doctors)
     ? doctors.filter((doc) => {

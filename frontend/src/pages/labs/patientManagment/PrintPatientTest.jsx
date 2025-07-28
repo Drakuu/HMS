@@ -1,5 +1,8 @@
 import React from 'react';
 import Logo from '../../../assets/images/logo1.png';
+//import { QRCodeCanvas } from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
+
 
 const PrintA4 = ({ formData }) => {
   const safe = (v, fallback = '_________') => v !== undefined && v !== null && v !== '' ? v : fallback;
@@ -17,7 +20,6 @@ const PrintA4 = ({ formData }) => {
   return (
     <html>
       <head>
-        <title>Patient Report</title>
         <style>{`
           body {
             font-family: Arial, sans-serif;
@@ -27,6 +29,47 @@ const PrintA4 = ({ formData }) => {
             padding: 20px;
           }
           .header {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #000;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.logo-container {
+  flex: 0 0 120px;
+}
+
+.logo {
+  width: 120px;
+  height: auto;
+}
+
+.hospital-details {
+  flex: 1;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hospital-name {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 5px;
+}
+
+.hospital-info {
+  font-size: 11px;
+  text-align: left;
+}
+
+.hospital-info p {
+  margin: 2px 0;
+}
+
+=======
             display: flex;
             justify-content: space-between;
             border-bottom: 2px solid #000;
@@ -112,22 +155,41 @@ const PrintA4 = ({ formData }) => {
       <body>
         {/* Header Section */}
         <div className="header">
-          <div className="logo-section">
-            {/*<img src={Logo} alt="Logo" className="logo" />*/}
-            <div className="hospital-name text-center">AL-SHAHBAZ MODERN DIAGNOSTIC CENTER</div>
-            <div className="urdu-name text-center">الشہباز ہسپتال</div>
+          <div className="logo-container">
+            <img src={Logo} alt="Logo" className="logo" />
+          </div>
+          <div className="hospital-details">
+            <div className="hospital-name">AL-SHAHBAZ HOSPITAL</div>
+            <div className="hospital-info">
+              <p>THANA ROAD KAHUTA.</p>
+              <p>Tel: 051-3311342</p>
+            </div>
           </div>
         </div>
+
 
         {/* Patient & Lab Info */}
         <div className="details-row">
           <div className="details-block">
-            <p><strong>MR-NO #:</strong> {safe(formData.patient?.MRNo)}</p>
+            <p><strong>MR-NO:</strong> {safe(formData.patient?.MRNo)}</p>
             <p><strong>Patient Name:</strong> {safe(formData.patient?.Name)}</p>
             <p><strong>Gender:</strong> {safe(formData.patient?.Gender)}</p>
             <p><strong>Age:</strong> {safe(formData.patient?.Age)}</p>
-            <p><strong>Contact #:</strong> {safe(formData.patient?.ContactNo)}</p>
+            <p><strong>Phone Number:</strong> {safe(formData.patient?.ContactNo)}</p>
           </div>
+          <div>
+          <p style={{ fontSize: '16px',marginLeft:'10px' }}>Lab Test Slip</p>
+          <div style={{ display: 'flex', flexDirection: 'column', marginRight: '60px',marginTop:'10px' }}>
+            <QRCodeSVG
+              value={`${formData.patient?.MRNo}_${formData.sampleDate}_${formData.tokenNumber}`}
+              size={100}
+              level="H"
+              includeMargin={true}
+            />
+            </div>
+            {/*<p style={{ fontSize: '10px', marginTop: '4px' }}>Scan MR No</p>*/}
+          </div>
+
           <div className="details-block">
             <p><strong>Sample Date:</strong> {safe(formData.sampleDate)}</p>
             <p><strong>Report Date:</strong> {safe(formData.reportDate || currentDate)}</p>
@@ -185,17 +247,58 @@ const PrintA4 = ({ formData }) => {
           </tfoot>
         </table>
 
+        {/* Footer Signatures 
+        <div className="footer">
+          <div className="signature">Patient Signature</div>
+          <div className="signature">
+            <p><strong>Dr.Mansoor Ghani</strong></p>
+             <p>Radiologist / Ultrasound Specialist</p>
+              <p>Timing: Daily 5:00 Pm</p>
+               <p>Saturday , Sunday </p>
+               <p>10:00 am to 4:00 Pm</p>
+            </div>
+         <div className="signature">
+            <p><strong>Dr.Rabia Sadaf</strong></p>
+             <p>Pathologist / Microbiologist</p>
+              <p>Timing: Daily 5:00 Pm</p>
+               <p>Saturday , Sunday </p>
+               <p> 10:00 am to 4:00 Pm</p>
+            </div>
+             <div className="signature">
+            <p><strong>Dr. Zerlish Tehreen Arif</strong></p>
+             <p>Managing Director</p>
+              <p>Timing :Daily</p>
+               <p>Saturday , Sunday </p>
+               <p> 10:00 am to 4:00 Pm</p>
+            </div>
+        </div>*/}
+        <hr />
+
+        {/* Patient & Lab Info */}
         <hr/>
 
         {/* Duplicate Section */}
         <div className="details-row">
           <div className="details-block">
-            <p><strong>MR-NO #:</strong> {safe(formData.patient?.MRNo)}</p>
+            <p><strong>MR-NO:</strong> {safe(formData.patient?.MRNo)}</p>
             <p><strong>Patient Name:</strong> {safe(formData.patient?.Name)}</p>
             <p><strong>Gender:</strong> {safe(formData.patient?.Gender)}</p>
             <p><strong>Age:</strong> {safe(formData.patient?.Age)}</p>
-            <p><strong>Contact #:</strong> {safe(formData.patient?.ContactNo)}</p>
+            <p><strong>Phone Number:</strong> {safe(formData.patient?.ContactNo)}</p>
           </div>
+          <div>
+          <p style={{ fontSize: '16px',marginLeft:'10px' }}>Lab Test Slip</p>
+          <div style={{ display: 'flex', flexDirection: 'column', marginRight: '60px',marginTop:'10px' }}>
+            <QRCodeSVG
+              value="https://www.youtube.com/watch?v=eGpS1VFqBZk"
+              size={100}
+              level="H"
+              includeMargin={true}
+            />
+            </div>
+            {/*<p style={{ fontSize: '10px', marginTop: '4px' }}>Scan MR No</p>*/}
+          </div>
+
           <div className="details-block">
             <p><strong>Sample Date:</strong> {safe(formData.sampleDate)}</p>
             <p><strong>Report Date:</strong> {safe(formData.reportDate || currentDate)}</p>

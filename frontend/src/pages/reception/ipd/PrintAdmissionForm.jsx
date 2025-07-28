@@ -1,343 +1,254 @@
 import React from 'react';
 import Logo from '../../../assets/images/logo1.png';
 
-const PrintAdmissionForm = ({ formData }) => {
-  const safeData = (value, fallback = '_________') => value || fallback;
+const PrintAdmissionForm = React.forwardRef(({ data }, ref) => {
+  if (!data) return null;
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
 
   return (
-    <html>
-      <head>
-        <title>Patient Admission - A4 Form</title>
-        <style>
-          {`
-            @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap');
-            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&family=Roboto:wght@400;500&display=swap');
+    <div ref={ref} style={{
+      padding: '15px',
+      width: '100%',
+      maxWidth: '800px',
+      margin: '0 auto',
+      fontSize: '12px',
+      lineHeight: '1.3'
+    }} id="admission-print-content">
+      <style>
+        {`
+          @page {
+            size: A4;
+            margin: 10mm;
+          }
+          body {
+            font-family: Arial, sans-serif;
+          }
+          .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5px 0 10px 0;
+            page-break-inside: avoid;
+          }
+          .print-table td {
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+          }
+          .print-header {
+            text-align: center;
+            margin-bottom: 10px;
+          }
+          .hospital-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 5px 0;
+          }
+          .document-title {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            color: #0066cc;
+          }
+          .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 8px 0 4px 0;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+          }
+          .label-cell {
+            font-weight: bold;
+            width: 25%;
+            background-color: #f5f5f5;
+          }
+          .footer {
+            margin-top: 10px;
+            padding-top: 5px;
+            border-top: 1px solid #ccc;
+            font-size: 11px;
+          }
+          .signature-area {
+            display: inline-block;
+            width: 45%;
+            margin: 0 2%;
+            text-align: center;
+          }
+          .signature-line {
+            border-top: 1px solid #000;
+            width: 80%;
+            margin: 25px auto 5px auto;
+          }
+          .disclaimer {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+          }
+          .logo {
+            height: 60px;
+            width: auto;
+            margin-bottom: 5px;
+          }
+          .compact-row {
+            margin-bottom: 2px;
+          }
+        `}
+      </style>
 
-            body {
-              font-family: 'Roboto', sans-serif;
-              font-weight: 400;
-              font-size: 18px;
-            }
-            
-            .form-title {
-              font-family: 'Montserrat', sans-serif;
-              font-weight: 600;
-            }
-            
-            .section-title, .vital-title {
-              font-family: 'Montserrat', sans-serif;
-              font-weight: 500;
-              font-size: 14px;    
-            }
-            
-            .detail-label { 
-              font-weight: 500;
-            }
+      {/* Header */}
+      <div className="print-header">
+        <img src={Logo} alt="Hospital Logo" className="logo" />
+        <div className="hospital-name">Al-Shahbaz Hospital</div>
+        <div>Thana Road Kahuta | Phone: (123) 456-7890</div>
+      </div>
 
-            @page {
-              size: A4;
-              margin: 5mm 10mm;
-            }
-              
-            body {
-              margin: 0;
-              padding: 5mm;
-              color: #333;
-              width: 190mm;
-              height: 277mm;
-              position: relative;
-              font-size: 13px;
-              line-height: 1.3;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
+      <div className="document-title">PATIENT ADMISSION RECORD</div>
 
-            .watermark {
-              position: fixed;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              opacity: 0.1;
-              z-index: -1;
-              width: 300px;
-              height: auto;
-              pointer-events: none;
-            }
+      {/* Patient Information */}
+      <div className="section-title">Patient Information</div>
+      <table className="print-table">
+        <tbody>
+          <tr>
+            <td className="label-cell">MR Number</td>
+            <td>{data.patient_MRNo || data.mrNumber || 'N/A'}</td>
+            <td className="label-cell">Name</td>
+            <td>{data.patient_Name || data.patientName || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Gender</td>
+            <td>{data.patient_Gender || data.gender || 'N/A'}</td>
+            <td className="label-cell">Date of Birth</td>
+            <td>{formatDate(data.patient_DateOfBirth || data.dob)}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">CNIC</td>
+            <td>{data.patient_CNIC || data.cnic || 'N/A'}</td>
+            <td className="label-cell">Contact</td>
+            <td>{data.patient_Contact || data.patientContactNo || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Address</td>
+            <td colSpan="3" style={{ whiteSpace: 'pre-line' }}>
+              {data.patient_Address || data.address || 'N/A'}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-            .header-container {
-              display: flex;
-              width: 100%;
-              border-bottom: 2px solid #2b6cb0;
-              padding-bottom: 5mm;
-              margin-bottom: 5mm;
-              page-break-inside: avoid;
-            }
+      {/* Guardian Information */}
+      <div className="section-title">Guardian Information</div>
+      <table className="print-table">
+        <tbody>
+          <tr>
+            <td className="label-cell">Name</td>
+            <td>{data.patient_Guardian?.guardian_Name || data.guardianName || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Relation</td>
+            <td>{data.patient_Guardian?.guardian_Relation || data.guardianRelation || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Contact</td>
+            <td>{data.patient_Guardian?.guardian_Contact || data.guardianContact || 'N/A'}</td>
+          </tr>
+        </tbody>
+      </table>
 
-            .logo-section {
-              width: 20%;
-              min-width: 40mm;
-            }
+      {/* Admission Details */}
+      <div className="section-title">Admission Details</div>
+      <table className="print-table">
+        <tbody>
+          <tr>
+            <td className="label-cell">Admission Date</td>
+            <td>{formatDate(data.admission_Details?.admission_Date || data.admissionDate)}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Doctor</td>
+            <td>{data.admission_Details?.admitting_Doctor || data.doctor || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Ward Type</td>
+            <td>{data.ward_Information?.ward_Type || data.wardType || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Ward Number</td>
+            <td>{data.ward_Information?.ward_No || data.wardNumber || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Bed Number</td>
+            <td>{data.ward_Information?.bed_No || data.bedNumber || 'N/A'}</td>
+          </tr>
+        </tbody>
+      </table>
 
-            .logo {
-              height: 20mm;
-              width: auto;
-              max-width: 100%;
-            }
+      {/* Medical Information */}
+      <div className="section-title">Medical Information</div>
+      <table className="print-table">
+        <tbody>
+          <tr>
+            <td className="label-cell">Diagnosis</td>
+            <td>{data.admission_Details?.diagnosis || data.diagnosis || 'N/A'}</td>
+          </tr>
+        </tbody>
+      </table>
 
-            .hospital-name {
-              font-family: 'Montserrat', sans-serif;
-              font-size: 20px;
-              font-weight: 600;
-              color: #2b6cb0;
-              margin-top: 2mm;
-            }
+      {/* Financial Information */}
+      <div className="section-title">Financial Information</div>
+      <table className="print-table">
+        <tbody>
+          <tr>
+            <td className="label-cell">Admission Fee</td>
+            <td>Rs. {data.financials?.admission_Fee || data.admissionFee || '0'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Discount</td>
+            <td>Rs. {data.financials?.discount || data.discount || '0'}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Total Fee</td>
+            <td>Rs. {(data.financials?.admission_Fee || data.admissionFee || 0) - (data.financials?.discount || data.discount || 0)}</td>
+          </tr>
+          <tr>
+            <td className="label-cell">Payment Status</td>
+            <td>{data.financials?.payment_Status || data.paymentStatus || 'N/A'}</td>
+          </tr>
+        </tbody>
+      </table>
 
-            .patient-details-section,
-            .admission-details-section {
-              width: 40%;
-              padding: 0 5mm;
-              border-left: 1px solid #ddd;
-              overflow: hidden;
-            }
-
-            .section-title {
-              font-size: 14px;
-              font-weight: bold;
-              margin-bottom: 3mm;
-              color: #2b6cb0;
-            }
-
-            .detail-row {
-              display: flex;
-              margin-bottom: 2mm;
-              min-height: 5mm;
-            }
-
-            .detail-label {
-              font-weight: bold;
-              width: 35mm;
-              min-width: 35mm;
-            }
-
-            .detail-value {
-              flex-grow: 1;
-              word-break: break-word;
-            }
-
-            .main-content-area {
-              height: 190mm;
-              margin-top: 3mm;
-              padding: 3mm;
-              position: relative;
-              page-break-inside: avoid;
-            }
-
-            .good-border {
-              border-left: 2px solid;
-              border-right: 2px solid;
-              border-image: linear-gradient(to bottom, #1371d6, #d61323) 1;
-              padding: 3mm;
-              height: 100%;
-              border-radius: 2mm;
-              box-sizing: border-box;
-              background-color: #f9f9f9;
-            }
-
-            .footer {
-              position: absolute;
-              bottom: 5mm;
-              left: 0;
-              right: 0;
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-end;
-            }
-
-            .signature-box {
-              width: 60mm;
-              border-top: 1px solid #333;
-              text-align: center;
-              padding-top: 2mm;
-              font-size: 12px;
-            }
-
-            .form-title {
-              font-size: 18px;
-              font-weight: bold;
-              text-align: center;
-              margin: 3mm 0;
-              color: #2b6cb0;
-            }
-
-            .date-time {
-              font-size: 11px;
-              text-align: right;
-              margin-bottom: 2mm;
-              color: #666;
-            }
-
-            .hospital-name-urdu {
-              font-family: 'Noto Nastaliq Urdu', sans-serif;
-              font-size: 26px;
-              margin-top: 0.75rem;
-              margin-right: 1rem;
-              direction: rtl;
-              line-height: 1.4;
-              font-weight: 800;
-              color: #2b6cb0;
-            }
-
-            .no-print {
-              display: none;
-            }
-
-            @media print {
-              body {
-                padding: 0;
-                margin: 0;
-                width: 210mm;
-                height: 297mm;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-              
-              * {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              
-              .no-print {
-                display: none !important;
-              }
-              
-              .watermark {
-                opacity: 0.05;
-              }
-            }
-          `}
-        </style>
-      </head>
-      <body className="print-body">
-        <img src={Logo} className="watermark" alt="Hospital Watermark" />
-        <div className="content">
-          <div className="date-time">
-            {new Date().toLocaleDateString()} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      {/* Footer */}
+      <div className="footer">
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="signature-area">
+            <div>Patient/Guardian Signature</div>
+            <div className="signature-line"></div>
           </div>
-
-          <div className="form-title">PATIENT ADMISSION FORM</div>
-
-          <div className="header-container">
-            <div className="logo-section">
-              <img src={Logo} className="logo" alt="Hospital Logo" />
-              <div className="hospital-name">Al-Shahbaz Hospital</div>
-              <div className="hospital-name-urdu">
-                الشہباز ہسپتال
-              </div>
-            </div>
-
-            <div className="patient-details-section">
-              <div className="section-title">PATIENT DETAILS</div>
-              <div className="detail-row">
-                <span className="detail-label">MR Number:</span>
-                <span className="detail-value">{safeData(formData.mrNumber)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Patient Name:</span>
-                <span className="detail-value">{safeData(formData.patientName)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Age/Gender:</span>
-                <span className="detail-value">{safeData(formData.age)}/{safeData(formData.gender)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">CNIC:</span>
-                <span className="detail-value">{safeData(formData.cnic)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Contact:</span>
-                <span className="detail-value">{safeData(formData.patientContactNo)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Address:</span>
-                <span className="detail-value">{safeData(formData.address)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Blood Group:</span>
-                <span className="detail-value">{safeData(formData.bloodGroup)}</span>
-              </div>
-            </div>
-
-            <div className="admission-details-section">
-              <div className="section-title">ADMISSION DETAILS</div>
-              <div className="detail-row">
-                <span className="detail-label">Admission Date:</span>
-                <span className="detail-value">{safeData(formData.admissionDate)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Admission Type:</span>
-                <span className="detail-value">{safeData(formData.admissionType)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Doctor:</span>
-                <span className="detail-value">{safeData(formData.doctor)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Ward Type:</span>
-                <span className="detail-value">{safeData(formData.wardType === "Other" ? formData.customWardType : formData.wardType)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Ward/Bed:</span>
-                <span className="detail-value">{safeData(formData.wardNumber)}/{safeData(formData.bedNumber)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Payment Status:</span>
-                <span className="detail-value">{safeData(formData.paymentStatus)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Total Fee:</span>
-                <span className="detail-value">Rs. {safeData(formData.totalFee)}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="main-content-area">
-            <div className="good-border">
-              <div className="section-title">MEDICAL INFORMATION</div>
-              <div className="detail-row">
-                <span className="detail-label">Diagnosis:</span>
-                <span className="detail-value">{safeData(formData.diagnosis)}</span>
-              </div>
-              <div className="detail-row" style={{ marginTop: '5mm' }}>
-                <span className="detail-label">Notes:</span>
-                <span className="detail-value">_________________________________________________</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer">
-            <div className="signature-box">Patient/Guardian Signature</div>
-            <div className="signature-box">Doctor Signature</div>
-            <div className="signature-box">Admission Officer</div>
+          <div className="signature-area">
+            <div>Admitting Officer</div>
+            <div className="signature-line"></div>
           </div>
         </div>
-
-        <button className="no-print" style={{
-          position: 'fixed',
-          top: '10mm',
-          right: '10mm',
-          padding: '2mm 5mm',
-          background: '#2b6cb0',
-          color: 'white',
-          border: 'none',
-          borderRadius: '2mm',
-          cursor: 'pointer',
-          zIndex: 1000
-        }} onClick={() => window.print()}>
-          Print
-        </button>
-      </body>
-    </html>
+        <div className="disclaimer">
+          This is a computer generated document and does not require signature
+        </div>
+      </div>
+    </div>
   );
-};
+});
+
+PrintAdmissionForm.displayName = 'PrintAdmissionForm';
 
 export default PrintAdmissionForm;

@@ -1,8 +1,10 @@
 import {
   AddPatienttest,
+
   // CreateRadiologyReport,
   // RediologyPatientDetail,
   // RadiologyPennal,
+
   PatientTests,
   DashboardPannel,
   AddTest,
@@ -15,6 +17,12 @@ import {
   AllBillsPage,
   UpdateReport,
   BillDetailPage,
+  EditPatientTest,
+
+} from '../pages/labs/labsPages'
+import { Navigate, Route, Routes } from 'react-router-dom';
+import DynamicLayout from '../layouts/DynamicLayout';
+import ProtectedRoute from '../pages/auth/ProtectedRoute';
   // RadiologySummer,
 } from "../pages/labs/labsPages";
 import { Navigate, Route, Routes } from "react-router-dom";
@@ -33,6 +41,7 @@ const LabRoutes = () => {
           {/* patient test routes */}
           <Route path="patient-test" element={<AddPatienttest />} />
           <Route path="all-patients" element={<PatientTests />} />
+          <Route path="patient-tests/edit/:id" element={<EditPatientTest />} />
 
           {/* test managemnt routes */}
           <Route path="add-test" element={<AddTest />} />
@@ -44,6 +53,9 @@ const LabRoutes = () => {
           <Route path="sample-collection" element={<SampleCollection />} />
 
           {/* test reports */}
+          <Route path='test-report' element={<TestReportPage />} />
+          <Route path='update-report/:id' element={<UpdateReport />} />
+          <Route path='test-report-Summery/:date' element={<ReportSummery />} />
           <Route path="test-report" element={<TestReportPage />} />
           <Route path="update-report/:id" element={<UpdateReport />} />
           <Route path="test-report-Summery/:date" element={<ReportSummery />} />

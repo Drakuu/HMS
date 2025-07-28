@@ -15,9 +15,15 @@ import DoctorRoutes from "./routes/DoctorRoutes";
 import RadiologyRoutes from "./routes/RadiologyRoutes";
 import Unauthorized from "./pages/auth/Unauthorized";
 import Profiles from "./pages/auth/ProfileModel";
+import ProfileRoutes from "./pages/profile/profileRoutes";
+import { selectCurrentUser } from './features/auth/authSlice';
+import { useSelector } from 'react-redux';
 import { MantineProvider } from "@mantine/core";
 
 const App = () => {
+  const currentUser = useSelector(selectCurrentUser);
+  const userAccess = currentUser?.user_Access?.toLowerCase();
+
   return (
         <MantineProvider withGlobalStyles withNormalizeCSS>
     <Router>
@@ -29,6 +35,14 @@ const App = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
+        {/* Protected routes */}
+        {userAccess === 'admin' && <Route path="/admin/*" element={<AdminRoutes />} />}
+        {userAccess === 'receptionist' && <Route path="/receptionist/*" element={<ReceptionRoutes />} />}
+        {userAccess === 'lab' && <Route path="/lab/*" element={<LabRoutes />} />}
+        {userAccess === 'doctor' && <Route path="/doctor/*" element={<DoctorRoutes />} />}
+
+        {/* Unified profile route */}
+        <Route path="/profile" element={<ProfileRoutes />} />
           {/* Protected routes */}
           <Route path="/receptionist/*" element={<ReceptionRoutes />} />
           <Route path="/admin/*" element={<AdminRoutes />} />

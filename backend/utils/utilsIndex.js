@@ -3,7 +3,8 @@ const generateUniqueDoctorId = require("./generateUniqueDoctorId");
 const generateUniqueMrNo = require("./generateUniqueMrNo");  
 const generateUniqueAdmissionNo = require("./generaetUniqueAdmissionNo");
 const generateUniqueToken = require("./generateUniqueToken");
-const generateUniqueId = require("./generateUniqueId")
+const generateUniqueId = require("./generateUniqueId");
+const generateUniqueStaffId = require("./generateUniqueStaffId")
 
 const utils = {
   generateUniqueUserId,
@@ -12,6 +13,8 @@ const utils = {
   generateUniqueAdmissionNo,
   generateUniqueToken,
   generateUniqueId,
+  generateUniqueStaffId,
+  
 };
 
 module.exports = utils;

@@ -89,11 +89,27 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <DashboardIcon className="text-lg" />,
         links: [{ href: "dashboard", label: "Admin Dashboard" }],
       },
+      
+        {
+        name: 'Departments',
+        icon: <GroupsIcon className="text-lg" />,
+        links: [
+          { href: 'departments', label: `All Departments` },
+        ],
+      },
       {
         name: "Doctors Managment",
         icon: <AdminIcon className="text-lg" />,
         links: [{ href: "doctors", label: `All Doctor's` }],
       },
+      {
+        name: 'Staff Managment',
+        icon: <AdminIcon className="text-lg" />,
+        links: [
+          { href: 'staff', label: `All Staff` },
+        ],
+      },
+    
     ],
     doctor: [
       {
@@ -104,6 +120,9 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
       {
         name: "My Appointments",
         icon: <AppointmentsIcon className="text-lg" />,
+        links: [
+          { href: 'book-appointments', label: 'My Appointments' }
+        ]
         links: [{ href: "aappointments", label: "My Appointments" }],
       },
       {
@@ -127,6 +146,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         links: [{ href: "notes", label: "Notes / Diagnosis" }],
       },
       {
+        name: 'Settings',
         name: "Notifications",
         icon: <AdminIcon className="text-lg" />,
         links: [{ href: "notifications", label: "Notifications" }],
@@ -154,6 +174,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         ],
       },
       {
+        name: 'Wards',
         name: "HR",
         icon: <GroupsIcon className="text-lg" />,
         links: [

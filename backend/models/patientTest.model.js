@@ -1,3 +1,6 @@
+
+const mongoose = require('mongoose');
+
 const mongoose = require("mongoose");
 const refundSchema = new mongoose.Schema(
   {
@@ -11,6 +14,7 @@ const refundSchema = new mongoose.Schema(
     _id: false, // ❌ disables _id for refund entries
   }
 );
+
 
 const patientTestSchema = new mongoose.Schema(
   {
@@ -50,6 +54,16 @@ const patientTestSchema = new mongoose.Schema(
         },
         testDate: { type: Date, default: Date.now },
         resultDate: { type: Date },
+
+        statusHistory: [{
+            status: { type: String, enum: ['registered', 'sample-collected', 'processing', 'completed', 'reported', 'cancelled', 'pending'], },
+            changedAt: { type: Date, default: Date.now },
+            changedBy: { type: String } 
+        }]
+    }],
+
+    totalAmount: { type: Number, },
+
         statusHistory: [
           {
             status: {
@@ -72,6 +86,7 @@ const patientTestSchema = new mongoose.Schema(
     refunded: [refundSchema],
     advancePayment: { type: Number },
     totalAmount: { type: Number },
+
     discount: { type: Number, default: 0 },
     finalAmount: { type: Number },
     paymentStatus: {
@@ -87,6 +102,12 @@ const patientTestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+
+}, { timestamps: true });
+
+const PatientTest = mongoose.model('PatientTest', patientTestSchema);
+
 const PatientTest = mongoose.model("PatientTest", patientTestSchema);
+
 
 module.exports = PatientTest;

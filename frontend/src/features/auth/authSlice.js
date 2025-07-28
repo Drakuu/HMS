@@ -13,7 +13,7 @@ export const loginUser = createAsyncThunk(
         user_Email: email,
         user_Password: password,
       });
-      console.log('response ',response)
+      // console.log('response ',response)
 
       const { jwtLoginToken, user } = response.data.information;
       const decodedToken = jwtDecode(jwtLoginToken);

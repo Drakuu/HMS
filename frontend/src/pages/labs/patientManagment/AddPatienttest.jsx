@@ -54,37 +54,40 @@ const AddlabPatient = () => {
     if (name === "ContactNo" && value.length > 15) return;
     setPatient({ ...patient, [name]: value });
   };
-  const handleSearch = async () => {
-    try {
-      const mrNoTrimmed = patient.MRNo?.trim();
-      if (!mrNoTrimmed) {
-        alert("Please enter MR No.");
-        return;
-      }
-
-      const data = await dispatch(fetchPatientByMRNo(mrNoTrimmed)).unwrap();
-      console.log('the data si com', data)
-      if (!data) {
-        alert("Patient not found.");
-        return;
-      }
-
-      setPatient({
-        MRNo: data.patient_Detail.patient_MRNo || '',
-        CNIC: data.patient_Detail.patient_CNIC || '',
-        Name: data.patient_Detail.patient_Name || '',
-        ContactNo: data.patient_Detail.patient_ContactNo || '',
-        Gender: data.patient_Detail.patient_Gender || '',
-        Age: data.patient_Detail.patient_Age || '',
-        ReferredBy: data.patient_Detail.referredBy || '',
-        Guardian: data.patient_Detail.guardian || '',
-        MaritalStatus: data.patient_Detail.maritalStatus || '',
-      });
-    } catch (err) {
-      console.error("❌ Patient not found:", err.message);
-      alert("Patient not found. Please check MR No.");
+ const handleSearch = async () => {
+  try {
+    const mrNoTrimmed = patient.MRNo?.trim();
+    if (!mrNoTrimmed) {
+      alert("Please enter MR No.");
+      return;
     }
-  };
+
+    // Dispatch and wait for the result
+    const patientData = await dispatch(fetchPatientByMRNo(mrNoTrimmed)).unwrap();
+    
+    if (!patientData) {
+      alert("Patient not found.");
+      return;
+    }
+
+    // Map the patient data to your state
+    setPatient({
+      MRNo: patientData.patient_MRNo || '',
+      CNIC: patientData.patient_CNIC || '',
+      Name: patientData.patient_Name || '',
+      ContactNo: patientData.patient_ContactNo || '',
+      Gender: patientData.patient_Gender || '',
+      Age: patientData.patient_Age || calculateAge(patientData.patient_DateOfBirth) || '',
+      ReferredBy: patientData.patient_HospitalInformation?.referredBy || '',
+      Guardian: patientData.patient_Guardian?.guardian_Name || '',
+      MaritalStatus: patientData.patient_MaritalStatus || '',
+    });
+
+  } catch (err) {
+    console.error("❌ Patient not found:", err);
+    alert(err.payload?.message || "Patient not found. Please check MR No.");
+  }
+};
 
   const handleTestAdd = () => {
     if (!selectedTestId) return;
@@ -190,7 +193,7 @@ const totalpaid = testRows.reduce((sum, row) => sum + row.paid, 0);
     try {
       setIsPrinting(shouldPrint);
       const result = await dispatch(SubmitPatientTest(payload)).unwrap();
-      console.log("✅ Submission result:", result);
+      //console.log("✅ Submission result:", result);
       //console.log("🧾 Print MR No:", printData.patient.patient_MRNo);
       console.log("MRNo from result:", result?.data?.patient?.mrNo);
 

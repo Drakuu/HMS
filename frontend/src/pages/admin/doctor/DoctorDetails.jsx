@@ -5,19 +5,23 @@ import { useNavigate } from "react-router-dom";
 import { fetchDoctorById } from '../../../features/doctor/doctorSlice';
 import { FaUserMd, FaIdCard, FaEnvelope, FaPhone, FaMapMarkerAlt, FaStethoscope, FaFileSignature, FaMoneyBillWave, FaFileContract } from 'react-icons/fa';
 import DoctorPatients from './DoctorPatients';
-import {getRoleRoute} from "../../../utility/Routes.Util"
+import { getRoleRoute } from "../../../utility/Routes.Util"
 
 const DoctorDetails = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
-   const { currentDoctor, patients = [], status, error } = useSelector(state => state.doctor);
-console.log(currentDoctor)
+  const { currentDoctor, patients = [], status, error } = useSelector(state => state.doctor);
+  // console.log('the current doctor data is ', currentDoctor)
 
   useEffect(() => {
     if (doctorId) {
-      dispatch(fetchDoctorById(doctorId));
+      dispatch(fetchDoctorById(doctorId)).unwrap()
+        .catch(error => {
+          console.error('Failed to fetch doctor:', error);
+          // You might want to navigate back or show a toast notification
+        });
     }
   }, [doctorId, dispatch]);
 
@@ -51,11 +55,6 @@ console.log(currentDoctor)
   }
 
   // Format qualifications for display
-  const formatQualifications = (quals) => {
-    if (!quals || quals.length === 0) return 'N/A';
-    if (Array.isArray(quals)) return quals.join(', ');
-    return quals;
-  };
 
   return (
     <div className="container mx-auto p-4 border border-primary-600 rounded-lg ">
@@ -108,7 +107,7 @@ console.log(currentDoctor)
                 ? 'bg-green-100 text-green-800'
                 : 'bg-red-100 text-red-800'
                 }`}>
-                {currentDoctor?.doctor_Status || 'N/A'}
+                {currentDoctor?.doctor_Status || 'Status'}
               </span>
             </div>
           </div>
@@ -216,9 +215,9 @@ console.log(currentDoctor)
           </div>
         </div>
       </div>
-       <DoctorPatients 
-        doctorId={doctorId} 
-        patients={patients} 
+      <DoctorPatients
+        doctorId={doctorId}
+        patients={patients}
       />
     </div>
   );

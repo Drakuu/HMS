@@ -40,7 +40,7 @@ export const fetchPatientByMRNo = createAsyncThunk(
   async (mrNo, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API_URL}/patientTest/mrno/${mrNo}`);
-      // console.log("the mr number ",response)
+      console.log("the mr number ",response)
       return response.data.data;
     } catch (error) {
       const message = error.response?.data?.message || error.message || "Failed to fetch patient";
@@ -118,6 +118,43 @@ export const getTestHistory = createAsyncThunk(
   }
 );
 
+//update
+export const updatepatientTest = createAsyncThunk(
+  "patientTest/updatepatientTest",
+  async ({ id, updateData }, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        `${API_URL}/patientTest/${id}`,
+        updateData,
+        { headers: getAuthHeaders() }
+      );
+      return response.data.data;
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to update patient test';
+      return rejectWithValue({ message, statusCode: error.response?.status || 500 });
+    }
+  }
+);
+
+
+
+//Delete test
+
+export const deletepatientTest = createAsyncThunk(
+  'patientTest/deletepatientTest',
+  async (id, { rejectWithValue }) => {
+    try {
+      await axios.delete(
+        `${API_URL}/patientTest/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return id;  // Just return the ID for the reducer
+    } catch (error) {
+      const message = error.response?.data?.message || error.message || 'Failed to delete patient test';
+      return rejectWithValue({ message, statusCode: error.response?.status || 500 });
+    }
+  }
+);
 // 🔧 Initial State
 const initialState = {
   patient: null,

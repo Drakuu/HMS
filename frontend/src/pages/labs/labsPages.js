@@ -1,6 +1,8 @@
 // patient managnemnt pages
 import AddPatienttest from './patientManagment/AddPatienttest';
 import PatientTests from './patientManagment/PatientTests'
+import EditPatientTest from './patientManagment/EditPatientTest';
+
 
 // dashboard pages
 import DashboardPannel from './dashboard/DashboardPannel';
@@ -29,6 +31,7 @@ import ReportSummery from './testReport/ReportSummery';
 export {
     AddPatienttest,
     PatientTests,
+    EditPatientTest,
     DashboardPannel,
     AddTest,
     AllTests,

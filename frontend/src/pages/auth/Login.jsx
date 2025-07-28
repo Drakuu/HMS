@@ -1,4 +1,3 @@
-// pages/auth/Login.jsx
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -6,21 +5,22 @@ import { loginUser } from '../../features/auth/authSlice';
 import login_back from '../../assets/images/login_back.jpg';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [emailOrIdentifier, setEmailOrIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const status = useSelector((state) => state.auth.status);
   const error = useSelector((state) => state.auth.error);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const resultAction = await dispatch(loginUser({ email, password }));
-    console.log(`the reslt action`, resultAction)
+
+    const resultAction = await dispatch(
+      loginUser({ email: emailOrIdentifier, identifier: emailOrIdentifier, password })
+    );
 
     if (loginUser.fulfilled.match(resultAction)) {
       const userRole = resultAction.payload.user.user_Access;
-      console.log("The dat in login jsx is: ",resultAction.payload.user.user_Access )
-
       navigate(`/${userRole}/dashboard`);
     }
   };
@@ -43,16 +43,16 @@ const Login = () => {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
+              Email or Identifier
             </label>
             <input
-              type="email"
+              type="text"
               id="email"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Enter your email"
+              placeholder="Enter your email or ID"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={emailOrIdentifier}
+              onChange={(e) => setEmailOrIdentifier(e.target.value)}
             />
           </div>
 

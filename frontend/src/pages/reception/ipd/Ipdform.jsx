@@ -10,8 +10,8 @@ import { Button, ButtonGroup } from "../../../components/common/Buttons";
 import { InputField, TextAreaField } from "../../../components/common/FormFields";
 import PatientInfoSection from "./PatientInfoSection";
 import AdmissionInfoSection from "./AdmissionInfoSection";
+import PrintIpdAdmission from './PrintAdmissionForm';
 import ReactDOMServer from 'react-dom/server';
-import PrintAdmissionForm from './PrintAdmissionForm';
 
 const IpdForm = () => {
   const [isSSPForm, setIsSSPForm] = useState(true);
@@ -76,6 +76,7 @@ const IpdForm = () => {
       setFormData(prev => ({ ...prev, admissionType: "SSP" }));
     }
   }, [location]);
+  // console.log("[Debug] Final Payload:", formData); // Add this before dispatch
 
   useEffect(() => {
     if (isAdmissionSuccess) {
@@ -105,7 +106,7 @@ const IpdForm = () => {
 
         setFormData(prev => ({
           ...prev,
-          mrNumber: patientData?.patient_MRNo || "",
+          mrNumber: patientData?.patient_MRNo || mrNo || "",
           patientName: patientData?.patient_Name || "",
           patientContactNo: patientData?.patient_ContactNo || "",
           dob: patientData?.patient_DateOfBirth || "",
@@ -180,97 +181,132 @@ const IpdForm = () => {
     return age.toString();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.mrNumber || !formData.patientName || !formData.doctor ||
-      !formData.wardType || !formData.wardNumber || !formData.bedNumber) {
-      return toast.error("Please fill all required fields");
-    }
-
-    if (!formData.diagnosis) {
-      return toast.error("Diagnosis is required");
-    }
-
-    const payload = {
-      patient_MRNo: formData.mrNumber,
-      ward_Information: {
-        ward_Type: formData.wardType === "Other" ? formData.customWardType : formData.wardType,
-        ward_No: formData.wardNumber,
-        bed_No: formData.bedNumber
-      },
-      admission_Details: {
-        admission_Date: new Date(formData.admissionDate).toISOString(),
-        admitting_Doctor: formData.doctor,
-        diagnosis: formData.diagnosis
-      },
-      financials: {
-        admission_Fee: parseFloat(formData.admissionFee) || 0,
-        daily_Charges: 0,
-        discount: parseFloat(formData.discount) || 0,
-        payment_Status: (formData.paymentStatus || "Unpaid")
-          .charAt(0).toUpperCase() + formData.paymentStatus.slice(1).toLowerCase()
-      },
+  const preparePayload = () => {
+    return {
+      patient_MRNo: formData.patient_MRNo || formData.mrNumber,
       patient_Name: formData.patientName,
       patient_CNIC: formData.cnic,
       patient_Gender: formData.gender,
       patient_Age: formData.age,
       patient_DateOfBirth: formData.dob,
       patient_Address: formData.address,
-      patient_Contact: formData.mobileNumber,
+      patient_Contact: formData.patientContactNo,
       patient_Guardian: {
         guardian_Name: formData.guardianName,
-        guardian_Type: formData.guardianRelation,
+        guardian_Relation: formData.guardianRelation,
         guardian_Contact: formData.guardianContact
       },
-      patient_HospitalInformation: {
-        doctor_Name: formData.doctorName,
-        doctor_Department: formData.doctorDepartment,
-        doctor_Specialization: formData.doctorSpecialization,
-        doctor_Fee: formData.doctorFee,
-        discount: formData.discount,
-        total_Fee: formData.totalFee,
-        qualification: formData.doctorQualification,
-        gender: formData.doctorGender,
-        referredBy: formData.referredBy,
+      admission_Details: {
+        admission_Date: new Date(formData.admissionDate).toISOString(),
+        admitting_Doctor: formData.doctor,
+        diagnosis: formData.diagnosis
+      },
+      ward_Information: {
+        ward_Type: formData.wardType === "Other" ? formData.customWardType : formData.wardType,
+        ward_No: formData.wardNumber,
+        bed_No: formData.bedNumber
+      },
+      financials: {
+        admission_Fee: parseFloat(formData.admissionFee) || 0,
+        daily_Charges: 0,
+        discount: parseFloat(formData.discount) || 0,
+        payment_Status: formData.paymentStatus || "Unpaid"
       },
       patient_BloodType: formData.bloodGroup,
-      patient_MaritalStatus: formData.maritalStatus,
+      patient_MaritalStatus: formData.maritalStatus
     };
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("[Form Submission] Starting form submission process");
+
+    // Validate required fields
+    if (!formData.mrNumber) {
+      return toast.error("Patient MR Number is required");
+    }
+
+    // Prepare payload
+    const payload = preparePayload();
+    console.log("Final Payload:", JSON.stringify(payload, null, 2));
 
     try {
       const result = await dispatch(admitPatient(payload));
-      if (!admitPatient.fulfilled.match(result)) {
-        toast.error(result.payload?.message || "Admission failed. Please try again.");
+      if (admitPatient.fulfilled.match(result)) {
+        // Success handling
+      } else {
+        console.error("API Error:", result.payload);
+        toast.error(result.payload?.message || "Admission failed");
       }
-      navigate("/receptionist/ipd/Admitted");
     } catch (error) {
-      toast.error("Failed to submit the form. Please try again.");
-      console.error("Submit Error:", error);
+      console.error("Submission Error:", error);
+      toast.error("Failed to submit form");
     }
   };
 
-  const handlePrint = async (action = 'save') => {
-    // If action is 'save', submit the form first
-    if (action === 'save') {
-      await handleSubmit({ preventDefault: () => { } });
-    }
 
-    // Create a print window
-    const printWindow = window.open('', '_blank');
+  const handlePrintAdmission = () => {
     const printContent = ReactDOMServer.renderToString(
-      <PrintAdmissionForm formData={formData} />
+      <PrintIpdAdmission data={formData} />
     );
 
-    printWindow.document.open();
-    printWindow.document.write(printContent);
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>IPD Admission</title>
+        <style>
+          body { font-family: Arial; font-size: 12px; padding: 10px; }
+          .header { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+          .section { margin-bottom: 15px; }
+          .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+          .footer { margin-top: 20px; text-align: center; font-size: 10px; }
+        </style>
+      </head>
+      <body>
+        ${printContent}
+      </body>
+    </html>
+  `);
+
     printWindow.document.close();
 
     // Wait for content to load before printing
     printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.print();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.onafterprint = () => printWindow.close();
+      }, 500);
     };
+  };
+
+  const handleSaveAndPrint = async (e) => {
+    e.preventDefault();
+
+    // Validate form
+    if (!formData.mrNumber) {
+      return toast.error("Patient MR Number is required");
+    }
+
+    const payload = preparePayload();
+
+    try {
+      const result = await dispatch(admitPatient(payload));
+
+      if (admitPatient.fulfilled.match(result)) {
+        toast.success("Patient admitted successfully!");
+
+        // Print after successful admission
+        setTimeout(() => {
+          handlePrintAdmission();
+        }, 300);
+      } else {
+        throw new Error(result.payload?.message || "Admission failed");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   if (isError) {
@@ -362,13 +398,13 @@ const IpdForm = () => {
           </div>
 
           <div className="flex justify-between pt-4 border-t border-gray-200">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </Button>
             <ButtonGroup>
               <Button
                 type="submit"
@@ -380,22 +416,16 @@ const IpdForm = () => {
               <Button
                 type="button"
                 variant="success"
-                onClick={() => handlePrint('save')}
+                onClick={handleSaveAndPrint}
                 isSubmitting={isAdmissionLoading}
               >
                 Save & Print
               </Button>
-              {/* <Button
-                type="button"
-                variant="info"
-                onClick={() => handlePrint('update')}
-              >
-                Update & Print
-              </Button> */}
             </ButtonGroup>
           </div>
         </form>
       </div>
+
     </div>
   );
 };

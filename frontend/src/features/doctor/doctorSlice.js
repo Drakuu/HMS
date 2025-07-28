@@ -5,7 +5,9 @@ const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const getAuthHeader = () => {
   const jwtLoginToken = localStorage.getItem('jwtLoginToken');
+  // console.log("JWT Token from localStorage:", jwtLoginToken); // 🔍 This logs the token
   if (!jwtLoginToken) {
+    console.warn("JWT token not found in localStorage!");
     throw new Error('No JWT token found. Please log in.');
   }
   return {
@@ -47,8 +49,8 @@ export const fetchAllDoctors = createAsyncThunk(
       const response = await axios.get(`${API_URL}/doctor/get-doctors`, {
         headers: getAuthHeader(),
       });
-console.log('the data is ', response.data?.information?.doctors)
-      return response.data?.information?.doctors ;
+      // console.log('the data is ', response.data?.information?.doctors)
+      return response.data?.information?.doctors;
     } catch (error) {
       if (error.response) {
         return rejectWithValue(error.response.data.message || 'Failed to fetch doctors');
@@ -66,7 +68,7 @@ export const fetchDoctorById = createAsyncThunk(
         headers: getAuthHeader(),
       });
       // console.log("the data in doctor by id is ", response.data?.information?.doctor)
-      console.log("the data in patient by id is ", response.data?.information?.patients)
+      // console.log("the data in patient by id is ", response.data?.information)
       return {
         doctor: response.data?.information?.doctor,
         patients: response.data?.information?.patients
@@ -165,9 +167,9 @@ const doctorSlice = createSlice({
         state.isLoading = false;
         state.status = 'succeeded';
         // state.doctors = action.payload.information.doctors;
-         if (action.payload.data?.doctor) {
-        state.doctors.push(action.payload.data.doctor);
-      }
+        if (action.payload.data?.doctor) {
+          state.doctors.push(action.payload.data.doctor);
+        }
       })
       .addCase(createDoctor.rejected, (state, action) => {
         state.isLoading = false;
@@ -182,7 +184,7 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchAllDoctors.fulfilled, (state, action) => {
         state.isLoading = false;
-         state.doctors = action.payload ;
+        state.doctors = action.payload;
         //  console.log('the data in case ', action.payload)
       })
       .addCase(fetchAllDoctors.rejected, (state, action) => {
@@ -200,6 +202,7 @@ const doctorSlice = createSlice({
         state.isLoading = false;
         state.currentDoctor = action.payload?.doctor || null;
         state.patients = action.payload?.patients || [];
+        // console.log('the patient in state', action.payload)
       })
       .addCase(fetchDoctorById.rejected, (state, action) => {
         state.isLoading = false;

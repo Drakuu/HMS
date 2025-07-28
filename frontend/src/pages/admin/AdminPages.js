@@ -1,11 +1,15 @@
 import AdminDashboard from "./dashboard/AdminDashboard";
-import StaffPannel from "../reception/hr/staff/StaffPannel"
+import StaffPannel from "./staff/StaffPannel"
 
 // docotrs imports
 import AddNewDoctor from './doctor/AddNewDoctor';
 import DoctorPannel from './doctor/DoctorPannel';
 import DoctorDetails from './doctor/DoctorDetails';
-import Departments from "../reception/hr/departments/Departments"
+
+import AddStaff from '../admin/staff/AddStaff';
+import StaffListPage from "../admin/staff/StaffPannel"
+
+import Departments from './departments/Departments';
 
 export {
     AdminDashboard,
@@ -13,6 +17,8 @@ export {
     DoctorPannel,
     DoctorDetails,
     StaffPannel,
-    Departments
-    
+    Departments,
+    AddStaff,
+  StaffListPage,
+
 };

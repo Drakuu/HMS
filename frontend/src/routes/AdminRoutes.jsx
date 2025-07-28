@@ -6,7 +6,8 @@ import {
   DoctorPannel,
   DoctorDetails,
   Departments,
-
+  AddStaff,
+  StaffListPage,
 } from "../pages/admin/AdminPages";
 import DynamicLayout from '../layouts/DynamicLayout';
 import ProtectedRoute from '../pages/auth/ProtectedRoute';
@@ -26,8 +27,11 @@ const AdminRoutes = () => {
           <Route path="edit-doctor/:doctorId" element={<AddNewDoctor mode="edit" />} />
           <Route path="doctor-details/:doctorId" element={<DoctorDetails />} />
           {/* Depatemrnts Routes*/}
-         <Route path="departments" element={<Departments />} />
-
+          <Route path="departments" element={<Departments />} />
+          {/* staff */}
+          <Route path="staff" element={<StaffListPage />} />
+          <Route path="staff/new" element={<AddStaff />} />
+          <Route path="staff/edit/:id" element={<AddStaff />} />
         </Route>
       </Route>
     </Routes>

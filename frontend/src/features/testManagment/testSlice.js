@@ -19,12 +19,34 @@ export const createTest = createAsyncThunk(
   'testManagement/createtest',
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/testManagement/createtest`, payload, getAuthHeaders());
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Something went wrong'
+      const response = await axios.post(`${API_URL}/testManagement/createtest`, 
+        payload, 
+        getAuthHeaders()
       );
+      if (response.status >= 200 && response.status < 300) {
+       console.log('the response data is ', response.data)
+        return response.data;
+      } else {
+        return rejectWithValue(response.data?.message || 'Server returned an error');
+      }
+    } catch (error) {
+      // More detailed error logging
+      console.error('Error creating test:', error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+        return rejectWithValue(error.response.data?.message || error.response.statusText);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received:', error.request);
+        return rejectWithValue('No response received from server');
+      } else {
+        // Something happened in setting up the request
+        console.error('Request setup error:', error.message);
+        return rejectWithValue(error.message);
+      }
     }
   }
 );
@@ -35,11 +57,16 @@ export const getAllTests = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API_URL}/testManagement/getAlltest`, getAuthHeaders());
-      return response.data;
+      
+      // Handle both array and object responses
+      const testsData = Array.isArray(response.data) 
+        ? response.data 
+        : response.data.tests || [];
+      
+      return testsData;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Something went wrong'
-      );
+      console.error('Fetch tests error:', error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch tests');
     }
   }
 );
@@ -120,11 +147,13 @@ const testSlice = createSlice({
       .addCase(createTest.fulfilled, (state, action) => {
         state.loading = false;
         state.createdTest = action.payload.test;
+      console.log('Creation successful - payload:', action.payload);
         state.successMessage = action.payload.message;
       })
       .addCase(createTest.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+         console.error('Creation failed:', action.payload);
       })
       // Get all tests
       .addCase(getAllTests.pending, (state) => {

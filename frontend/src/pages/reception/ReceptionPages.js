@@ -5,13 +5,10 @@ import PatientDashboard from './dashboards/patientdashboard';
 import AdminDashboard from './dashboards/AdminDashboard';
 // hr imports
 // depatments imports
-import Departments from './hr/departments/Departments';
-// docotrs imports
-// import AddNewDoctor from './hr/doctor/AddNewDoctor';
-// import DoctorPannel from './hr/doctor/DoctorPannel';
-// import DoctorDetails from './hr/doctor/DoctorDetails';
+
+
 //staff imports
-import AddStaff from './hr/staff/AddStaff';
+
 // room manahment imports
 import Ward from './ward/WardManagment';
 // opd imports
@@ -42,7 +39,6 @@ export {
   HRDashboard,
   PatientDashboard,
   AdminDashboard,
-  Departments,
   IPDForm,
   AdmittedPatientDetails,
   OTPatientDetails,
@@ -55,10 +51,10 @@ export {
   PrescriptionManagement,
   StockManagement,
   ManageOpd,
-  AddStaff,
   Inventory,
   BillList,
   Calendar,
+  
   // AddNewDoctor,
   // DoctorPannel,
   // DoctorDetails,

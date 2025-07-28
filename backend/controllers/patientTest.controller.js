@@ -426,10 +426,9 @@ const getPatientTestById = async (req, res) => {
 const getPatientTestByMRNo = async (req, res) => {
   try {
     const { mrNo } = req.params;
-    // console.log("Looking for MR No:", `"${mrNo}"`);
-
-    const patientTest = await hospitalModel.PatientTest.findOne({
-      "patient_Detail.patient_MRNo": mrNo.trim(),
+    console.log("Looking for MR No:", `"${mrNo}"`);
+    const patientTest = await hospitalModel.Patient.findOne({
+      "patient_MRNo": mrNo.trim(),
     }).lean();
 
     if (!patientTest) {
@@ -592,6 +591,207 @@ const paymentAfterReport = async (req, res) => {
   }catch{}
 }
 
+//delete test
+
+const deletepatientTest = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validate ID format
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid patient test ID format'
+            });
+        }
+
+        // Perform soft delete (recommended) or hard delete
+        const deletedRecord = await hospitalModel.PatientTest.findOneAndUpdate(
+            { _id: id, isDeleted: false },
+            { $set: { isDeleted: true } }, // Soft delete approach
+            { new: true }
+        );
+
+        // Alternative for hard delete:
+        // const deletedRecord = await hospitalModel.PatientTest.findByIdAndDelete(id);
+
+        if (!deletedRecord) {
+            return res.status(404).json({
+                success: false,
+                message: 'Patient test not found or already deleted'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Patient test deleted successfully',
+            data: {
+                id: deletedRecord._id,
+                mrNo: deletedRecord.patient_Detail.patient_MRNo
+            }
+        });
+
+    } catch (error) {
+        console.error('Error deleting patient test:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to delete patient test',
+            error: error.message
+        });
+    }
+};
+
+
+//update test
+const updatePatientTest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        console.log("🔁 Incoming Update ID:", id);
+        console.log("📦 Incoming Update Data:", updateData);
+
+        // Validate ID format
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid patient test ID format'
+            });
+        }
+
+        // Find the existing test
+        const existingTest = await hospitalModel.PatientTest.findById(id);
+        if (!existingTest) {
+            return res.status(404).json({
+                success: false,
+                message: 'Patient test record not found'
+            });
+        }
+
+        // Prepare update object
+        const updateObject = {
+            updatedAt: new Date()
+        };
+
+        // Handle patient details - accept both flat and nested structures
+        const patientData = updateData.patient_Detail || updateData;
+        if (patientData.patient_MRNo || patientData.patient_Name) {
+            updateObject.patient_Detail = {
+                patient_MRNo: patientData.patient_MRNo || existingTest.patient_Detail.patient_MRNo,
+                patient_CNIC: patientData.patient_CNIC || existingTest.patient_Detail.patient_CNIC,
+                patient_Name: patientData.patient_Name || existingTest.patient_Detail.patient_Name,
+                patient_ContactNo: patientData.patient_ContactNo || existingTest.patient_Detail.patient_ContactNo,
+                patient_Gender: patientData.patient_Gender || existingTest.patient_Detail.patient_Gender,
+                patient_Age: patientData.patient_Age || existingTest.patient_Detail.patient_Age,
+                referredBy: patientData.referredBy || existingTest.patient_Detail.referredBy
+            };
+        }
+
+        // Handle tests update
+        if (updateData.selectedTests) {
+            const updatedTests = [];
+            
+            for (const newTest of updateData.selectedTests) {
+                try {
+                    // Validate test ID
+                    if (!mongoose.Types.ObjectId.isValid(newTest.test)) {
+                        throw new Error(`Invalid test ID: ${newTest.test}`);
+                    }
+
+                    // Find existing test item
+                    const existingTestItem = existingTest.selectedTests.find(
+                        t => t.test.toString() === newTest.test
+                    );
+
+                    // Find test definition (don't fail if not found)
+                    const testDefinition = await hospitalModel.TestManagment.findById(newTest.test)
+                        .select('testName testCode testPrice discount finalAmount')
+                        .lean() || {
+                            testName: existingTestItem?.testDetails.testName || 'Unknown',
+                            testCode: existingTestItem?.testDetails.testCode || '',
+                            testPrice: existingTestItem?.testDetails.testPrice || 0,
+                            discount: existingTestItem?.testDetails.discount || 0
+                        };
+
+                    updatedTests.push({
+                        test: newTest.test,
+                        testDetails: {
+                            testName: testDefinition.testName,
+                            testCode: testDefinition.testCode,
+                            testPrice: testDefinition.testPrice
+                        },
+                        sampleStatus: newTest.sampleStatus || existingTestItem?.sampleStatus || 'pending',
+                        reportStatus: newTest.reportStatus || existingTestItem?.reportStatus || 'not_started',
+                        testDate: newTest.testDate || existingTestItem?.testDate || new Date(),
+                        notes: newTest.notes || existingTestItem?.notes || '',
+                        statusHistory: [
+                            ...(existingTestItem?.statusHistory || []),
+                            {
+                                status: newTest.sampleStatus || existingTestItem?.sampleStatus || 'updated',
+                                changedAt: new Date(),
+                                changedBy: req.user?.id || 'system'
+                            }
+                        ]
+                    });
+                } catch (error) {
+                    console.error(`Error processing test ${newTest.test}:`, error);
+                    // Continue with other tests even if one fails
+                }
+            }
+
+            if (updatedTests.length > 0) {
+                updateObject.selectedTests = updatedTests;
+                // Recalculate amounts
+                updateObject.totalAmount = updatedTests.reduce(
+                    (sum, test) => sum + (test.testDetails.testPrice || 0), 0
+                );
+                updateObject.finalAmount = updateObject.totalAmount - 
+                    (updateData.discount ?? existingTest.discount ?? 0);
+            }
+        }
+
+        // Handle direct field updates
+        if (updateData.discount !== undefined) {
+            updateObject.discount = updateData.discount;
+            if (updateObject.totalAmount === undefined) {
+                updateObject.totalAmount = existingTest.totalAmount;
+            }
+            updateObject.finalAmount = (updateObject.totalAmount || existingTest.totalAmount) - updateData.discount;
+        }
+
+        if (updateData.paymentStatus !== undefined) {
+            updateObject.paymentStatus = updateData.paymentStatus;
+        }
+
+        if (updateData.performedBy !== undefined) {
+            updateObject.performedBy = updateData.performedBy;
+        }
+
+        // Perform the update
+        const updatedTest = await hospitalModel.PatientTest.findByIdAndUpdate(
+            id,
+            { $set: updateObject },
+            { new: true, runValidators: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Patient test updated successfully',
+            data: updatedTest
+        });
+
+    } catch (error) {
+        console.error('🚨 Error updating patient test:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update patient test',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+};
+
+
 module.exports = {
   createPatientTest,
   getAllPatientTests,
@@ -600,5 +800,9 @@ module.exports = {
   softDeletePatientTest,
   getPatientTestByMRNo,
   PatientTestStates,
+
+  deletepatientTest,
+  updatePatientTest,
   paymentAfterReport,
+
 };
