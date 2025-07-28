@@ -15,6 +15,8 @@ const testManagement = require('./testmanagement.controller')
 const patientTest = require("./patientTest.controller")
 const testResult = require("./testResult.controller")
 const labBills = require("./labbills.controller")
+const google_Drive = require("./google_Drive.controller")
+const RadiologyReport = require("./radiologyReportController");
 
 const controller = {
   user,
@@ -33,7 +35,8 @@ const controller = {
   patientTest,
   testResult,
   labBills,
-
+google_Drive,
+RadiologyReport
 };
 
 module.exports = controller;

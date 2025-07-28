@@ -23,7 +23,7 @@ passport.use(
 
       // console.log("The JWT payload is:", jwt_payload);
       // console.log("Authenticated user:", user);
-
+// console.log("The jwt jwt_payload: ", jwt_payload)
       if (jwt_payload) {
         return done(null, jwt_payload); // Authentication successful
       } else {

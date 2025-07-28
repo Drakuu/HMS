@@ -58,4 +58,9 @@ router.get('/test/patient-test-history',
   controller.patientTest.PatientTestStates
 );
 
+router.get('/test/payment-after-report',
+  passport.authenticate("jwt", { session: false }),
+  controller.patientTest.paymentAfterReport
+);
+
 module.exports = router;

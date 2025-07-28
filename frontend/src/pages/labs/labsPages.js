@@ -27,6 +27,7 @@ import BillDetailPage from './testBilling/BillDetail';
 import ReportSummery from './testReport/ReportSummery';
 
 
+
 export {
     AddPatienttest,
     PatientTests,
@@ -41,5 +42,6 @@ export {
     AllBillsPage,
     UpdateReport,
     BillDetailPage,
-    ReportSummery
+    ReportSummery,
+
 }

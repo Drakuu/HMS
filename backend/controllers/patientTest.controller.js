@@ -546,6 +546,50 @@ const PatientTestStates = async (req, res) => {
   }
 };
 
+const paymentAfterReport = async (req, res) => {
+  const { patientId } = req.params;
+  try{
+    const { payment } = req.body;
+
+
+    if (!patientId || !payment) {
+      return res.status(400).json({
+        success: false,
+        message: "patientId and payment are required",
+      });
+    }
+
+    // Find the patient test record
+    const patientTest = await hospitalModel.PatientTest.findOne({
+      _id: patientId,
+      isDeleted: false,
+    });
+
+    if (!patientTest) {
+      return res.status(404).json({
+        success: false,
+        message: "Patient test record not found",
+      });
+    }
+
+    // Add the refund record
+    const updatedPatientTest = await hospitalModel.PatientTest.findByIdAndUpdate(
+      patientId,
+      {
+        $push: {
+          paidAfterReport: payment, // Assuming payment is an object with necessary details
+        },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Refund record added successfully",
+      data: updatedPatientTest
+    });
+  }catch{}
+}
 
 //delete test
 
@@ -756,6 +800,9 @@ module.exports = {
   softDeletePatientTest,
   getPatientTestByMRNo,
   PatientTestStates,
+
   deletepatientTest,
-  updatePatientTest
+  updatePatientTest,
+  paymentAfterReport,
+
 };

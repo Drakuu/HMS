@@ -223,8 +223,11 @@ const PatientTestsTable = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tests
                 </th>
+                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total Amount
+                </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
+                  Remaining Amount
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Date
@@ -265,8 +268,14 @@ const PatientTestsTable = () => {
                       ))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                      <div className="font-medium">Rs. {test.totalAmount.toLocaleString()}</div>
+                      {test.advancePayment > 0 && (
+                        <div className="text-xs text-gray-400 line-through">Rs. {test.advancePayment.toLocaleString()}</div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                       <div className="font-medium">Rs. {test.finalAmount.toLocaleString()}</div>
-                      {test.discount > 0 && (
+                      {test.finalAmount > 0 && (
                         <div className="text-xs text-gray-400 line-through">Rs. {test.totalAmount.toLocaleString()}</div>
                       )}
                     </td>

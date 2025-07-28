@@ -6,7 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 const PrintA4 = ({ formData }) => {
   const safe = (v, fallback = '_________') => v !== undefined && v !== null && v !== '' ? v : fallback;
-
+// console.log("")
   const formatCurrency = (amount) =>
     amount?.toLocaleString('en-PK', {
       style: 'currency',
@@ -69,6 +69,48 @@ const PrintA4 = ({ formData }) => {
   margin: 2px 0;
 }
 
+=======
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+          }
+          .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .logo {
+            width: 120px;
+            margin-bottom: 5px;
+          }
+          .hospital-name {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+          }
+          .urdu-name {
+            font-family: 'Noto Nastaliq Urdu', serif;
+            font-size: 20px;
+            direction: rtl;
+            font-weight: bold;
+            color: #2b6cb0;
+            margin-top: 5px;
+            text-align: center;
+          }
+          hr {
+            border: none;
+            border-top: 3px solid #000;
+            margin: 30px 0;
+           }
+          .hospital-info {
+            text-align: right;
+            font-size: 11px;
+          }
+          .hospital-info p {
+            margin: 2px 0;
+          }
           .details-row {
             display: flex;
             justify-content: space-between;
@@ -164,6 +206,7 @@ const PrintA4 = ({ formData }) => {
               <th>Test Name</th>
               <th>Price (PKR)</th>
               <th>Discount (PKR)</th>
+              <th>Advance (PKR)</th>
               <th>Final Amount (PKR)</th>
             </tr>
           </thead>
@@ -171,13 +214,15 @@ const PrintA4 = ({ formData }) => {
             {(formData.tests || []).map((test, index) => {
               const price = test.price || test.amount || 0;
               const discount = test.discount || 0;
-              const final = Math.max(0, price - discount);
+              const advance = test.advancePayment || 0;
+              const final = Math.max(0, price - discount - advance);
               return (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{safe(test.testName)}</td>
                   <td>{formatCurrency(price)}</td>
                   <td>{formatCurrency(discount)}</td>
+                  <td>{formatCurrency(advance)}</td>
                   <td>{formatCurrency(final)}</td>
                 </tr>
               );
@@ -185,15 +230,18 @@ const PrintA4 = ({ formData }) => {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Total</td>
+              <td colSpan="2" style={{ textAlign: 'right' }}>Subtotal</td>
+              <td>{formatCurrency(formData.subtotal)}</td>
+              <td>{formatCurrency(formData.totalDiscount)}</td>
+              <td>{formatCurrency(formData.totalAdvance)}</td>
               <td>{formatCurrency(formData.total)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Paid</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Total Paid</td>
               <td>{formatCurrency(formData.paid)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Remaining</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Remaining Balance</td>
               <td>{formatCurrency(formData.remaining)}</td>
             </tr>
           </tfoot>
@@ -227,6 +275,9 @@ const PrintA4 = ({ formData }) => {
         <hr />
 
         {/* Patient & Lab Info */}
+        <hr/>
+
+        {/* Duplicate Section */}
         <div className="details-row">
           <div className="details-block">
             <p><strong>MR-NO:</strong> {safe(formData.patient?.MRNo)}</p>
@@ -256,7 +307,7 @@ const PrintA4 = ({ formData }) => {
           </div>
         </div>
 
-        {/* Test Table */}
+        {/* Duplicate Test Table */}
         <table>
           <thead>
             <tr>
@@ -264,6 +315,7 @@ const PrintA4 = ({ formData }) => {
               <th>Test Name</th>
               <th>Price (PKR)</th>
               <th>Discount (PKR)</th>
+              <th>Advance (PKR)</th>
               <th>Final Amount (PKR)</th>
             </tr>
           </thead>
@@ -271,13 +323,15 @@ const PrintA4 = ({ formData }) => {
             {(formData.tests || []).map((test, index) => {
               const price = test.price || test.amount || 0;
               const discount = test.discount || 0;
-              const final = Math.max(0, price - discount);
+              const advance = test.advancePayment || 0;
+              const final = Math.max(0, price - discount - advance);
               return (
                 <tr key={index}>
                   <td>{index + 1}</td>
                   <td>{safe(test.testName)}</td>
                   <td>{formatCurrency(price)}</td>
                   <td>{formatCurrency(discount)}</td>
+                  <td>{formatCurrency(advance)}</td>
                   <td>{formatCurrency(final)}</td>
                 </tr>
               );
@@ -285,15 +339,18 @@ const PrintA4 = ({ formData }) => {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Total</td>
+              <td colSpan="2" style={{ textAlign: 'right' }}>Subtotal</td>
+              <td>{formatCurrency(formData.subtotal)}</td>
+              <td>{formatCurrency(formData.totalDiscount)}</td>
+              <td>{formatCurrency(formData.totalAdvance)}</td>
               <td>{formatCurrency(formData.total)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Paid</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Total Paid</td>
               <td>{formatCurrency(formData.paid)}</td>
             </tr>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'right' }}>Remaining</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>Remaining Balance</td>
               <td>{formatCurrency(formData.remaining)}</td>
             </tr>
           </tfoot>
