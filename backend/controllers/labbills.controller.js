@@ -30,7 +30,7 @@ const getAllTestBills = async (req, res) => {
             .lean();
 
         if (!testResults || testResults.length === 0) {
-            return res.status(404).json({
+            return res.status(201).json({
                 success: false,
                 message: 'No test results found'
             });

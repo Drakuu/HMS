@@ -10,12 +10,14 @@ import { Button, ButtonGroup } from '../../../components/common/Buttons';
 import { FormSection } from '../../../components/common/FormSection';
 import PatientInfoForm from './PatientIno';
 import TestInformationForm from './TestInfo';
+import {useNavigate } from 'react-router-dom';
 
 const EditPatientTest = () => {
   console.log("EditPatientTest loaded");
 
   const { id } = useParams(); // Changed from mrNo to id
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const testList = useSelector((state) => state.patientTest.tests);
   const patientTestById = useSelector((state) => state.patientTest.patientTestById);
 
@@ -33,6 +35,8 @@ const EditPatientTest = () => {
   const [selectedTestId, setSelectedTestId] = useState('');
   const [testRows, setTestRows] = useState([]);
   const [dob, setDob] = useState(null);
+  
+  
 
   useEffect(() => {
     dispatch(fetchPatientTestById(id)); // Changed to fetch by ID
@@ -85,6 +89,10 @@ const EditPatientTest = () => {
     const { name, value } = e.target;
     setPatient((prev) => ({ ...prev, [name]: value }));
   };
+const handleCancel = () => {
+  navigate(-1); // Or your actual route to the patient tests list
+};
+
 
   const handleTestAdd = () => {
     if (!selectedTestId) return;
@@ -210,9 +218,13 @@ const EditPatientTest = () => {
       </FormSection>
 
       <ButtonGroup className="justify-end">
-        <Button type="reset" variant="secondary">
-          Cancel
-        </Button>
+        <Button 
+  type="button" 
+  variant="secondary"
+  onClick={handleCancel}
+>
+  Cancel
+</Button>
         <Button type="submit" variant="primary">
           Update
         </Button>

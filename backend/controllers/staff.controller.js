@@ -171,7 +171,7 @@ const createStaff = async (req, res) => {
 const getAllStaff = async (req, res) => {
   try {
     const staffList = await hospitalModel.Staff.find({ isDeleted: false })
-      .populate('user', 'user_Name user_Email user_Contact user_Address user_CNIC user_Access');
+      .populate('user', 'user_Name user_Email user_Contact user_Address user_CNIC user_Access user_Identifier');
 
     res.status(200).json({
       success: true,

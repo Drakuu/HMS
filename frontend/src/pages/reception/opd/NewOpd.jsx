@@ -18,6 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { InputField, RadioGroup } from '../../../components/common/FormFields'
 import { FormSection, FormGrid } from '../../../components/common/FormSection';
 import { Button, ButtonGroup } from '../../../components/common/Buttons';
+import { getRoleRoute } from '../../../utility/Routes.Util';
 
 const NewOpd = ({ mode = "create" }) => {
     const dispatch = useDispatch();
@@ -77,7 +78,7 @@ const NewOpd = ({ mode = "create" }) => {
                 .catch((err) => {
                     console.error("Error fetching patient:", err);
                     toast.error("Failed to load patient data");
-                    navigate("/receptionist/OPD/manage");
+                    navigate(getRoleRoute(`OPD/manage`));
                 })
                 .finally(() => setIsLoading(false));
         }
@@ -227,7 +228,7 @@ const NewOpd = ({ mode = "create" }) => {
                 toast.success("Patient updated successfully!");
             }
             resetForm();
-            navigate('/receptionist/OPD/manage');
+            navigate(getRoleRoute('/OPD/manage'));
         } catch (err) {
             console.error("Submission error:", err);
             toast.error(

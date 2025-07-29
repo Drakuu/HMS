@@ -190,7 +190,7 @@ const UnauthorizedUser = () => {
       </motion.div>
 
       {/* Glass morphism styles */}
-      <style jsx>{`
+      <style jsx="true">{`
         .glass-container {
           background: rgba(15, 23, 42, 0.5);
           box-shadow: 0 8px 32px 0 ;

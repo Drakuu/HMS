@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTestById, selectSelectedTest, selectGetByIdLoading, selectGetByIdError } from '../../../features/testManagment/testSlice';
+import PropTypes from 'prop-types';
 
 const TestsDetail = () => {
   const { id } = useParams();
@@ -11,11 +12,38 @@ const TestsDetail = () => {
   const getByIdLoading = useSelector(selectGetByIdLoading);
   const getByIdError = useSelector(selectGetByIdError);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (id) {
       dispatch(getTestById(id));
     }
   }, [id, dispatch]);
+
+  // Helper function to format range values
+  const formatRangeValue = (value) => {
+    if (value === undefined || value === null) return 'N/A';
+    if (typeof value === 'number') {
+      return value % 1 === 0 ? value.toString() : value.toFixed(2);
+    }
+    return value.toString();
+  };
+
+  // Helper to convert Map to object if needed
+  const convertRangesToObject = (ranges) => {
+    if (!ranges) return {};
+    return ranges instanceof Map ? Object.fromEntries(ranges) : ranges;
+  };
+
+  // Helper to format reference range text
+  const getReferenceRangeText = (range) => {
+    if (!range) return 'N/A';
+    const ranges = convertRangesToObject(range);
+    return Object.entries(ranges)
+      .map(([label, values]) => {
+        const rangeText = `${formatRangeValue(values.min)} - ${formatRangeValue(values.max)}`;
+        return `${label}: ${rangeText} ${values.unit || ''}`.trim();
+      })
+      .join(' | ');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50 to-teal-50">
@@ -82,9 +110,8 @@ const TestsDetail = () => {
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/20">
                         Rs {selectedTest.testPrice}
                       </span>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        selectedTest.requiresFasting ? 'bg-orange-500/20 text-orange-100' : 'bg-green-500/20 text-green-100'
-                      }`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${selectedTest.requiresFasting ? 'bg-orange-500/20 text-orange-100' : 'bg-green-500/20 text-green-100'
+                        }`}>
                         {selectedTest.requiresFasting ? 'Fasting Required' : 'No Fasting'}
                       </span>
                     </div>
@@ -111,6 +138,10 @@ const TestsDetail = () => {
                   <div>
                     <label className="text-sm font-medium text-slate-600">Instructions</label>
                     <p className="text-slate-800 mt-1">{selectedTest.instructions || 'No instructions provided'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-slate-600">Department</label>
+                    <p className="text-slate-800 mt-1">{selectedTest.testDept || 'Not specified'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-600">Created Date</label>
@@ -147,7 +178,7 @@ const TestsDetail = () => {
                           dateObj = new Date(val);
                           if (!isNaN(dateObj.getTime())) {
                             const today = new Date();
-                            today.setHours(0,0,0,0);
+                            today.setHours(0, 0, 0, 0);
                             const diffTime = dateObj.getTime() - today.getTime();
                             const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
                             let rel = '';
@@ -189,11 +220,10 @@ const TestsDetail = () => {
                   <div>
                     <label className="text-sm font-medium text-slate-600">Fasting Requirement</label>
                     <div className="mt-1">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        selectedTest.requiresFasting 
-                          ? 'bg-orange-100 text-orange-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${selectedTest.requiresFasting
+                        ? 'bg-orange-100 text-orange-800'
+                        : 'bg-green-100 text-green-800'
+                        }`}>
                         {selectedTest.requiresFasting ? 'Yes - Fasting Required' : 'No - No Fasting Required'}
                       </span>
                     </div>
@@ -202,7 +232,7 @@ const TestsDetail = () => {
               </div>
             </div>
 
-            {/* Test Fields Section */}
+            {/* Test Fields Section - Table View */}
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200/50 overflow-hidden">
               <div className="bg-gradient-to-r from-primary-600 to-teal-600 p-6 text-white">
                 <h3 className="text-xl font-bold flex items-center">
@@ -211,46 +241,55 @@ const TestsDetail = () => {
                   </svg>
                   Test Fields ({selectedTest.fields?.length || 0})
                 </h3>
-                <p className="text-primary-100 mt-1">Parameters and normal ranges for this test</p>
+                <p className="text-primary-100 mt-1">Parameters and reference ranges for this test</p>
               </div>
-              
-              <div className="p-6">
+              <div className="flex items-center ml-10 gap-30">
+                <h1 className="font-bold p-4 bg-emerald-50 text-gray-900">{selectedTest.testName}</h1>
+                <h1 className="font-bold  p-4 bg-emerald-50 text-gray-900">{selectedTest.testDept || 'N/A'}</h1>
+              </div>
+
+              <div className="p-6 overflow-x-auto">
                 {selectedTest.fields && selectedTest.fields.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {selectedTest.fields.map((field, index) => (
-                      <div key={index} className="bg-gradient-to-br from-primary-50 to-teal-50 rounded-xl p-4 border border-primary-100 hover:shadow-md transition-all duration-200">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-bold text-primary-800 text-lg">{field.name}</h4>
-                          {field.unit && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                              {field.unit}
-                            </span>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            <span className="text-sm font-medium text-slate-600">Male Range:</span>
-                            <span className="text-sm text-slate-800">
-                              {field.normalRange?.male?.min ?? '-'} - {field.normalRange?.male?.max ?? '-'}
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            <span className="text-sm font-medium text-slate-600">Female Range:</span>
-                            <span className="text-sm text-slate-800">
-                              {field.normalRange?.female?.min ?? '-'} - {field.normalRange?.female?.max ?? '-'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Field Name
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Result
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Unit
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Reference Range
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {selectedTest.fields.map((field, index) => (
+                          <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                              {field.name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                0
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {field.unit || 'N/A'}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {getReferenceRangeText(field.normalRange)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -268,6 +307,36 @@ const TestsDetail = () => {
       </div>
     </div>
   );
+};
+
+TestsDetail.propTypes = {
+  selectedTest: PropTypes.shape({
+    testName: PropTypes.string.isRequired,
+    testCode: PropTypes.string.isRequired,
+    testPrice: PropTypes.number.isRequired,
+    testDept: PropTypes.string,
+    description: PropTypes.string,
+    instructions: PropTypes.string,
+    requiresFasting: PropTypes.bool,
+    reportDeliveryTime: PropTypes.string,
+    createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    fields: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        unit: PropTypes.string,
+        normalRange: PropTypes.objectOf(
+          PropTypes.shape({
+            min: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            max: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            unit: PropTypes.string,
+            description: PropTypes.string
+          })
+        ),
+        commonUnits: PropTypes.arrayOf(PropTypes.string),
+        commonLabels: PropTypes.arrayOf(PropTypes.string)
+      })
+    )
+  })
 };
 
 export default TestsDetail;

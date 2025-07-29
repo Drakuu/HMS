@@ -1,6 +1,3 @@
-
-const mongoose = require('mongoose');
-
 const mongoose = require("mongoose");
 const refundSchema = new mongoose.Schema(
   {
@@ -14,7 +11,6 @@ const refundSchema = new mongoose.Schema(
     _id: false, // ❌ disables _id for refund entries
   }
 );
-
 
 const patientTestSchema = new mongoose.Schema(
   {
@@ -81,8 +77,7 @@ const patientTestSchema = new mongoose.Schema(
             changedBy: { type: String },
           },
         ],
-      },
-    ],
+     
     refunded: [refundSchema],
     advancePayment: { type: Number },
     totalAmount: { type: Number },
@@ -101,13 +96,7 @@ const patientTestSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-
-}, { timestamps: true });
-
 const PatientTest = mongoose.model('PatientTest', patientTestSchema);
-
-const PatientTest = mongoose.model("PatientTest", patientTestSchema);
 
 
 module.exports = PatientTest;

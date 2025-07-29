@@ -6,49 +6,49 @@ const middleware = require("../middleware/index.middleware");
 
 router.post(
   '/patient-test',
-//   passport.authenticate("jwt", { session: false }),
-//   middleware.adminRoleCheck,
+  //   passport.authenticate("jwt", { session: false }),
+  //   middleware.adminRoleCheck,
   controller.patientTest.createPatientTest
 );
 
 // Get All Patient Tests (with pagination and search)
-router.get('/', 
-    // authMiddleware,
-    controller.patientTest.getAllPatientTests
+router.get('/',
+  // authMiddleware,
+  controller.patientTest.getAllPatientTests
 );
 
 // Get Patient Test by ID
-router.get('/:id', 
-    // authMiddleware,
-    controller.patientTest.getPatientTestById
+router.get('/:id',
+  // authMiddleware,
+  controller.patientTest.getPatientTestById
 );
 // Get Patient Test by ID
-router.get('/mrno/:mrNo', 
-    // authMiddleware,
-    controller.patientTest.getPatientTestByMRNo
+router.get('/mrno/:mrNo',
+  // authMiddleware,
+  controller.patientTest.getPatientTestByMRNo
 );
 
 //Soft Delete Patient Test
-router.delete('/:id', 
-    // authMiddleware,
-    controller.patientTest.softDeletePatientTest
+router.delete('/:id',
+  // authMiddleware,
+  controller.patientTest.softDeletePatientTest
 );
-router.delete('/:id', 
-    // authMiddleware,
-    controller.patientTest.deletepatientTest
+router.delete('/:id',
+  // authMiddleware,
+  controller.patientTest.deletepatientTest
 );
 
 // Restore Soft Deleted Patient Test (Bonus)
-router.patch('/:id/restore', 
-    // authMiddleware,
-    controller.patientTest.restorePatientTest,
-    controller.patientTest.updatePatientTest
+router.patch('/:id/restore',
+  // authMiddleware,
+  controller.patientTest.restorePatientTest,
+  controller.patientTest.updatePatientTest
 );
 
 //update test
 
 router.patch('/:id',
-   controller.patientTest.updatePatientTest
+  controller.patientTest.updatePatientTest
 )
 
 

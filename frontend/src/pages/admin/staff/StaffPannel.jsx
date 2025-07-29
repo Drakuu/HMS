@@ -25,7 +25,7 @@ const StaffListPage = () => {
     error,
     successMessage
   } = useSelector((state) => state.staff);
-
+console.log("Staff List:", staffList);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('active');
   const [confirmModal, setConfirmModal] = useState({
@@ -91,6 +91,11 @@ const StaffListPage = () => {
   );
 
   const columns = [
+     {
+      field: 'userid',
+      header: 'User Id',
+      render: (row) => row.user?.user_Identifier || 'N/A'
+    },
     {
       field: 'name',
       header: 'Name',

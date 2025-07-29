@@ -7,7 +7,6 @@ const jwt = require("jsonwebtoken");
 const signUp = async (req, res) => {
   try {
     const {
-      user_Name,
       user_Email,
       user_Password,
       user_Contact,
@@ -28,7 +27,6 @@ const signUp = async (req, res) => {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const user = new userModel({
-      user_Name,
       user_Email,
       user_Password: hashedPassword,
       user_Contact,
@@ -110,7 +108,6 @@ const login = async (req, res) => {
       });
     }
 
-
     // Determine if the input is an email using a simple regex
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
 
@@ -120,10 +117,6 @@ const login = async (req, res) => {
       : { user_Identifier: input };
 
     const user = await userModel.findOne(query).populate('doctorProfile');
-
-
-    const user = await userModel.findOne({ user_Email }).populate('doctorProfile');
-// console.log("The user are:L ", user);
 
     if (!user) {
       return res.status(404).json({
@@ -186,11 +179,6 @@ const login = async (req, res) => {
     });
   }
 };
-
-
-
-
-
 module.exports = {
   signUp,
   VerifyEmail,

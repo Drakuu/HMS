@@ -1,10 +1,8 @@
 import {
   AddPatienttest,
-
   // CreateRadiologyReport,
   // RediologyPatientDetail,
   // RadiologyPennal,
-
   PatientTests,
   DashboardPannel,
   AddTest,
@@ -23,16 +21,11 @@ import {
 import { Navigate, Route, Routes } from 'react-router-dom';
 import DynamicLayout from '../layouts/DynamicLayout';
 import ProtectedRoute from '../pages/auth/ProtectedRoute';
-  // RadiologySummer,
-} from "../pages/labs/labsPages";
-import { Navigate, Route, Routes } from "react-router-dom";
-import DynamicLayout from "../layouts/DynamicLayout";
-import ProtectedRoute from "../pages/auth/ProtectedRoute";
 
 const LabRoutes = () => {
   return (
     <Routes>
-      <Route element={<ProtectedRoute allowedRoles={["lab"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["lab",'Admin']} />}>
         <Route element={<DynamicLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           {/* dashboard  */}

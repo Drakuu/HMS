@@ -1,25 +1,49 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { FaVial, FaClipboardList, FaListUl, FaPlus, FaTimes } from 'react-icons/fa';
+import { AiOutlineClockCircle } from 'react-icons/ai';
+
+// Import your Redux actions and selectors
 import { createTest, getTestById, updateTest, selectSelectedTest, selectGetByIdLoading, selectUpdateLoading, selectUpdateError } from '../../../features/testManagment/testSlice';
 import { InputField, RadioGroup } from '../../../components/common/FormFields';
 import { FormSection, FormGrid } from '../../../components/common/FormSection';
 import { Button, ButtonGroup } from '../../../components/common/Buttons';
-import { FaVial, FaClipboardList, FaListUl, FaUserTie, FaUserFriends } from 'react-icons/fa';
-import { AiOutlineClockCircle } from 'react-icons/ai';
+
+// Supported range types
+const rangeTypes = [
+  { id: 'male', label: 'Male' },
+  { id: 'female', label: 'Female' },
+  { id: 'child', label: 'Child' },
+  { id: 'pregnant', label: 'Pregnant' },
+  { id: 'nonPregnant', label: 'Non-Pregnant' },
+  { id: 'adult', label: 'Adult' },
+  { id: 'elderly', label: 'Elderly' },
+  { id: 'newborn', label: 'Newborn' },
+  { id: 'Diabetic', label: 'Diabetic' },
+  { id: 'Non-Diabetic', label: 'Non-Diabetic' },
+];
+
+const initialRange = () => ({
+  min: '',
+  max: '',
+  unit: '',
+});
 
 const initialField = () => ({
   name: '',
   unit: '',
-  normalRange: {
-    male: { min: '', max: '' },
-    female: { min: '', max: '' },
+  ranges: {
+    male: initialRange(),
+    female: initialRange(),
   },
 });
 
 const unitsList = [
-  '', 'mg/dL', 'g/dL', 'mmol/L', 'IU/L', 'U/L', 'pg/mL', 'ng/mL', 'mEq/L', 'cells/mcL', 'mL/min', 'mm/hr', 'g/L', 'mIU/mL', 'μg/dL', 'μmol/L', 'mU/L', 'fL', 'pH', 'other'
+  'mg/dL', 'g/dL', 'mmol/L', 'IU/L', 'U/L', 'pg/mL', 'ng/mL', 'mEq/L', 
+  'cells/mcL', 'mL/min', 'mm/hr', 'g/L', 'µIU/mL', 'μg/dL', 'μmol/L', 
+  'mU/L', 'fL', 'pH', 'other'
 ];
 
 const reportTimeOptions = [
@@ -38,22 +62,24 @@ const LabTestForm = ({ mode = "create" }) => {
   const updateLoading = useSelector(selectUpdateLoading);
   const updateError = useSelector(selectUpdateError);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = React.useState({
     testName: '',
+    testDept: '',
     testCode: '',
     testPrice: '',
     requiresFasting: false,
     reportDeliveryTime: '',
   });
-  const [fields, setFields] = useState([initialField()]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [selectedReportTime, setSelectedReportTime] = useState('');
-  const [customReportTime, setCustomReportTime] = useState('');
-  const [touched, setTouched] = useState({});
-  const [fieldTouched, setFieldTouched] = useState({}); // for dynamic fields
 
-  // Fetch test data if in edit mode using Redux thunk
+  const [fields, setFields] = React.useState([initialField()]);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errors, setErrors] = React.useState({});
+  const [selectedReportTime, setSelectedReportTime] = React.useState('');
+  const [customReportTime, setCustomReportTime] = React.useState('');
+  const [touched, setTouched] = React.useState({});
+  const [fieldTouched, setFieldTouched] = React.useState({});
+
+  // Fetch test data if in edit mode
   React.useEffect(() => {
     if (id) {
       dispatch(getTestById(id));
@@ -65,22 +91,45 @@ const LabTestForm = ({ mode = "create" }) => {
     if (selectedTest && id) {
       setFormData({
         testName: selectedTest.testName || '',
+        testDept: selectedTest.testDept || '',
         testCode: selectedTest.testCode || '',
         testPrice: selectedTest.testPrice || '',
         requiresFasting: selectedTest.requiresFasting || false,
         reportDeliveryTime: selectedTest.reportDeliveryTime || '',
       });
-      setFields(Array.isArray(selectedTest.fields) && selectedTest.fields.length > 0 ? selectedTest.fields.map(f => ({
-        name: f.name || '',
-        unit: f.unit || '',
-        normalRange: {
-          male: { min: f.normalRange?.male?.min || '', max: f.normalRange?.male?.max || '' },
-          female: { min: f.normalRange?.female?.min || '', max: f.normalRange?.female?.max || '' },
-        },
-      })) : [initialField()]);
+
+      // Convert the test fields to our new format
+      setFields(Array.isArray(selectedTest.fields) && selectedTest.fields.length > 0 
+        ? selectedTest.fields.map(f => {
+            const ranges = {};
+            // Convert normalRange (Map or Object) to our ranges format
+            const normalRanges = f.normalRange instanceof Map 
+              ? Object.fromEntries(f.normalRange) 
+              : f.normalRange || {};
+            
+            // Populate ranges with existing data
+            Object.entries(normalRanges).forEach(([type, values]) => {
+              ranges[type] = {
+                min: values?.min || '',
+                max: values?.max || '',
+                unit: values?.unit || f.unit || '',
+              };
+            });
+
+            return {
+              name: f.name || '',
+              unit: f.unit || '',
+              ranges: ranges
+            };
+          })
+        : [initialField()]
+      );
+
       // Set report time select
       if (selectedTest.reportDeliveryTime) {
-        const found = reportTimeOptions.some(group => group.options.includes(selectedTest.reportDeliveryTime));
+        const found = reportTimeOptions.some(group => 
+          group.options.includes(selectedTest.reportDeliveryTime)
+        );
         if (found) {
           setSelectedReportTime(selectedTest.reportDeliveryTime);
           setCustomReportTime('');
@@ -92,83 +141,97 @@ const LabTestForm = ({ mode = "create" }) => {
     }
   }, [selectedTest, id]);
 
-  // Enhanced Validation
+  // Validation function
   const validate = (data = formData, testFields = fields) => {
     const errs = {};
-    // Main fields
+    
     if (!data.testName) errs.testName = 'Test Name is required';
     if (!data.testCode) errs.testCode = 'Test Code is required';
-    if (!data.testPrice || isNaN(data.testPrice) || Number(data.testPrice) < 0) errs.testPrice = 'Valid Test Price is required';
-    if (data.testPrice && Number(data.testPrice) < 0) errs.testPrice = 'Test Price cannot be negative';
-    let reportTimeToValidate = selectedReportTime === 'Other' ? customReportTime : selectedReportTime;
-    if (!reportTimeToValidate) {
-      errs.reportDeliveryTime = 'Report Delivery Time is required';
-    } else {
-      const durationPattern = /^\s*\d+\s*(hours?|days?)\s*$/i;
-      if (!durationPattern.test(reportTimeToValidate)) {
-        errs.reportDeliveryTime = "Enter a valid duration, e.g. '24 hours' or '2 days'";
-      }
+    if (!data.testPrice || isNaN(data.testPrice) || Number(data.testPrice) < 0) {
+      errs.testPrice = 'Valid Test Price is required';
     }
-    // Dynamic fields
+    
+    const reportTime = selectedReportTime === 'Other' ? customReportTime : selectedReportTime;
+    if (!reportTime) {
+      errs.reportDeliveryTime = 'Report Delivery Time is required';
+    }
+
     testFields.forEach((f, i) => {
       if (!f.name) errs[`field-name-${i}`] = 'Field name required';
       if (!f.unit) errs[`field-unit-${i}`] = 'Unit is required';
-      if (f.normalRange) {
-        ['male', 'female'].forEach(gender => {
-          if (f.normalRange[gender]) {
-            const minVal = f.normalRange[gender].min;
-            const maxVal = f.normalRange[gender].max;
-            if (minVal && isNaN(minVal)) errs[`field-${i}-${gender}-min`] = 'Must be a number';
-            if (maxVal && isNaN(maxVal)) errs[`field-${i}-${gender}-max`] = 'Must be a number';
-            if (minVal && Number(minVal) < 0) errs[`field-${i}-${gender}-min`] = 'Cannot be negative';
-            if (maxVal && Number(maxVal) < 0) errs[`field-${i}-${gender}-max`] = 'Cannot be negative';
-          }
-        });
-      }
+      
+      Object.entries(f.ranges).forEach(([type, range]) => {
+        if (range.min && isNaN(range.min)) errs[`field-${i}-${type}-min`] = 'Must be a number';
+        if (range.max && isNaN(range.max)) errs[`field-${i}-${type}-max`] = 'Must be a number';
+        if (range.min && Number(range.min) < 0) errs[`field-${i}-${type}-min`] = 'Cannot be negative';
+        if (range.max && Number(range.max) < 0) errs[`field-${i}-${type}-max`] = 'Cannot be negative';
+      });
     });
+
     return errs;
   };
 
-  // Validate on every change
+  // Validate on changes
   React.useEffect(() => {
     setErrors(validate());
   }, [formData, fields, selectedReportTime, customReportTime]);
 
-  // Handlers
+  // Field change handlers
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setTouched(prev => ({ ...prev, [name]: true }));
   };
 
-  const handleBlur = e => {
-    const { name } = e.target;
-    setTouched(prev => ({ ...prev, [name]: true }));
-  };
-
-  const handleFieldChange = (idx, key, value, gender, minmax) => {
+  const handleFieldChange = (fieldIdx, key, value, rangeType, rangeKey) => {
     setFields(prev => prev.map((f, i) => {
-      if (i !== idx) return f;
-      if (key === 'name' || key === 'unit') return { ...f, [key]: value };
-      if (key === 'normalRange') {
+      if (i !== fieldIdx) return f;
+      
+      if (key === 'name' || key === 'unit') {
+        return { ...f, [key]: value };
+      }
+      
+      if (key === 'ranges') {
         return {
           ...f,
-          normalRange: {
-            ...f.normalRange,
-            [gender]: {
-              ...f.normalRange[gender],
-              [minmax]: value
+          ranges: {
+            ...f.ranges,
+            [rangeType]: {
+              ...f.ranges[rangeType],
+              [rangeKey]: value
             }
           }
         };
       }
+      
       return f;
     }));
-    setFieldTouched(prev => ({ ...prev, [`${key}-${idx}${gender ? '-' + gender : ''}${minmax ? '-' + minmax : ''}`]: true }));
   };
 
-  const handleFieldBlur = (idx, key, gender, minmax) => {
-    setFieldTouched(prev => ({ ...prev, [`${key}-${idx}${gender ? '-' + gender : ''}${minmax ? '-' + minmax : ''}`]: true }));
+  // Add/remove range types
+  const addRangeType = (fieldIdx, rangeType) => {
+    setFields(prev => prev.map((f, i) => {
+      if (i !== fieldIdx) return f;
+      return {
+        ...f,
+        ranges: {
+          ...f.ranges,
+          [rangeType]: initialRange()
+        }
+      };
+    }));
+  };
+
+  const removeRangeType = (fieldIdx, rangeType) => {
+    setFields(prev => prev.map((f, i) => {
+      if (i !== fieldIdx) return f;
+      const newRanges = { ...f.ranges };
+      delete newRanges[rangeType];
+      return {
+        ...f,
+        ranges: newRanges
+      };
+    }));
   };
 
   const addField = () => setFields(prev => [...prev, initialField()]);
@@ -179,41 +242,19 @@ const LabTestForm = ({ mode = "create" }) => {
     if (e.target.value !== 'Other') {
       setCustomReportTime('');
       setFormData(prev => ({ ...prev, reportDeliveryTime: e.target.value }));
-    } else {
-      setFormData(prev => ({ ...prev, reportDeliveryTime: '' }));
     }
   };
 
-  const handleCustomReportTimeChange = (e) => {
-    setCustomReportTime(e.target.value);
-    setFormData(prev => ({ ...prev, reportDeliveryTime: e.target.value }));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      testName: '', testCode: '', testPrice: '', requiresFasting: false, reportDeliveryTime: ''
-    });
-    setFields([initialField()]);
-    setErrors({});
-  };
-
-  const handleSave = async (e, print = false) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     const currentErrors = validate();
     setErrors(currentErrors);
-    setTouched({ testName: true, testCode: true, testPrice: true, reportDeliveryTime: true });
-    setFieldTouched(Object.fromEntries(fields.flatMap((f, i) => [
-      [`name-${i}`, true],
-      [`unit-${i}`, true],
-      [`normalRange-${i}-male-min`, true],
-      [`normalRange-${i}-male-max`, true],
-      [`normalRange-${i}-female-min`, true],
-      [`normalRange-${i}-female-max`, true],
-    ])));
+    
     if (Object.keys(currentErrors).length > 0) {
-      toast.error('Please fix form errors.');
+      toast.error('Please fix form errors');
       return;
     }
+
     setIsSubmitting(true);
     const payload = {
       ...formData,
@@ -221,253 +262,251 @@ const LabTestForm = ({ mode = "create" }) => {
       fields: fields.map(f => ({
         name: f.name,
         unit: f.unit,
-        normalRange: {
-          male: {
-            min: f.normalRange.male.min ? Number(f.normalRange.male.min) : undefined,
-            max: f.normalRange.male.max ? Number(f.normalRange.male.max) : undefined,
-          },
-          female: {
-            min: f.normalRange.female.min ? Number(f.normalRange.female.min) : undefined,
-            max: f.normalRange.female.max ? Number(f.normalRange.female.max) : undefined,
-          },
-        },
+        normalRange: Object.fromEntries(
+          Object.entries(f.ranges).map(([type, range]) => [
+            type,
+            {
+              min: range.min ? Number(range.min) : undefined,
+              max: range.max ? Number(range.max) : undefined,
+              unit: range.unit || f.unit || undefined,
+            }
+          ])
+        )
       })),
     };
+
     try {
       if (id) {
-        // Update mode using Redux thunk
-        const resultAction = await dispatch(updateTest({ id, payload }));
-        if (updateTest.fulfilled.match(resultAction)) {
-          toast.success('Test updated successfully!');
-          if (print) setTimeout(() => window.print(), 500);
-          else navigate('../all-tests');
-        } else {
-          const errorMsg = resultAction.payload || resultAction.error?.message || "Test update failed!";
-          toast.error(errorMsg);
-        }
+        await dispatch(updateTest({ id, payload }));
+        toast.success('Test updated successfully!');
+        navigate('../all-tests');
       } else {
-        // Create mode (already using thunk)
-        const resultAction = await dispatch(createTest(payload));
-        if (createTest.fulfilled.match(resultAction)) {
-          toast.success("Test created successfully!");
-          resetForm();
-          if (print) setTimeout(() => window.print(), 500);
-          else navigate('../all-tests');
-        } else {
-          const errorMsg = resultAction.payload || resultAction.error?.message || "Test creation failed!";
-          toast.error(errorMsg);
-        }
+        await dispatch(createTest(payload));
+        toast.success('Test created successfully!');
+        navigate('../all-tests');
       }
+    } catch (error) {
+      toast.error(error.message || 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full h-full bg-gradient-to-br from-primary-50 via-teal-50 to-white flex flex-col justify-center items-center p-0 animate-fadein">
-      <div className="w-full max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-teal-50 to-white p-0">
+      <div className="w-full">
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
           <div className="bg-primary-600 rounded-md text-white px-6 py-8 shadow-md">
             <div className="flex items-center">
               <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
               <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2"><FaVial className="text-white" /> {mode === 'create' ? 'New Lab Test' : 'Edit Lab Test'}</h1>
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                  <FaVial className="text-white" /> 
+                  {mode === 'create' ? 'New Lab Test' : 'Edit Lab Test'}
+                </h1>
                 <p className="text-primary-100 mt-1">Please fill in the lab test details below</p>
               </div>
-              </div>
-              </div>
-          <form onSubmit={e => handleSave(e, false)} className="p-6">
+            </div>
+          </div>
+          
+          <form onSubmit={handleSave} className="p-6">
             <FormSection title="Test Information">
               <FormGrid>
                 <div>
-                  <InputField name="testName" label="Test Name" icon="userMd" value={formData.testName} onChange={handleChange} onBlur={handleBlur} placeholder="Enter Test Name" required className={errors.testName && touched.testName ? 'border-red-500' : ''} />
-                  {errors.testName && touched.testName && <span className="text-red-500 text-xs block mt-1">{errors.testName}</span>}
-              </div>
-              <div>
-                  <InputField name="testCode" label="Test Code" icon="number" value={formData.testCode} onChange={handleChange} onBlur={handleBlur} placeholder="Enter Test Code" required className={errors.testCode && touched.testCode ? 'border-red-500' : ''} />
-                  {errors.testCode && touched.testCode && <span className="text-red-500 text-xs block mt-1">{errors.testCode}</span>}
-              </div>
-              <div>
-                  <InputField name="testPrice" label="Test Price" icon="dollar" type="number" min="0" value={formData.testPrice} onChange={handleChange} onBlur={handleBlur} placeholder="Enter Test Price" required className={errors.testPrice && touched.testPrice ? 'border-red-500' : ''} />
-                  {errors.testPrice && touched.testPrice && <span className="text-red-500 text-xs block mt-1">{errors.testPrice}</span>}
+                  <InputField 
+                    name="testName" 
+                    label="Test Name" 
+                    value={formData.testName} 
+                    onChange={handleChange}
+                    error={errors.testName}
+                    required
+                  />
                 </div>
                 <div>
-                  {/* Small Test Report Time Field with icon inside */}
-                  <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    <span className="flex items-center gap-1"><AiOutlineClockCircle className="text-primary-600 text-base" /> Report Time <span className="text-red-500">*</span></span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <AiOutlineClockCircle className="text-primary-600" />
-                    </span>
-                    <select
-                      className={`block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm ${errors.reportDeliveryTime && touched.reportDeliveryTime ? 'border-red-500' : ''}`}
-                      value={selectedReportTime}
-                      onChange={handleReportTimeChange}
-                      onBlur={() => setTouched(prev => ({ ...prev, reportDeliveryTime: true }))}
-                      aria-label="Report Delivery Time"
-                    >
-                      <option value="">Select</option>
-                      {reportTimeOptions.map((group, idx) => (
-                        <React.Fragment key={group.label || idx}>
-                          {group.label && <option disabled className="bg-gray-100 text-gray-500">--- {group.label} ---</option>}
-                          {group.options.map(opt => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </React.Fragment>
-                      ))}
-                    </select>
-                    {selectedReportTime === 'Other' && (
-                      <input
-                        name="customReportTime"
-                        type="text"
-                        className={`block w-full pl-10 pr-3 py-2 mt-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm ${errors.reportDeliveryTime && touched.reportDeliveryTime ? 'border-red-500' : ''}`}
-                        value={customReportTime}
-                        onChange={handleCustomReportTimeChange}
-                        onBlur={() => setTouched(prev => ({ ...prev, reportDeliveryTime: true }))}
-                        placeholder="e.g. 24 hours, 2 days"
-                        autoFocus
-                      />
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-500 block mt-1">Allowed: <b>24 hours</b>, <b>2 days</b></span>
-                  {errors.reportDeliveryTime && touched.reportDeliveryTime && <span className="text-red-500 text-xs block mt-1">{errors.reportDeliveryTime}</span>}
+                  <InputField 
+                    name="testDept" 
+                    label="Test Department" 
+                    value={formData.testDept} 
+                    onChange={handleChange}
+                    error={errors.testDept}
+                  />
                 </div>
-                <div className="col-span-2">
+                <div>
+                  <InputField 
+                    name="testCode" 
+                    label="Test Code" 
+                    value={formData.testCode} 
+                    onChange={handleChange}
+                    error={errors.testCode}
+                    required
+                  />
+                </div>
+                <div>
+                  <InputField 
+                    name="testPrice" 
+                    label="Test Price" 
+                    type="number"
+                    min="0"
+                    value={formData.testPrice} 
+                    onChange={handleChange}
+                    error={errors.testPrice}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Report Delivery Time
+                  </label>
+                  <select
+                    className={`block w-full border ${errors.reportDeliveryTime ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
+                    value={selectedReportTime}
+                    onChange={handleReportTimeChange}
+                  >
+                    <option value="">Select time</option>
+                    {reportTimeOptions.map((group, idx) => (
+                      <optgroup key={idx} label={group.label}>
+                        {group.options.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  {selectedReportTime === 'Other' && (
+                    <input
+                      type="text"
+                      className="block w-full border border-gray-300 rounded-md p-2 mt-2"
+                      value={customReportTime}
+                      onChange={(e) => setCustomReportTime(e.target.value)}
+                      placeholder="Enter custom time"
+                    />
+                  )}
+                  {errors.reportDeliveryTime && (
+                    <span className="text-red-500 text-sm">{errors.reportDeliveryTime}</span>
+                  )}
+                </div>
+                <div>
                   <RadioGroup
                     name="requiresFasting"
                     label="Requires Fasting?"
                     value={formData.requiresFasting}
-                    onChange={e => { setFormData(prev => ({ ...prev, requiresFasting: e.target.value === 'true' })); setTouched(prev => ({ ...prev, requiresFasting: true })); }}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      requiresFasting: e.target.value === 'true' 
+                    }))}
                     options={[
                       { value: true, label: 'Yes' },
                       { value: false, label: 'No' },
                     ]}
-                    className="col-span-2"
                   />
-              </div>
+                </div>
               </FormGrid>
             </FormSection>
 
             <FormSection title="Test Fields">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold flex items-center gap-2"><FaListUl className="text-primary-600" /> Fields</h2>
-                <Button type="button" variant="primary" onClick={addField}>+ Add Field</Button>
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <FaListUl className="text-primary-600" /> Fields
+                </h2>
+                <Button type="button" onClick={addField}>
+                  <FaPlus className="mr-1" /> Add Field
+                </Button>
               </div>
-              <div className="space-y-10">
-                {fields.map((field, idx) => (
-                  <div
-                    key={idx}
-                    className="relative bg-gradient-to-br from-primary-50 via-white to-teal-50 border border-primary-200 rounded-2xl shadow-lg p-8 flex flex-col gap-8 transition-all duration-200 hover:shadow-xl"
-                  >
-                    <div className="absolute top-3 right-3">
-                      <Button type="button" variant="danger" size="small" onClick={() => removeField(idx)}>
-                        ✕
+              
+              <div className="space-y-8">
+                {fields.map((field, fieldIdx) => (
+                  <div key={fieldIdx} className="border border-gray-200 rounded-lg p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-medium">Field #{fieldIdx + 1}</h3>
+                      <Button 
+                        type="button" 
+                        variant="danger" 
+                        onClick={() => removeField(fieldIdx)}
+                      >
+                        <FaTimes />
                       </Button>
                     </div>
-                    <div className="mb-2 flex items-center gap-2">
-                      <FaClipboardList className="text-primary-500 text-xl" />
-                      <span className="font-bold text-primary-700 text-lg">Test Field #{idx + 1}</span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      <InputField
+                        label="Field Name"
+                        value={field.name}
+                        onChange={(e) => handleFieldChange(fieldIdx, 'name', e.target.value)}
+                        error={errors[`field-name-${fieldIdx}`]}
+                        required
+                      />
+                      <InputField
+                        label="Unit"
+                        type="select"
+                        value={field.unit}
+                        onChange={(e) => handleFieldChange(fieldIdx, 'unit', e.target.value)}
+                        options={unitsList}
+                        error={errors[`field-unit-${fieldIdx}`]}
+                        required
+                      />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <InputField
-                          name={`field-name-${idx}`}
-                          label="Field Name"
-                          icon="userMd"
-                          value={field.name}
-                          onChange={e => handleFieldChange(idx, 'name', e.target.value)}
-                          onBlur={() => handleFieldBlur(idx, 'name')}
-                          placeholder="e.g. Hemoglobin"
-                          required
-                          className={errors[`field-name-${idx}`] && fieldTouched[`name-${idx}`] ? 'border-red-500' : ''}
-                        />
-                        {errors[`field-name-${idx}`] && fieldTouched[`name-${idx}`] && <span className="text-red-500 text-xs block mt-1">{errors[`field-name-${idx}`]}</span>}
-                      </div>
-                      <div>
-                        <InputField
-                          name={`field-unit-${idx}`}
-                          label="Unit"
-                          icon="number"
-                          type="select"
-                          value={field.unit}
-                          onChange={e => handleFieldChange(idx, 'unit', e.target.value)}
-                          onBlur={() => handleFieldBlur(idx, 'unit')}
-                          options={unitsList}
-                          placeholder="Select Unit"
-                          className={errors[`field-unit-${idx}`] && fieldTouched[`unit-${idx}`] ? 'border-red-500' : ''}
-                        />
-                        {errors[`field-unit-${idx}`] && fieldTouched[`unit-${idx}`] && <span className="text-red-500 text-xs block mt-1">{errors[`field-unit-${idx}`]}</span>}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
-                      <div>
-                        <InputField
-                          name={`field-male-min-${idx}`}
-                          label="Normal Range (Male) Min"
-                          icon="man"
-                          type="number"
-                          min={0}
-                          value={field.normalRange.male.min}
-                          onChange={e => {
-                            if (e.target.value === '' || Number(e.target.value) >= 0) handleFieldChange(idx, 'normalRange', e.target.value, 'male', 'min');
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium">Reference Ranges</h4>
+                        <select
+                          className="border border-gray-300 rounded p-2"
+                          onChange={(e) => {
+                            if (e.target.value && !field.ranges[e.target.value]) {
+                              addRangeType(fieldIdx, e.target.value);
+                            }
+                            e.target.value = '';
                           }}
-                          onBlur={() => handleFieldBlur(idx, 'normalRange', 'male', 'min')}
-                          placeholder="Min"
-                          className={errors[`field-${idx}-male-min`] && fieldTouched[`normalRange-${idx}-male-min`] ? 'border-red-500' : ''}
-                        />
-                        {errors[`field-${idx}-male-min`] && fieldTouched[`normalRange-${idx}-male-min`] && <span className="text-red-500 text-xs block mt-1">{errors[`field-${idx}-male-min`]}</span>}
+                        >
+                          <option value="">Add Range Type</option>
+                          {rangeTypes.map(type => (
+                            !field.ranges[type.id] && (
+                              <option key={type.id} value={type.id}>
+                                {type.label}
+                              </option>
+                            )
+                          ))}
+                        </select>
                       </div>
-                      <div>
-                        <InputField
-                          name={`field-male-max-${idx}`}
-                          label="Normal Range (Male) Max"
-                          icon="man"
-                          type="number"
-                          min={0}
-                          value={field.normalRange.male.max}
-                          onChange={e => {
-                            if (e.target.value === '' || Number(e.target.value) >= 0) handleFieldChange(idx, 'normalRange', e.target.value, 'male', 'max');
-                          }}
-                          onBlur={() => handleFieldBlur(idx, 'normalRange', 'male', 'max')}
-                          placeholder="Max"
-                          className={errors[`field-${idx}-male-max`] && fieldTouched[`normalRange-${idx}-male-max`] ? 'border-red-500' : ''}
-                        />
-                        {errors[`field-${idx}-male-max`] && fieldTouched[`normalRange-${idx}-male-max`] && <span className="text-red-500 text-xs block mt-1">{errors[`field-${idx}-male-max`]}</span>}
-                      </div>
-                      <div>
-                        <InputField
-                          name={`field-female-min-${idx}`}
-                          label="Normal Range (Female) Min"
-                          icon="team"
-                          type="number"
-                          min={0}
-                          value={field.normalRange.female.min}
-                          onChange={e => {
-                            if (e.target.value === '' || Number(e.target.value) >= 0) handleFieldChange(idx, 'normalRange', e.target.value, 'female', 'min');
-                          }}
-                          onBlur={() => handleFieldBlur(idx, 'normalRange', 'female', 'min')}
-                          placeholder="Min"
-                          className={errors[`field-${idx}-female-min`] && fieldTouched[`normalRange-${idx}-female-min`] ? 'border-red-500' : ''}
-                        />
-                        {errors[`field-${idx}-female-min`] && fieldTouched[`normalRange-${idx}-female-min`] && <span className="text-red-500 text-xs block mt-1">{errors[`field-${idx}-female-min`]}</span>}
-                      </div>
-                      <div>
-                        <InputField
-                          name={`field-female-max-${idx}`}
-                          label="Normal Range (Female) Max"
-                          icon="team"
-                          type="number"
-                          min={0}
-                          value={field.normalRange.female.max}
-                          onChange={e => {
-                            if (e.target.value === '' || Number(e.target.value) >= 0) handleFieldChange(idx, 'normalRange', e.target.value, 'female', 'max');
-                          }}
-                          onBlur={() => handleFieldBlur(idx, 'normalRange', 'female', 'max')}
-                          placeholder="Max"
-                          className={errors[`field-${idx}-female-max`] && fieldTouched[`normalRange-${idx}-female-max`] ? 'border-red-500' : ''}
-                        />
-                        {errors[`field-${idx}-female-max`] && fieldTouched[`normalRange-${idx}-female-max`] && <span className="text-red-500 text-xs block mt-1">{errors[`field-${idx}-female-max`]}</span>}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {Object.entries(field.ranges).map(([type, range]) => {
+                          const rangeConfig = rangeTypes.find(t => t.id === type) || { label: type };
+                          return (
+                            <div key={type} className="border border-gray-200 rounded p-4 relative">
+                              <button
+                                type="button"
+                                className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
+                                onClick={() => removeRangeType(fieldIdx, type)}
+                              >
+                                <FaTimes />
+                              </button>
+                              <h5 className="font-medium mb-3">{rangeConfig.label}</h5>
+                              <div className="space-y-3">
+                                <InputField
+                                  label="Min Value"
+                                  type="number"
+                                  min="0"
+                                  value={range.min}
+                                  onChange={(e) => handleFieldChange(
+                                    fieldIdx, 'ranges', e.target.value, type, 'min'
+                                  )}
+                                  error={errors[`field-${fieldIdx}-${type}-min`]}
+                                />
+                                <InputField
+                                  label="Max Value"
+                                  type="number"
+                                  min="0"
+                                  value={range.max}
+                                  onChange={(e) => handleFieldChange(
+                                    fieldIdx, 'ranges', e.target.value, type, 'max'
+                                  )}
+                                  error={errors[`field-${fieldIdx}-${type}-max`]}
+                                />
+                                
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -475,33 +514,23 @@ const LabTestForm = ({ mode = "create" }) => {
               </div>
             </FormSection>
 
-            <div className="pt-6 border-t border-primary-100 mt-6">
-              <ButtonGroup>
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate('../all-tests')}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  isSubmitting={isSubmitting}
-                >
-                  {isSubmitting ? 'Saving...' : mode === "create" ? 'Save Only' : 'Update Only'}
-                </Button>
-                {/* <Button
-                  variant="success"
-                  type="button"
-                  onClick={e => handleSave(e, true)}
-                  isSubmitting={isSubmitting}
-                >
-                  {isSubmitting ? 'Processing...' : mode === "create" ? 'Save & Print' : 'Update & Print'}
-                </Button> */}
-              </ButtonGroup>
+            <div className="flex justify-end gap-4 mt-8">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => navigate('../all-tests')}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Saving...' : 'Save'}
+              </Button>
             </div>
           </form>
-          </div>
+        </div>
       </div>
     </div>
   );

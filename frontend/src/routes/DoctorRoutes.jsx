@@ -16,7 +16,7 @@ import ProtectedRoute from '../pages/auth/ProtectedRoute';
 const DoctorRoutes = () => {
   return (
     <Routes>
-      <Route element={<ProtectedRoute allowedRoles={['Doctor']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['Doctor' ,'Admin']} />}>
         <Route element={<DynamicLayout />}>
 
           <Route path="dashboard" element={<DoctorDashboard />} />

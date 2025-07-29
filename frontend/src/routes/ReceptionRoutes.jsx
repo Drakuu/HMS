@@ -29,7 +29,7 @@ import DeletedAppointmentsPage from '../components/ui/DeletedAppointmentsPage';
 const ReceptionRoutes = () => {
   return (
     <Routes>
-      <Route element={<ProtectedRoute allowedRoles={['Receptionist']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['Receptionist', 'Admin']} />}>
         <Route element={<DynamicLayout />}>
           {/* Dashboard routes */}
           <Route index element={<Navigate to="dashboard" replace />} />

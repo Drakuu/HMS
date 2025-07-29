@@ -109,6 +109,30 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
           { href: 'staff', label: `All Staff` },
         ],
       },
+      {
+        name: 'Lab Managment',
+        icon: <AdminIcon className="text-lg" />,
+        links: [
+          { href: 'test-report', label: `All Lab Tests` },
+        ],
+      },
+      {
+        name: 'Patient Managment',
+        icon: <AdminIcon className="text-lg" />,
+        links: [
+          { href: 'OPD/manage', label: `All Patients` },
+        ],
+      },
+      {
+        name: 'Finance Managment',
+        icon: <AdminIcon className="text-lg" />,
+        links: [
+          { href: 'opd-finance', label: `OPD` },
+          { href: 'ipd-finance', label: `IPD` },
+          { href: 'lab-finance', label: `Lab` },
+          { href: 'RadiologyPennal', label: `Radiology` },
+        ],
+      },
     
     ],
     doctor: [
@@ -123,7 +147,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         links: [
           { href: 'book-appointments', label: 'My Appointments' }
         ]
-        links: [{ href: "aappointments", label: "My Appointments" }],
       },
       {
         name: "Patient Records",
@@ -145,22 +168,13 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <NotesIcon className="text-lg" />,
         links: [{ href: "notes", label: "Notes / Diagnosis" }],
       },
-      {
-        name: 'Settings',
-        name: "Notifications",
-        icon: <AdminIcon className="text-lg" />,
-        links: [{ href: "notifications", label: "Notifications" }],
-      },
+     
       {
         name: "Settings",
         icon: <SettingsIcon className="text-lg" />,
         links: [{ href: "settings", label: "Settings" }],
       },
-      {
-        name: "Logout",
-        icon: <Logout className="text-lg" />,
-        links: [{ href: "logout", label: "Logout" }],
-      },
+    
     ],
     receptionist: [
       {
@@ -171,15 +185,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
           { href: "hr-dashboard", label: "HR Dashboard" },
           { href: "patient-dashboard", label: "Patient Dashboard" },
           { href: "admin-dashboard", label: "Admin Dashboard" },
-        ],
-      },
-      {
-        name: 'Wards',
-        name: "HR",
-        icon: <GroupsIcon className="text-lg" />,
-        links: [
-          { href: "departments", label: "Departments" },
-          { href: "staff", label: "Staff" },
         ],
       },
       {

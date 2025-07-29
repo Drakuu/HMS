@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/index.controller");
+const { passportAuth, checkRole, doctorOnly } = require('../middleware/index.middleware');
 
 
 router.post(
@@ -40,7 +41,8 @@ router.delete(
 );
 router.put(
   "/update-patient/:patient_MRNo",
-
+//  passportAuth.authenticate("jwt", { session: false }),
+  // checkRole(['Doctor', 'Admin', 'Receptionist',]),
 
   controller.patient.updatePatient
 )
