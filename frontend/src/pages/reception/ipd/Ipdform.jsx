@@ -5,13 +5,13 @@ import { admitPatient, resetAdmissionState } from "../../../features/ipdPatient/
 import { fetchPatientByMrNo } from "../../../features/patient/patientSlice";
 import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
-import { AiOutlineIdcard } from "react-icons/ai";
 import { Button, ButtonGroup } from "../../../components/common/Buttons";
 import { InputField, TextAreaField } from "../../../components/common/FormFields";
 import PatientInfoSection from "./PatientInfoSection";
 import AdmissionInfoSection from "./AdmissionInfoSection";
 import PrintIpdAdmission from './PrintAdmissionForm';
 import ReactDOMServer from 'react-dom/server';
+import { getRoleRoute } from "../../../utils/getRoleRoute"
 
 const IpdForm = () => {
   const [isSSPForm, setIsSSPForm] = useState(true);
@@ -19,6 +19,7 @@ const IpdForm = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { wardsByDepartment } = useSelector((state) => state.ward);
 
   const {
     isLoading = false,
@@ -52,12 +53,15 @@ const IpdForm = () => {
     admissionDate: new Date().toISOString().split('T')[0],
     admissionType: "SSP",
     doctor: "",
-    wardType: "",
-    wardNumber: "",
+    departmentId: "",
+    wardId: "",
     bedNumber: "",
     admissionFee: "",
     discount: 0,
     totalFee: 0,
+    perDayCharges: 0,
+    perDayChargesStatus: "Unpaid",
+    perDayChargesStartDate: new Date().toISOString().split('T')[0],
     customWardType: "",
     paymentStatus: "Unpaid",
     diagnosis: "",
@@ -95,10 +99,15 @@ const IpdForm = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!mrNo) return;
+
+    if (!mrNo) {
+      toast.error("Please enter an MR Number");
+      return;
+    }
 
     try {
       const resultAction = await dispatch(fetchPatientByMrNo(mrNo));
+
       if (fetchPatientByMrNo.fulfilled.match(resultAction)) {
         const patientData = resultAction.payload;
         const guardian = patientData?.patient_Guardian || {};
@@ -125,15 +134,43 @@ const IpdForm = () => {
           wardNumber: "",
           bedNumber: "",
         }));
+      } else if (fetchPatientByMrNo.rejected.match(resultAction)) {
+        const error = resultAction.payload;
+        if (error.includes('not found')) {
+          toast.error(`Patient with MR ${mrNo} not found`);
+        } else {
+          toast.error(`Error: ${error}`);
+        }
       }
-      // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      toast.error(errorMessage || "Error fetching patient data");
+      console.error("Search error:", error);
+      toast.error("An unexpected error occurred");
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Reset ward and bed when department changes
+    if (name === "departmentId") {
+      setFormData(prev => ({
+        ...prev,
+        departmentId: value,
+        wardId: "",
+        bedNumber: ""
+      }));
+      return;
+    }
+
+    // Reset bed when ward changes
+    if (name === "wardId") {
+      setFormData(prev => ({
+        ...prev,
+        wardId: value,
+        bedNumber: ""
+      }));
+      return;
+    }
 
     const handlers = {
       dob: () => {
@@ -157,6 +194,16 @@ const IpdForm = () => {
       discount: () => {
         const discountValue = parseFloat(value) || 0;
         setFormData(prev => ({ ...prev, discount: discountValue, totalFee: (prev.admissionFee || 0) - discountValue }));
+      },
+      perDayCharges: () => {
+        const amount = parseFloat(value) || 0;
+        setFormData(prev => ({ ...prev, perDayCharges: amount }));
+      },
+      perDayChargesStatus: () => {
+        setFormData(prev => ({ ...prev, perDayChargesStatus: value }));
+      },
+      perDayChargesStartDate: () => {
+        setFormData(prev => ({ ...prev, perDayChargesStartDate: value }));
       },
       default: () => setFormData(prev => ({ ...prev, [name]: value }))
     };
@@ -182,76 +229,155 @@ const IpdForm = () => {
   };
 
   const preparePayload = () => {
+    const selectedWard = wardsByDepartment.find(ward => ward._id === formData.wardId);
+    const selectedBed = selectedWard?.beds.find(bed => bed.bedNumber === formData.bedNumber);
+
     return {
-      patient_MRNo: formData.patient_MRNo || formData.mrNumber,
+      patient_MRNo: formData.mrNumber,
       patient_Name: formData.patientName,
       patient_CNIC: formData.cnic,
       patient_Gender: formData.gender,
       patient_Age: formData.age,
       patient_DateOfBirth: formData.dob,
       patient_Address: formData.address,
-      patient_Contact: formData.patientContactNo,
+      patient_ContactNo: formData.patientContactNo,
+      patient_BloodType: formData.bloodGroup,
+      patient_MaritalStatus: formData.maritalStatus,
       patient_Guardian: {
         guardian_Name: formData.guardianName,
         guardian_Relation: formData.guardianRelation,
         guardian_Contact: formData.guardianContact
       },
       admission_Details: {
-        admission_Date: new Date(formData.admissionDate).toISOString(),
+        admission_Date: new Date(formData.admissionDate),
         admitting_Doctor: formData.doctor,
-        diagnosis: formData.diagnosis
+        diagnosis: formData.diagnosis,
+        referred_By: formData.referredBy
       },
       ward_Information: {
-        ward_Type: formData.wardType === "Other" ? formData.customWardType : formData.wardType,
-        ward_No: formData.wardNumber,
-        bed_No: formData.bedNumber
+        ward_Id: formData.wardId,
+        ward_Type: selectedWard?.department_Name || selectedWard?.wardType || '',
+        ward_No: selectedWard?.wardNumber.toString() || '',
+        bed_No: formData.bedNumber.toString().trim() // Ensure consistent formatting
       },
       financials: {
         admission_Fee: parseFloat(formData.admissionFee) || 0,
-        daily_Charges: 0,
         discount: parseFloat(formData.discount) || 0,
-        payment_Status: formData.paymentStatus || "Unpaid"
+        payment_Status: formData.paymentStatus || "Unpaid",
+        total_Charges: (parseFloat(formData.admissionFee) || 0) - (parseFloat(formData.discount) || 0),
+        perDayCharges: {
+          amount: parseFloat(formData.perDayCharges) || 0,
+          status: formData.perDayChargesStatus || "Unpaid",
+          startDate: formData.perDayChargesStartDate || new Date().toISOString().split('T')[0]
+        }
       },
-      patient_BloodType: formData.bloodGroup,
-      patient_MaritalStatus: formData.maritalStatus
+      status: "Admitted"
     };
+  };
+
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setMrNo("");
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    // Patient Info Validation
+    if (!formData.mrNumber) errors.mrNumber = "MR Number is required";
+    if (!formData.patientName) errors.patientName = "Patient name is required";
+    if (!formData.gender) errors.gender = "Gender is required";
+
+    // Admission Info Validation
+    if (!formData.doctor) errors.doctor = "Doctor is required";
+    if (!formData.departmentId) errors.departmentId = "Department is required";
+    if (!formData.wardId) errors.wardId = "Ward is required";
+    if (!formData.bedNumber) errors.bedNumber = "Bed is required";
+
+    // Check bed availability
+    const selectedWard = wardsByDepartment.find(w => w._id === formData.wardId);
+    if (selectedWard) {
+      const selectedBed = selectedWard.beds.find(b => b.bedNumber === formData.bedNumber);
+      if (selectedBed?.occupied) {
+        errors.bedNumber = "Selected bed is occupied";
+      }
+    }
+
+    // Financial Validation
+    if (!formData.admissionFee || formData.admissionFee <= 0) {
+      errors.admissionFee = "Valid admission fee is required";
+    }
+
+    // Per day charges validation
+    if (formData.perDayCharges < 0) {
+      errors.perDayCharges = "Per day charges cannot be negative";
+    }
+
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("[Form Submission] Starting form submission process");
 
-    // Validate required fields
-    if (!formData.mrNumber) {
-      return toast.error("Patient MR Number is required");
+    // Validate form
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      Object.entries(errors).forEach(([field, message]) => {
+        toast.error(`${field}: ${message}`);
+      });
+      return;
     }
 
-    // Prepare payload
-    const payload = preparePayload();
-    console.log("Final Payload:", JSON.stringify(payload, null, 2));
-
     try {
+      const payload = preparePayload();
+      console.log("Submitting payload:", payload); // Debug log
+
       const result = await dispatch(admitPatient(payload));
+
+      if (result.data?.isAdmitted) {
+        toast.error("Patient is already admitted");
+        return;
+      }
+
       if (admitPatient.fulfilled.match(result)) {
-        // Success handling
-      } else {
-        console.error("API Error:", result.payload);
-        toast.error(result.payload?.message || "Admission failed");
+        toast.success("Patient admitted successfully!");
+        resetForm();
+        navigate(getRoleRoute(`ipd/Admitted`));
+      } else if (admitPatient.rejected.match(result)) {
+        const error = result.payload;
+        if (error.statusCode === 400) {
+          // Handle validation errors
+          if (error.message.includes('validation failed')) {
+            const validationErrors = error.errors || [];
+            validationErrors.forEach(err => {
+              toast.error(`${err.path}: ${err.message}`);
+            });
+          } else if (error.message.includes('already admitted')) {
+            toast.error("This patient is already admitted");
+          } else if (error.message.includes('Bed')) {
+            toast.error(error.message);
+          } else {
+            toast.error(`Validation error: ${error.message}`);
+          }
+        } else {
+          // this error will not have to display when i open this page 
+          toast.error(error.message || "Admission failed");
+        }
       }
     } catch (error) {
-      console.error("Submission Error:", error);
-      toast.error("Failed to submit form");
+      console.error("Submission error:", error);
+      toast.error("Failed to submit form. Please try again.");
     }
   };
 
-
   const handlePrintAdmission = () => {
-    const printContent = ReactDOMServer.renderToString(
-      <PrintIpdAdmission data={formData} />
-    );
+    try {
+      const printContent = ReactDOMServer.renderToString(
+        <PrintIpdAdmission data={formData} />
+      );
 
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
     <!DOCTYPE html>
     <html>
       <head>
@@ -270,17 +396,20 @@ const IpdForm = () => {
     </html>
   `);
 
-    printWindow.document.close();
+      printWindow.document.close();
 
-    // Wait for content to load before printing
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.onafterprint = () => printWindow.close();
-      }, 500);
-    };
+      // Wait for content to load before printing
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.onafterprint = () => printWindow.close();
+        }, 500);
+      };
+    } catch (error) {
+      console.error("Print error:", error);
+      toast.error("Failed to generate print preview");
+    }
   };
-
   const handleSaveAndPrint = async (e) => {
     e.preventDefault();
 

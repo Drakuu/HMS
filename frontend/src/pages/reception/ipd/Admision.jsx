@@ -2,11 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   getAllAdmittedPatients,
-  deletePatient,
-  updatePatientWard,
+  deleteAdmission,
+  updatePatientAdmission,
   resetOperationStatus,
   selectFetchStatus,
-  selectUpdateStatus} from '../../../features/ipdPatient/IpdPatientSlice';
+  selectUpdateStatus
+} from '../../../features/ipdPatient/IpdPatientSlice';
 import {
   FiSearch, FiTrash2, FiEdit, FiCalendar,
   FiUser, FiHome,
@@ -43,6 +44,7 @@ const AdmittedPatients = () => {
     bed_No: '',
     status: 'Admitted'
   });
+  console.log('the data is ', patientsList)
 
   // Memoized derived data
   const wardTypes = useMemo(() => {
@@ -115,8 +117,8 @@ const AdmittedPatients = () => {
 
   useEffect(() => {
     if (updateStatus === 'succeeded') {
-      setModals({
-        ...modals,
+      setModals(prevModals => ({
+        ...prevModals,
         edit: { show: false, patient: null },
         success: {
           show: true,
@@ -124,7 +126,7 @@ const AdmittedPatients = () => {
             ? 'Patient discharged successfully!'
             : 'Patient updated successfully!'
         }
-      });
+      }));
 
       // Fetch updated patient data after successful update
       dispatch(getAllAdmittedPatients());  // This ensures the table is updated with the latest data
@@ -177,7 +179,7 @@ const AdmittedPatients = () => {
       }
     };
 
-    dispatch(updatePatientWard(payload));
+    dispatch(updatePatientAdmission(payload));
   };
 
   const handleDischargeToggle = (e) => {
@@ -196,7 +198,7 @@ const AdmittedPatients = () => {
 
   const handleDeleteConfirm = () => {
     if (modals.delete.patientId) {
-      dispatch(deletePatient(modals.delete.patientId));
+      dispatch(deleteAdmission(modals.delete.patientId));
       setModals({ ...modals, delete: { show: false, patientId: null } });
     }
   };
@@ -474,9 +476,11 @@ const AdmittedPatients = () => {
                           {patient.ward_Information?.ward_Type || 'Not assigned'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {patient.ward_Information?.ward_No && patient.ward_Information?.bed_No
-                            ? `Ward ${patient.ward_Information.ward_No}, Bed ${patient.ward_Information.bed_No}`
-                            : 'Not assigned'}
+                          {patient.ward_Information?.wardDetails?.assignedBed
+                            ? `Bed ${patient.ward_Information.wardDetails.assignedBed.bedNumber}`
+                            : patient.ward_Information?.bed_No
+                              ? `Bed ${patient.ward_Information.bed_No} (unconfirmed)`
+                              : 'Bed not assigned'}
                         </div>
                       </div>
                     </td>

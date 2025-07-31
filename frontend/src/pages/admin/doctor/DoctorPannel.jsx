@@ -8,7 +8,7 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { fetchAllDoctors, deleteDoctorById } from "../../../features/doctor/doctorSlice";
 import DeleteConfirmationModal from './DeleteDoctor';
 import { toast } from "react-toastify";
-import { getRoleRoute } from "../../../utility/Routes.Util"
+import { getRoleRoute } from "../../../utils/getRoleRoute"
 
 const statusBadge = (status) => {
   return (

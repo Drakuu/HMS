@@ -1,5 +1,4 @@
 import React from 'react';
-import RoomManagement from './RoomManagement';
 
 const WardModal = ({
     onClose,
@@ -10,12 +9,11 @@ const WardModal = ({
     departments,
     departmentNurses,
     isCreating,
-    isProcessing,
-    onRoomChange
+    isProcessing
 }) => {
     return (
-        <div className="fixed inset-0 bg-white/20 backdrop-blur-lg  flex justify-center items-center z-50">
-            <div className="bg-white rounded-xl p-8 shadow-lg w-[800px] max-h-[90vh] overflow-y-auto transform transition-all">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-lg flex justify-center items-center z-50">
+            <div className="bg-white border border-gray-400 rounded-xl p-8 shadow-lg w-[800px] max-h-[90vh] overflow-y-auto transform transition-all">
                 <h2 className="text-2xl font-bold mb-4 text-center text-primary-800">
                     {isCreating ? 'Add New Ward' : 'Edit Ward'}
                 </h2>
@@ -84,13 +82,6 @@ const WardModal = ({
                     </div>
                 </div>
 
-                {/* Room Management */}
-                <RoomManagement
-                    rooms={wardDetails.rooms}
-                    onRoomChange={onRoomChange}
-                    departmentNurses={departmentNurses}
-                />
-
                 {/* Ward-Level Nurse Assignment */}
                 <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-600 mb-2">Ward-Level Nurses</label>
@@ -98,13 +89,14 @@ const WardModal = ({
                         {wardDetails.nurses?.map((nurse, index) => (
                             <div key={index} className="grid grid-cols-3 gap-4 items-center">
                                 <select
-                                    value={nurse.nurseId}
+                                    value={nurse.nurse}
                                     onChange={(e) => {
                                         const updatedNurses = [...wardDetails.nurses];
-                                        updatedNurses[index].nurseId = e.target.value;
+                                        updatedNurses[index].nurse = e.target.value;
                                         onInputChange({ target: { name: 'nurses', value: updatedNurses } });
                                     }}
                                     className="p-2 border border-gray-300 rounded-md shadow-sm"
+                                    disabled={isProcessing}
                                 >
                                     <option value="">Select Nurse</option>
                                     {departmentNurses?.map((n) => (
@@ -123,6 +115,7 @@ const WardModal = ({
                                         onInputChange({ target: { name: 'nurses', value: updatedNurses } });
                                     }}
                                     className="p-2 border border-gray-300 rounded-md shadow-sm"
+                                    disabled={isProcessing}
                                 />
                                 <button
                                     type="button"
@@ -132,6 +125,7 @@ const WardModal = ({
                                         onInputChange({ target: { name: 'nurses', value: updatedNurses } });
                                     }}
                                     className="text-red-500 hover:text-red-700"
+                                    disabled={isProcessing}
                                 >
                                     Remove
                                 </button>
@@ -140,10 +134,11 @@ const WardModal = ({
                         <button
                             type="button"
                             onClick={() => {
-                                const updatedNurses = [...(wardDetails.nurses || []), { nurseId: '', role: '' }];
+                                const updatedNurses = [...(wardDetails.nurses || []), { nurse: '', role: '' }];
                                 onInputChange({ target: { name: 'nurses', value: updatedNurses } });
                             }}
                             className="text-primary-500 border p-1 rounded-md hover:text-primary-700 text-sm flex items-center"
+                            disabled={isProcessing}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

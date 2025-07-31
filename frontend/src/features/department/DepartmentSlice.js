@@ -41,6 +41,7 @@ export const getallDepartments = createAsyncThunk(
                 `${API_URL}/departments/get-departments`,
                 { headers: getAuthHeaders() }
             );
+            // console.log(`all departments `, response.data)
             return response.data.departmentsList;
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);

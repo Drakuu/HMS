@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import doctorList from "../../utility/doctors";
+import doctorList from "../../utils/doctors";
 
 const RadiologyReportForm = ({
   formData,
@@ -79,9 +79,9 @@ const RadiologyReportForm = ({
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // For financial fields, convert to number
-    const val = ['totalAmount', 'paidAmount', 'discount'].includes(name) 
+    const val = ['totalAmount', 'paidAmount', 'discount'].includes(name)
       ? parseFloat(value) || 0
       : value;
 
@@ -93,7 +93,7 @@ const RadiologyReportForm = ({
     // Validate financial fields
     if (['totalAmount', 'paidAmount', 'discount'].includes(name)) {
       const newErrors = { ...errors };
-      
+
       if (val < 0) {
         newErrors[name] = "Value cannot be negative";
       } else if (name === "paidAmount" && val > (formData.totalAmount || 0)) {
@@ -103,21 +103,21 @@ const RadiologyReportForm = ({
       } else {
         newErrors[name] = "";
       }
-      
+
       setErrors(newErrors);
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.patientMRNO && !isMRNLocked) newErrors.patientMRNO = "MRN is required";
     if (!formData.patientName) newErrors.patientName = "Patient name is required";
     if (!formData.age) newErrors.age = "Date of Birth is required";
     if (!formData.sex) newErrors.sex = "Sex is required";
     if (!formData.referBy) newErrors.referBy = "Referred By is required";
     if (!formData.templateName) newErrors.templateName = "Template is required";
-    
+
     // Financial validations
     if (formData.paidAmount > formData.totalAmount) {
       newErrors.paidAmount = "Paid amount cannot exceed Total";
@@ -125,7 +125,7 @@ const RadiologyReportForm = ({
     if (formData.discount > formData.totalAmount) {
       newErrors.discount = "Discount cannot exceed Total";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

@@ -9,13 +9,13 @@ import {
   FaHeartbeat, FaNotesMedical, FaCalendarAlt,
   FaUserShield, FaFileMedicalAlt, FaProcedures
 } from 'react-icons/fa';
-import { getRoleRoute } from '../../../utility/Routes.Util';
+import { getRoleRoute } from '../../../utils/getRoleRoute';
 
 const PatientDetails = () => {
   const { patientId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-const { selectedPatient: currentPatient, selectedPatientStatus: status, error } = useSelector(state => state.patients);
+  const { selectedPatient: currentPatient, selectedPatientStatus: status, error } = useSelector(state => state.patients);
 
 
   useEffect(() => {

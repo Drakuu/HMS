@@ -20,43 +20,27 @@ const admittedPatientSchema = new mongoose.Schema(
       diagnosis: { type: String }
     },
     ward_Information: {
-      wardType: { type: String },
-      roomNumber: { type: String },
-      availableBeds: { type: String },
+      ward_Type: { type: String },
+      ward_No: { type: String },
+      bed_No: { type: String },
       pdCharges: { type: Number, default: 0 },
+      ward_Id: { type: mongoose.Schema.Types.ObjectId } // Add if needed
     },
     financials: {
       admission_Fee: { type: Number, default: 0 },
       discount: { type: Number, default: 0 },
       total_Charges: { type: Number, default: 0 },
-      payment_Status: { type: String, default: "paid" }
+      payment_Status: { type: String, default: "paid" },
+      perDayCharges: {
+        amount: { type: Number, default: 0 },
+        status: { type: String, default: "Unpaid" },
+        startDate: { type: Date, default: Date.now }
+      }
     },
     status: { type: String },
     deleted: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
-
-// Auto-calculate total charges
-admittedPatientSchema.pre('save', function (next) {
-  if (this.isModified('admission_Details.discharge_Date') || this.isNew) {
-    const admissionDate = this.admission_Details.admission_Date;
-    const dischargeDate = this.admission_Details.discharge_Date || new Date();
-    const daysAdmitted = dischargeDate ? Math.ceil((dischargeDate - admissionDate) / (1000 * 60 * 60 * 24)) : 1;
-
-    this.financials.total_Charges =
-      this.financials.admission_Fee +
-      (this.financials.daily_Charges * daysAdmitted) -
-      this.financials.discount;
-  }
-  next();
-});
-
-// Adding virtual for calculating patient age dynamically
-// admittedPatientSchema.virtual('patient_Age').get(function() {
-//   const ageDifMs = Date.now() - this.patient_DateOfBirth.getTime();
-//   const ageDate = new Date(ageDifMs); 
-//   return Math.abs(ageDate.getUTCFullYear() - 1970); 
-// });
 
 module.exports = mongoose.model("AdmittedPatient", admittedPatientSchema);

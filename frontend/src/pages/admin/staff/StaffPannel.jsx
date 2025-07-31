@@ -13,7 +13,7 @@ import {
 import DataTable from '../../../components/common/DataTable';
 import TabNavigation from '../../../components/common/TabNavigation';
 import Modal from '../../../components/common/Modal';
-import { getRoleRoute } from "../../../utility/Routes.Util";
+import { getRoleRoute } from "../../../utils/getRoleRoute";
 
 const StaffListPage = () => {
   const dispatch = useDispatch();
@@ -25,7 +25,7 @@ const StaffListPage = () => {
     error,
     successMessage
   } = useSelector((state) => state.staff);
-console.log("Staff List:", staffList);
+  console.log("Staff List:", staffList);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('active');
   const [confirmModal, setConfirmModal] = useState({
@@ -91,7 +91,7 @@ console.log("Staff List:", staffList);
   );
 
   const columns = [
-     {
+    {
       field: 'userid',
       header: 'User Id',
       render: (row) => row.user?.user_Identifier || 'N/A'

@@ -6,7 +6,7 @@ import {
 } from 'react-icons/fa';
 import { fetchDoctorById } from '../../../features/doctor/doctorSlice';
 import { AiOutlineEdit, AiOutlineEye } from 'react-icons/ai';
-import { getRoleRoute } from "../../../utility/Routes.Util"
+import { getRoleRoute } from "../../../utils/getRoleRoute"
 import { useNavigate } from 'react-router-dom';
 import DateRangePicker from '../../../components/common/DateRangePicker';
 const API_URL = import.meta.env.VITE_API_URL;
@@ -54,7 +54,7 @@ const PatientRecord = () => {
       //   inRange: patientDay >= startDay && patientDay <= endDay
       // });
 
-      
+
       const dateInRange = patientDay >= startDay && patientDay <= endDay;
 
       const matchesSearch = patient.patient_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,10 +72,10 @@ const PatientRecord = () => {
     }
   }) || [];
 
-// useEffect(() => {
-//   console.log("Date range updated - filtering patients", dateRange);
-//   console.log("Current patients data:", patients);
-// }, [dateRange, patients]);
+  // useEffect(() => {
+  //   console.log("Date range updated - filtering patients", dateRange);
+  //   console.log("Current patients data:", patients);
+  // }, [dateRange, patients]);
 
   // console.log("filteredPatients", filteredPatients);
 

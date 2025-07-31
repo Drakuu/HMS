@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   getAllAdmittedPatients,
-  deletePatient,
-  updatePatientWard,
+  deleteAdmission,
+  updatePatientAdmission,
   resetOperationStatus,
   selectFetchStatus,
   selectUpdateStatus
@@ -179,7 +179,7 @@ const IPDPatientsBill = () => {
       }
     };
 
-    dispatch(updatePatientWard(payload));
+    dispatch(updatePatientAdmission(payload));
   };
 
   const handleDischargeToggle = (e) => {
@@ -198,7 +198,7 @@ const IPDPatientsBill = () => {
 
   const handleDeleteConfirm = () => {
     if (modals.delete.patientId) {
-      dispatch(deletePatient(modals.delete.patientId));
+      dispatch(deleteAdmission(modals.delete.patientId));
       setModals({ ...modals, delete: { show: false, patientId: null } });
     }
   };

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchDoctorById } from '../../../features/doctor/doctorSlice';
 import { FaUserMd, FaIdCard, FaEnvelope, FaPhone, FaMapMarkerAlt, FaStethoscope, FaFileSignature, FaMoneyBillWave, FaFileContract } from 'react-icons/fa';
 import DoctorPatients from './DoctorPatients';
-import { getRoleRoute } from "../../../utility/Routes.Util"
+import { getRoleRoute } from "../../../utils/getRoleRoute"
 
 const DoctorDetails = () => {
   const { doctorId } = useParams();

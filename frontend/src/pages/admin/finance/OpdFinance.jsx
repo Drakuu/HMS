@@ -14,7 +14,7 @@ import PatientDetailModal from "../../reception/opd/PatientDetailModal";
 import DeletePatientConfirmation from '../../reception/opd/DeletePatientConfirmation';
 import { useNavigate, useParams } from 'react-router-dom';
 import BillingStats from './BillingStats';
-import { getRoleRoute } from "../../../utility/Routes.Util";
+import { getRoleRoute } from "../../../utils/getRoleRoute";
 
 
 const BillingOpd = () => {

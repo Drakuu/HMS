@@ -289,6 +289,7 @@ const PrintA4 = ({ formData }) => {
               <div className="detail-row">
                 <span className="detail-label">MR Number:</span>
                 <span className="detail-value">  {safeData(formData?.patientMRNo || formData?.patient_MRNo || formData?.mrNumber)}</span>
+                
               </div>
               <div className="detail-row">
                 <span className="detail-label">Patient Name:</span>

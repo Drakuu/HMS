@@ -91,9 +91,19 @@ export const InputField = ({
             required={required}
           >
             <option value="">Select {label}</option>
-            {options.map(option => (
-              <option key={option} value={option}>{option}</option>
-            ))}
+            // In FormFields.js, update the select options rendering:
+            {options.map((option, index) => {
+              // Handle both simple strings and object options
+              const optionValue = typeof option === 'object' ? option.value : option;
+              const optionLabel = typeof option === 'object' ? option.label : option;
+              const optionKey = optionValue || `option-${index}`; // Fallback to index if no value
+
+              return (
+                <option key={optionKey} value={optionValue}>
+                  {optionLabel}
+                </option>
+              );
+            })}
           </select>
         </div>
         {helperText && (

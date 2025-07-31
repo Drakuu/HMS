@@ -3,14 +3,10 @@ import ReceptionDashboard from './dashboards/ReceptionDashboard';
 import HRDashboard from './dashboards/hrdashboard';
 import PatientDashboard from './dashboards/patientdashboard';
 import AdminDashboard from './dashboards/AdminDashboard';
-// hr imports
-// depatments imports
-
-
-//staff imports
 
 // room manahment imports
 import Ward from './ward/WardManagment';
+import BedDetails from "./ward/BedDetails"
 // opd imports
 import NewOpd from './opd/NewOpd';
 import ManageOpd from './opd/ManageOpd';
@@ -54,7 +50,7 @@ export {
   Inventory,
   BillList,
   Calendar,
-  
+  BedDetails,
   // AddNewDoctor,
   // DoctorPannel,
   // DoctorDetails,

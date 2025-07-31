@@ -17,7 +17,7 @@ import {
   ImageUpload,
   QualificationsList
 } from '../../../components/indexCmp';
-import { getRoleRoute } from "../../../utility/Routes.Util";
+import { getRoleRoute } from "../../../utils/getRoleRoute";
 
 const validateEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -532,10 +532,10 @@ const DoctorForm = ({ mode = 'create' }) => {
       required: true
     },
     {
-      label: "License Number",
+      label: "PMDC Number",
       name: "doctor_LicenseNumber",
       icon: "fileSignature",
-      placeholder: "Enter License Number",
+      placeholder: "Enter PMDC Number",
       value: formData.doctor_LicenseNumber,
       onChange: handleChange,
       required: true

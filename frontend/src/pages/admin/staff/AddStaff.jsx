@@ -9,7 +9,7 @@ import {
 } from '../../../features/staff/Staffslice';
 import { getallDepartments } from '../../../features/department/departmentSlice';
 import StaffForm from './StaffForm';
-import { getRoleRoute } from "../../../utility/Routes.Util";
+import { getRoleRoute } from "../../../utils/getRoleRoute";
 
 const StaffFormPage = () => {
   const dispatch = useDispatch();
@@ -60,36 +60,36 @@ const StaffFormPage = () => {
   }, [dispatch, id, isEditing]);
 
   useEffect(() => {
-  if (isEditing && staffDetails) {
-    const formattedData = {
-      // Flatten the user object fields
-      user_Name: staffDetails.user?.user_Name || '',
-      user_Email: staffDetails.user?.user_Email || '',
-      user_Contact: staffDetails.user?.user_Contact || '',
-      user_Address: staffDetails.user?.user_Address || '',
-      user_CNIC: staffDetails.user?.user_CNIC || '',
-      user_Access: staffDetails.user?.user_Access || '',
-      // Other fields from staffDetails
-      designation: staffDetails.designation || '',
-      department: staffDetails.department || '',
-      qualifications: staffDetails.qualifications || [],
-      gender: staffDetails.gender || '',
-      dateOfBirth: staffDetails.dateOfBirth ? 
-        new Date(staffDetails.dateOfBirth).toISOString().split('T')[0] : '',
-      shift: staffDetails.shift || '',
-      shiftTiming: {
-        start: staffDetails.shiftTiming?.start || '',
-        end: staffDetails.shiftTiming?.end || ''
-      },
-      emergencyContact: staffDetails.emergencyContact || {
-        name: '',
-        relation: '',
-        phone: ''
-      }
-    };
-    setFormData(formattedData);
-  }
-}, [isEditing, staffDetails]);
+    if (isEditing && staffDetails) {
+      const formattedData = {
+        // Flatten the user object fields
+        user_Name: staffDetails.user?.user_Name || '',
+        user_Email: staffDetails.user?.user_Email || '',
+        user_Contact: staffDetails.user?.user_Contact || '',
+        user_Address: staffDetails.user?.user_Address || '',
+        user_CNIC: staffDetails.user?.user_CNIC || '',
+        user_Access: staffDetails.user?.user_Access || '',
+        // Other fields from staffDetails
+        designation: staffDetails.designation || '',
+        department: staffDetails.department || '',
+        qualifications: staffDetails.qualifications || [],
+        gender: staffDetails.gender || '',
+        dateOfBirth: staffDetails.dateOfBirth ?
+          new Date(staffDetails.dateOfBirth).toISOString().split('T')[0] : '',
+        shift: staffDetails.shift || '',
+        shiftTiming: {
+          start: staffDetails.shiftTiming?.start || '',
+          end: staffDetails.shiftTiming?.end || ''
+        },
+        emergencyContact: staffDetails.emergencyContact || {
+          name: '',
+          relation: '',
+          phone: ''
+        }
+      };
+      setFormData(formattedData);
+    }
+  }, [isEditing, staffDetails]);
 
 
   const handleChange = (e) => {
@@ -298,29 +298,29 @@ const StaffFormPage = () => {
 
   return (
     <div className="container mx-auto ">
-   <div className="bg-primary-600 rounded-md text-white px-6 py-8 mb-6 shadow-md">
-  <div className="max-w-9xl mx-auto">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center">
-        <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
-        <div>
-          <h1 className="text-3xl font-bold">
-            {isEditing ? 'Edit Staff Member' : 'Add New Staff Member'}
-          </h1>
-          <p className="text-primary-100 mt-1">
-            {isEditing ? 'Update staff details and information' : 'Add new staff member to the system'}
-          </p>
+      <div className="bg-primary-600 rounded-md text-white px-6 py-8 mb-6 shadow-md">
+        <div className="max-w-9xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
+              <div>
+                <h1 className="text-3xl font-bold">
+                  {isEditing ? 'Edit Staff Member' : 'Add New Staff Member'}
+                </h1>
+                <p className="text-primary-100 mt-1">
+                  {isEditing ? 'Update staff details and information' : 'Add new staff member to the system'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleCancel}
+              className="px-4 py-2 bg-white text-primary-600 rounded-md hover:bg-primary-50 transition-colors duration-200 font-medium"
+            >
+              Back to Staff List
+            </button>
+          </div>
         </div>
       </div>
-      <button
-        onClick={handleCancel}
-        className="px-4 py-2 bg-white text-primary-600 rounded-md hover:bg-primary-50 transition-colors duration-200 font-medium"
-      >
-        Back to Staff List
-      </button>
-    </div>
-  </div>
-</div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
         <form onSubmit={handleSubmit}>

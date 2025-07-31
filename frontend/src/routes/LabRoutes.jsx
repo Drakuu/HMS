@@ -48,9 +48,9 @@ const LabRoutes = () => {
           {/* test reports */}
           <Route path='test-report' element={<TestReportPage />} />
           <Route path='update-report/:id' element={<UpdateReport />} />
-          <Route path='test-report-Summery/:date' element={<ReportSummery />} />
           <Route path="test-report" element={<TestReportPage />} />
           <Route path="update-report/:id" element={<UpdateReport />} />
+          <Route path='test-report-Summery/:date' element={<ReportSummery />} />
           <Route path="test-report-Summery/:date" element={<ReportSummery />} />
           {/* test billing */}
           <Route path="test-billing" element={<AllBillsPage />} />

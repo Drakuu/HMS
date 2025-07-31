@@ -1,38 +1,56 @@
 const mongoose = require('mongoose');
 
-// Room schema
-const roomSchema = new mongoose.Schema({
-    roomNumber: { type: String, required: true, },
-    capacity: { type: Number, required: true, },
-    nurses: [{
-        nurse: { type: String, },
-        role: { type: String, }
-    }],
-});
+// Bed History schema
+const bedHistorySchema = new mongoose.Schema({
+  patientMRNo: { type: String, required: true }, // Only MR number
+  admissionDate: { type: Date, default: Date.now },
+  dischargeDate: { type: Date },
+  isDeleted: { type: Boolean, default: false }
+}, { timestamps: true });
 
 // Bed schema
 const bedSchema = new mongoose.Schema({
-    bedNumber: { type: String, required: true, },
-    occupied: {
-        type: Boolean, default: false,
-    },
+  bedNumber: { type: String, required: true, uppercase: true, trim: true },
+  occupied: { type: Boolean, default: false, },
+  currentPatientMRNo: { type: String }, // Only MR number
+  history: [bedHistorySchema],
+  isDeleted: { type: Boolean, default: false }
 });
 
-// Ward schema with rooms, beds, and nurse assignments
+// Ward schema
 const wardSchema = new mongoose.Schema({
-    name: { type: String, required: true, },
-    department_Name: { type: String, required: true, },
-    wardNumber: { type: Number, required: true, },
-    bedCount: { type: Number, required: true, },
-    rooms: [roomSchema],
-    beds: [bedSchema],
-    nurses: [{
-        nurse: { type: String, },
-        role: { type: String, },
-    }],
+  name: { type: String, required: true, trim: true },
+  department_Name: { type: String, required: true, trim: true },
+  wardNumber: { type: Number, required: true, unique: true },
+  bedCount: { type: Number, required: true, min: 1 },
+  beds: [bedSchema],
+  nurses: [{
+    nurse: {
+      type: mongoose.Schema.Types.ObjectId, ref: 'Staff'
+    },
+    role: {
+      type: String, enum: ['Head Nurse', 'Staff Nurse', 'Trainee'], default: 'Staff Nurse'
+    }
+  }],
+  isDeleted: {
+    type: Boolean, default: false
+  }
 }, {
-    timestamps: true,
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
+
+// Soft delete method
+wardSchema.methods.softDelete = async function () {
+  this.isDeleted = true;
+  await this.save();
+};
+
+// Query helper for non-deleted items
+wardSchema.query.notDeleted = function () {
+  return this.where({ isDeleted: false });
+};
 
 const Ward = mongoose.model('Ward', wardSchema);
 

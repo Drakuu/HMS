@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL =import.meta.env.VITE_REACT_APP_API_URL;
+const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const getAuthHeaders = () => {
   const jwtLoginToken = localStorage.getItem("jwtLoginToken");
@@ -11,7 +11,7 @@ const getAuthHeaders = () => {
   };
 };
 
-// Thunks (with enhanced error handling)
+// Thunks with enhanced error handling
 export const admitPatient = createAsyncThunk(
   'ipdPatient/admitPatient',
   async (patientData, { rejectWithValue }) => {
@@ -21,21 +21,29 @@ export const admitPatient = createAsyncThunk(
         patientData,
         { headers: getAuthHeaders() }
       );
-      return response.data;
+      return response.data.data; // Use the nested data property
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to admit patient';
-      return rejectWithValue({ message, statusCode: error.response?.status || 500 });
+      return rejectWithValue({ 
+        message,
+        statusCode: error.response?.status || 500,
+        validationErrors: error.response?.data?.errors 
+      });
     }
   }
 );
 
 export const getAllAdmittedPatients = createAsyncThunk(
   'ipdPatient/getAllAdmittedPatients',
-  async (params = { page: 1, limit: 20 }, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
+      const { page = 1, limit = 20, ward_Type, search, ward_id } = params;
       const response = await axios.get(
         `${API_URL}/admittedPatient/get-admitted-patients`,
-        { params, headers: getAuthHeaders() }
+        { 
+          params: { page, limit, ward_Type, search, ward_id },
+          headers: getAuthHeaders() 
+        }
       );
       return response.data;
     } catch (error) {
@@ -55,61 +63,74 @@ export const getIpdPatientByMrno = createAsyncThunk(
       );
       return response.data.information.patient;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch patient by MRNO');
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Failed to fetch patient by MRNO',
+        status: error.response?.status
+      });
     }
   }
 );
 
-export const getPatientByCnic = createAsyncThunk(
-  'ipdPatient/getPatientByCnic',
-  async (cnic, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        `${API_URL}/admittedPatient/get-by-cnic/${cnic}`,
-        { headers: getAuthHeaders() }
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch patient by CNIC');
-    }
-  }
-);
-
-export const deletePatient = createAsyncThunk(
-  'ipdPatient/deletePatient',
-  async (patientId, { rejectWithValue }) => {
-    try {
-      const response = await axios.delete(
-        `${API_URL}/admittedPatient/delete-admission/${patientId}`,
-        { headers: getAuthHeaders() }
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete patient');
-    }
-  }
-);
-
-export const updatePatientWard = createAsyncThunk(
-  'ipdPatient/updatePatientWard',
-  async ({ patientId, wardData }, { rejectWithValue }) => {
+export const updatePatientAdmission = createAsyncThunk(
+  'ipdPatient/updatePatientAdmission',
+  async ({ id, admissionData }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
-        `${API_URL}/admittedPatient/update-admission/${patientId}`,
-        wardData,
+        `${API_URL}/admittedPatient/update-admission/${id}`,
+        admissionData,
         { headers: getAuthHeaders() }
       );
-      return { 
-        patientId,
-        updatedPatient: response.data.data,  // Ensure you are using the correct field from response
-        isDischarge: wardData.status === 'Discharged'
-      };
+      return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Failed to update patient ward");
+      return rejectWithValue({
+        message: error.response?.data?.message || "Failed to update admission",
+        validationErrors: error.response?.data?.errors
+      });
     }
   }
 );
 
+export const dischargePatient = createAsyncThunk(
+  'ipdPatient/dischargePatient',
+  async (dischargeData, { rejectWithValue }) => {
+    try {
+      const { id, ...rest } = dischargeData;
+      const url = id 
+        ? `${API_URL}/admittedPatient/discharge-patient/${id}`
+        : `${API_URL}/admittedPatient/discharge-patient`;
+      
+      const response = await axios.post(
+        url,
+        rest,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue({
+        message: error.response?.data?.message || "Failed to discharge patient",
+        status: error.response?.status
+      });
+    }
+  }
+);
+
+export const deleteAdmission = createAsyncThunk(
+  'ipdPatient/deleteAdmission',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.delete(
+        `${API_URL}/admittedPatient/delete-admission/${id}`,
+        { headers: getAuthHeaders() }
+      );
+      return { id, ...response.data };
+    } catch (error) {
+      return rejectWithValue({
+        message: error.response?.data?.message || "Failed to delete admission",
+        status: error.response?.status
+      });
+    }
+  }
+);
 
 const initialState = {
   admissionData: null,
@@ -133,7 +154,11 @@ const initialState = {
     discharge: 'idle',
     update: 'idle'
   },
-  statusHistory: []
+  filters: {
+    ward_Type: '',
+    search: '',
+    ward_id: ''
+  }
 };
 
 const ipdPatientSlice = createSlice({
@@ -152,7 +177,7 @@ const ipdPatientSlice = createSlice({
       state.error = null;
     },
     resetOperationStatus: (state, action) => {
-      const operation = action.payload; // 'admit', 'fetch', 'discharge', etc.
+      const operation = action.payload;
       if (state.status[operation]) {
         state.status[operation] = 'idle';
       }
@@ -161,6 +186,12 @@ const ipdPatientSlice = createSlice({
     },
     clearCurrentPatient: (state) => {
       state.currentPatient = null;
+    },
+    setFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    resetFilters: (state) => {
+      state.filters = initialState.filters;
     }
   },
   extraReducers: (builder) => {
@@ -175,20 +206,18 @@ const ipdPatientSlice = createSlice({
       .addCase(admitPatient.fulfilled, (state, action) => {
         state.status.admit = 'succeeded';
         state.isLoading = false;
-        state.admissionData = action.payload;  // Ensure the correct data is being stored
-        state.patientsList.unshift(action.payload.data);  // Adding patient to the list
-        state.statusHistory.push({
-          action: 'admission',
-          patientId: action.payload.data._id,
-          timestamp: new Date().toISOString()
-        });
+        state.admissionData = action.payload;
+        state.patientsList.unshift(action.payload);
       })
-      
       .addCase(admitPatient.rejected, (state, action) => {
         state.status.admit = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload;
+        state.error = {
+          message: action.payload?.message || 'Admission failed',
+          statusCode: action.payload?.statusCode,
+          validationErrors: action.payload?.validationErrors
+        };
       })
 
       // Get All Admitted Patients
@@ -213,7 +242,7 @@ const ipdPatientSlice = createSlice({
         state.status.fetch = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message;
+        state.error = action.payload?.message || 'Failed to fetch patients';
       })
 
       // Get Patient by MRNO
@@ -221,118 +250,130 @@ const ipdPatientSlice = createSlice({
         state.status.search = 'pending';
         state.isLoading = true;
         state.isError = false;
+        state.error = null;
       })
       .addCase(getIpdPatientByMrno.fulfilled, (state, action) => {
         state.status.search = 'succeeded';
         state.isLoading = false;
-        state.data = action.payload.data || {}; // Ensure data is set properly
         state.currentPatient = action.payload;
       })
       .addCase(getIpdPatientByMrno.rejected, (state, action) => {
         state.status.search = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message;
+        state.error = {
+          message: action.payload?.message || 'Patient not found',
+          status: action.payload?.status
+        };
       })
 
-      // Get Patient by CNIC
-      .addCase(getPatientByCnic.pending, (state) => {
-        state.status.search = 'pending';
-        state.isLoading = true;
-        state.isError = false;
-      })
-      .addCase(getPatientByCnic.fulfilled, (state, action) => {
-        state.status.search = 'succeeded';
-        state.isLoading = false;
-        state.currentPatient = action.payload;
-      })
-      .addCase(getPatientByCnic.rejected, (state, action) => {
-        state.status.search = 'failed';
-        state.isLoading = false;
-        state.isError = true;
-        state.errorMessage = action.payload;
-      })
-
-      // Delete Patient
-      .addCase(deletePatient.pending, (state) => {
-        state.status.delete = 'pending';
-        state.isLoading = true;
-        state.isError = false;
-      })
-      .addCase(deletePatient.fulfilled, (state, action) => {
-        state.status.delete = 'succeeded';
-        state.isLoading = false;
-        state.patientsList = state.patientsList.filter(
-          patient => patient._id !== action.meta.arg
-        );
-      })
-      .addCase(deletePatient.rejected, (state, action) => {
-        state.status.delete = 'failed';
-        state.isLoading = false;
-        state.isError = true;
-        state.errorMessage = action.payload;
-      })
-
-      
-      // Update Patient Ward (handles both admission updates and discharge)
-      .addCase(updatePatientWard.pending, (state) => {
+      // Update Admission
+      .addCase(updatePatientAdmission.pending, (state) => {
         state.status.update = 'pending';
         state.isLoading = true;
         state.isError = false;
         state.error = null;
       })
-      .addCase(updatePatientWard.fulfilled, (state, action) => {
+      .addCase(updatePatientAdmission.fulfilled, (state, action) => {
         state.status.update = 'succeeded';
         state.isLoading = false;
-        const { patientId, updatedPatient, isDischarge } = action.payload;
-      
-        // Update the patient information in the patientsList
-        if (isDischarge) {
-          // Remove from admitted patients list and add to discharged patients list
-          state.patientsList = state.patientsList.filter(
-            patient => patient._id !== patientId
-          );
-          state.dischargedPatients.push(updatedPatient);
-        } else {
-          // Update the ward information for the admitted patient
-          state.patientsList = state.patientsList.map(patient =>
-            patient._id === patientId ? updatedPatient : patient
-          );
+        state.patientsList = state.patientsList.map(patient =>
+          patient._id === action.payload._id ? action.payload : patient
+        );
+        if (state.currentPatient?._id === action.payload._id) {
+          state.currentPatient = action.payload;
         }
-      
-        // Add to status history
-        state.statusHistory.push({
-          action: isDischarge ? 'discharge' : 'wardUpdate',
-          patientId,
-          timestamp: new Date().toISOString(),
-          newStatus: updatedPatient.status,
-          wardInfo: updatedPatient.ward_Information
-        });
       })
-           
-      .addCase(updatePatientWard.rejected, (state, action) => {
+      .addCase(updatePatientAdmission.rejected, (state, action) => {
         state.status.update = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload;
+        state.error = {
+          message: action.payload?.message || 'Update failed',
+          validationErrors: action.payload?.validationErrors
+        };
+      })
+
+      // Discharge Patient
+      .addCase(dischargePatient.pending, (state) => {
+        state.status.discharge = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+        state.error = null;
+      })
+      .addCase(dischargePatient.fulfilled, (state, action) => {
+        state.status.discharge = 'succeeded';
+        state.isLoading = false;
+        // Remove from admitted patients list
+        state.patientsList = state.patientsList.filter(
+          patient => patient._id !== action.payload.data?._id
+        );
+        // Add to discharged patients list if we have the full record
+        if (action.payload.data) {
+          state.dischargedPatients.push(action.payload.data);
+        }
+        // Clear current patient if it's the discharged one
+        if (state.currentPatient?._id === action.payload.data?._id) {
+          state.currentPatient = null;
+        }
+      })
+      .addCase(dischargePatient.rejected, (state, action) => {
+        state.status.discharge = 'failed';
+        state.isLoading = false;
+        state.isError = true;
+        state.error = {
+          message: action.payload?.message || 'Discharge failed',
+          status: action.payload?.status
+        };
+      })
+
+      // Delete Admission
+      .addCase(deleteAdmission.pending, (state) => {
+        state.status.delete = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+        state.error = null;
+      })
+      .addCase(deleteAdmission.fulfilled, (state, action) => {
+        state.status.delete = 'succeeded';
+        state.isLoading = false;
+        state.patientsList = state.patientsList.filter(
+          patient => patient._id !== action.payload.id
+        );
+      })
+      .addCase(deleteAdmission.rejected, (state, action) => {
+        state.status.delete = 'failed';
+        state.isLoading = false;
+        state.isError = true;
+        state.error = {
+          message: action.payload?.message || 'Deletion failed',
+          status: action.payload?.status
+        };
       });
   }
 });
 
 // Selectors
+export const selectAllAdmittedPatients = (state) => state.ipdPatient.patientsList;
+export const selectCurrentIpdPatient = (state) => state.ipdPatient.currentPatient;
 export const selectAdmissionStatus = (state) => state.ipdPatient.status.admit;
 export const selectFetchStatus = (state) => state.ipdPatient.status.fetch;
 export const selectDischargeStatus = (state) => state.ipdPatient.status.discharge;
 export const selectUpdateStatus = (state) => state.ipdPatient.status.update;
 export const selectDeleteStatus = (state) => state.ipdPatient.status.delete;
 export const selectSearchStatus = (state) => state.ipdPatient.status.search;
+export const selectIpdPagination = (state) => state.ipdPatient.pagination;
+export const selectIpdFilters = (state) => state.ipdPatient.filters;
+export const selectIpdError = (state) => state.ipdPatient.error;
 
 // Actions
 export const {
   resetAdmissionState,
   resetPatientState,
   resetOperationStatus,
-  clearCurrentPatient
+  clearCurrentPatient,
+  setFilters,
+  resetFilters
 } = ipdPatientSlice.actions;
 
-export default ipdPatientSlice.reducer; 
+export default ipdPatientSlice.reducer;

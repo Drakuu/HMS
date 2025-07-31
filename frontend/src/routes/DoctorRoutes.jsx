@@ -7,16 +7,16 @@ import {
   Prescription,
   Report,
   Settings,
-  Note
-
+  Note,
 } from "../pages/doctor/doctorPages";
+import { UpdateReport, ReportSummery } from "../pages/labs/labsPages"
 import DynamicLayout from '../layouts/DynamicLayout';
 import ProtectedRoute from '../pages/auth/ProtectedRoute';
 
 const DoctorRoutes = () => {
   return (
     <Routes>
-      <Route element={<ProtectedRoute allowedRoles={['Doctor' ,'Admin']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['Doctor', 'Admin']} />}>
         <Route element={<DynamicLayout />}>
 
           <Route path="dashboard" element={<DoctorDashboard />} />
@@ -26,8 +26,11 @@ const DoctorRoutes = () => {
           <Route path="patient-records/:patientId" element={<PatientDetails />} />
 
           <Route path="prescriptions" element={<Prescription />} />
-          
+
           <Route path="reports" element={<Report />} />
+          <Route path="update-report/:id" element={<UpdateReport />} />
+          <Route path='test-report-Summery/:date' element={<ReportSummery />} />
+          <Route path="test-report-Summery/:date" element={<ReportSummery />} />
 
           <Route path="settings" element={<Settings />} />
 

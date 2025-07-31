@@ -7,13 +7,11 @@ const controller = require("../controllers/index.controller");
 router.post(
   "/create-admitted-patient",
 
-
   controller.admittedPatient.admittedPatient
 );
 
 router.get(
   "/get-admitted-patients",
-
 
   controller.admittedPatient.getAllAdmittedPatients
 );
@@ -21,13 +19,11 @@ router.get(
 router.get(
   "/get-admitted-patient-by-mrno/:mrNo",
 
-
   controller.admittedPatient.getByMRNumber
 );
 
 router.put(
   "/update-admission/:id",
-
 
   controller.admittedPatient.updateAdmission
 );
@@ -35,9 +31,11 @@ router.put(
 router.delete(
   "/delete-admission/:id",
 
-
   controller.admittedPatient.deleteAdmission
 );
+
+
+router.post('/discharge-patient/:id?', controller.admittedPatient.dischargePatient);
 
 
 module.exports = router;

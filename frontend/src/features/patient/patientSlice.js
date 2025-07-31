@@ -84,17 +84,37 @@ export const fetchPatientByMrNo = createAsyncThunk(
   'patient/fetchByMrNo',
   async (patientMRNo, { rejectWithValue }) => {
     try {
+      // Validate MR number format first
+      if (!patientMRNo || !/^\d{8}-\d{4}$/.test(patientMRNo)) {
+        throw new Error('Invalid MR Number format');
+      }
+
       const response = await axios.get(
         `${API_URL}/patient/get-patient-by-mrno/${patientMRNo}`,
         getAuthHeaders(),
       );
-// console.log(`the responce `, response.data?.information?.patient)
+
+       if (!response.data?.information?.patient) {
+        throw new Error('Patient not found');
+      }
+      console.log(`the responce `, response.data?.information?.patient)
       return response.data?.information?.patient;
 
     } catch (error) {
-      return rejectWithValue(
-        error?.response?.data?.message || error.message || "Failed to fetch patient"
-      );
+      // Handle different error types specifically
+      if (error.response) {
+        // Server responded with error status
+        if (error.response.status === 404) {
+          return rejectWithValue('Patient not found');
+        }
+        return rejectWithValue(error.response.data?.message || 'Server error');
+      } else if (error.request) {
+        // No response received
+        return rejectWithValue('No response from server');
+      } else {
+        // Other errors
+        return rejectWithValue(error.message);
+      }
     }
   }
 );
@@ -131,7 +151,7 @@ const patientSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-    // Handle fetchPatients actions
+      // Handle fetchPatients actions
       .addCase(fetchPatients.pending, (state) => {
         state.status = "loading";
       })
@@ -160,7 +180,7 @@ const patientSlice = createSlice({
       .addCase(createPatient.fulfilled, (state, action) => {
         state.patients.push(action.payload);
       })
-        // Handle createPatient actions
+      // Handle createPatient actions
       .addCase(updatePatient.fulfilled, (state, action) => {
         const updatedPatient = action.payload;
         // Update patients list

@@ -18,7 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { InputField, RadioGroup } from '../../../components/common/FormFields'
 import { FormSection, FormGrid } from '../../../components/common/FormSection';
 import { Button, ButtonGroup } from '../../../components/common/Buttons';
-import { getRoleRoute } from '../../../utility/Routes.Util';
+import { getRoleRoute } from '../../../utils/getRoleRoute';
 
 const NewOpd = ({ mode = "create" }) => {
     const dispatch = useDispatch();

@@ -2,25 +2,25 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   ReceptionDashboard,
-   AdminDashboard,
-   HRDashboard,
-   PatientDashboard,
-   OTPatientDetails,
-   IPDAdmission,
-   AdmittedPatientDetails,
-   IPDForm,
-   NewOpd,
-   ManageOpd,
-   OTMain,
-   PatientAppointment,
-   Ward,
-   Inventory,
-   BillList,
-   MedicineList,
-   PrescriptionManagement,
-   StockManagement,
-   Calendar,
-
+  AdminDashboard,
+  HRDashboard,
+  PatientDashboard,
+  OTPatientDetails,
+  IPDAdmission,
+  AdmittedPatientDetails,
+  IPDForm,
+  NewOpd,
+  ManageOpd,
+  OTMain,
+  PatientAppointment,
+  Ward,
+  Inventory,
+  BillList,
+  MedicineList,
+  PrescriptionManagement,
+  StockManagement,
+  Calendar,
+  BedDetails,
 } from '../pages/reception/ReceptionPages';
 import DynamicLayout from '../layouts/DynamicLayout';
 import ProtectedRoute from '../pages/auth/ProtectedRoute';
@@ -40,6 +40,7 @@ const ReceptionRoutes = () => {
 
           {/* Rooms management */}
           <Route path="ward-management" element={<Ward />} />
+          <Route path="beds/:bedId" element={<BedDetails />} />
 
           {/* IPD routes */}
           <Route path="ipd/ssp" element={<IPDForm />} />

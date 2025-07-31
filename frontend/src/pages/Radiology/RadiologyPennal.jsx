@@ -56,7 +56,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import doctorList from "../../utility/doctors";
+import doctorList from "../../utils/doctors";
 import { motion } from "framer-motion";
 
 const RadiologyPanel = () => {
@@ -726,13 +726,13 @@ const RadiologyPanel = () => {
                             {report.sex},{" "}
                             {report.age
                               ? new Date(report.age).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    year: "numeric",
-                                    month: "numeric",
-                                    day: "numeric",
-                                  }
-                                )
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "numeric",
+                                  day: "numeric",
+                                }
+                              )
                               : "N/A"}
                           </Typography>
                         </Box>

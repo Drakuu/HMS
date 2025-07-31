@@ -1,88 +1,64 @@
 const hospitalModel = require("../models/index.model");
 
-
-// Ensure correct import
-
-
-
-
-// Create a new ward and assign it to a department (using department name instead of ID)
+// Create a new ward
 exports.createWard = async (req, res) => {
-    const { name, department_Name, wardNumber, bedCount, rooms, nurseAssignments } = req.body;
+    const { name, department_Name, wardNumber, bedCount, nurseAssignments } = req.body;
 
     try {
-        // Step 1: Generate bed objects for the ward
-        const beds = [];
-        for (let i = 1; i <= bedCount; i++) {
-            beds.push({
-                bedNumber: `B${wardNumber}-${i}`,  // Generate unique bed numbers like B101-1, B101-2
-                occupied: false,  // Initialize all beds as not occupied
-            });
-        }
+        // Generate beds
+        const beds = Array.from({ length: bedCount }, (_, i) => ({
+            bedNumber: `B${wardNumber}-${i + 1}`,
+            occupied: false
+        }));
 
-        // Step 2: Create the ward with the beds and rooms array
         const newWard = await hospitalModel.ward.create({
             name,
             wardNumber,
             bedCount,
             department_Name,
-            rooms,  // Add the rooms array to the ward
-            beds,   // Add the beds array to the ward
-            nurses: nurseAssignments, // Add nurse assignments to the ward
+            beds,
+            nurses: nurseAssignments
         });
 
-        // Step 3: Find the department by name
+        // Assign to department
         const department = await hospitalModel.Department.findOne({
-            name: { $regex: new RegExp(`^${department_Name}$`, 'i') }, // Case-insensitive search
+            name: { $regex: new RegExp(`^${department_Name}$`, 'i') }
         });
 
         if (!department) {
-            // If the department is not found, remove the created ward
-            await hospitalModel.ward.findByIdAndDelete(newWard._id);
+            await newWard.softDelete();
             return res.status(404).json({
                 success: false,
-                message: 'Department not found',
+                message: 'Department not found'
             });
         }
 
-        // Step 4: Assign the ward to the department by adding the ward's _id
-        department.ward.push(newWard._id);  // Add the ward's ID to the department's wards array
-
-        // Save the department with the updated list of wards
+        department.ward.push(newWard._id);
         await department.save();
 
         res.status(201).json({
             success: true,
-            message: 'Ward created and assigned successfully',
-            ward: newWard,
+            message: 'Ward created successfully',
+            ward: newWard
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: error.message,
+            message: error.message
         });
     }
 };
 
-
-
-// Add beds to a ward
-
-
-// Simple controller to get all wards
+// Get all non-deleted wards
 exports.getAllWards = async (req, res) => {
     try {
-        // Fetch all wards from the database
-        const wards = await hospitalModel.ward.find();
-
-        // Return the wards array
+        const wards = await hospitalModel.ward.find().notDeleted();
         res.status(200).json({
             success: true,
             count: wards.length,
             wards
         });
     } catch (error) {
-        // Handle any errors
         res.status(500).json({
             success: false,
             message: "Failed to fetch wards",
@@ -91,52 +67,46 @@ exports.getAllWards = async (req, res) => {
     }
 };
 
-// Update Ward by ID//
+// Update Ward by ID
 exports.updateWardById = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
 
-        // Validate the ID format
-        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid ward ID format"
+                message: "Invalid ward ID"
             });
         }
 
-        // Check if ward exists
-        const existingWard = await hospitalModel.ward.findById(id);
-        if (!existingWard) {
+        // Prevent certain fields from being updated
+        const restrictedFields = ['_id', 'isDeleted', 'beds.history'];
+        restrictedFields.forEach(field => {
+            if (updates[field]) {
+                delete updates[field];
+            }
+        });
+
+        const updatedWard = await hospitalModel.ward.findByIdAndUpdate(
+            id,
+            updates,
+            { new: true, runValidators: true }
+        ).notDeleted();
+
+        if (!updatedWard) {
             return res.status(404).json({
                 success: false,
                 message: "Ward not found"
             });
         }
 
-        // Prevent changing certain fields if needed
-        if (updates._id) {
-            return res.status(400).json({
-                success: false,
-                message: "Cannot change ward ID"
-            });
-        }
-
-        // Update the ward
-        const updatedWard = await hospitalModel.ward.findByIdAndUpdate(
-            id,
-            updates,
-            { new: true, runValidators: true }
-        );
-
         res.status(200).json({
             success: true,
             message: "Ward updated successfully",
             data: updatedWard
         });
-
     } catch (error) {
-        console.error("Error updating ward:", error);
         res.status(500).json({
             success: false,
             message: "Failed to update ward",
@@ -145,38 +115,232 @@ exports.updateWardById = async (req, res) => {
     }
 };
 
-
-
-// wardController.js
+// Get wards by department (non-deleted only)
 exports.getWardsByDepartment = async (req, res) => {
     try {
         const { departmentId } = req.params;
 
-        // 1. Find the department (corrected findById usage)
-        const department = await hospitalModel.Department.findById({ _id: departmentId });
-        console.log(department)
+        // First validate the department exists
+        const department = await hospitalModel.Department.findById(departmentId);
         if (!department) {
-            return res.status(404).json({ message: 'Department not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Department not found'
+            });
         }
 
-        // 2. Get ward IDs from department (note: field name is 'ward' not 'wards')
-        const wardIds = department.ward; // Use the correct field name from your schema
-        console.log(wardIds);
-        // 3. Convert string IDs to ObjectIds if needed
-
-        // 4. Find wards using correct model reference (assuming model name is 'Ward')
+        // Get all wards with full details
         const wards = await hospitalModel.ward.find({
-            _id: wardIds
+            _id: { $in: department.ward },
+            isDeleted: false
+        }); // Exclude unnecessary fields
+
+        res.status(200).json({
+            success: true,
+            wards
         });
-
-
-        res.status(200).json(wards);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
+exports.getWardsById = async (req, res) => {
+    try {
+        const { wardId } = req.params;
+        // res.send("here")
+        // First validate the department exists
+        const ward = await hospitalModel.ward.findById(wardId);
+        if (!ward) {
+            return res.status(404).json({
+                success: false,
+                message: 'ward not found'
+            });
+        }
 
+        res.status(200).json({
+            success: true,
+            ward
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
-// Fetch all wards in a department by department name
+exports.getPatientbyBedId = async (req, res) => {
+    try {
+        const { bedId } = req.params;
 
+        // Find the ward containing this bed
+        const ward = await hospitalModel.ward.findOne({
+            'beds._id': bedId,
+            isDeleted: false
+        });
+
+        if (!ward) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bed not found in any ward'
+            });
+        }
+
+        // Find the specific bed
+        const bed = ward.beds.find(b =>
+            b._id.toString() === bedId &&
+            !b.isDeleted
+        );
+
+        if (!bed) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bed not found or has been deleted'
+            });
+        }
+
+        // Get patient details from AdmittedPatient collection
+        let patientDetails = null;
+        if (bed.occupied && bed.currentPatientMRNo) {
+            try {
+                // Query using the correct field name from your schema
+                patientDetails = await hospitalModel.AdmittedPatient.findOne({
+                    patient_MRNo: bed.currentPatientMRNo
+                }).select('patient_Name patient_MRNo patient_CNIC patient_Gender patient_DateOfBirth patient_Address patient_Guardian admission_Details ward_Information status');
+
+                if (!patientDetails) {
+                    patientDetails = { 
+                        patient_MRNo: bed.currentPatientMRNo, 
+                        error: "Patient details not found in admitted patients" 
+                    };
+                }
+            } catch (patientError) {
+                console.error('Error fetching patient:', patientError);
+                patientDetails = { 
+                    patient_MRNo: bed.currentPatientMRNo, 
+                    error: "Error fetching patient details" 
+                };
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                bed: {
+                    id: bed._id,
+                    bedNumber: bed.bedNumber,
+                    status: bed.occupied ? 'Occupied' : 'Available',
+                    currentPatientMRNo: bed.currentPatientMRNo,
+                    ward: {
+                        id: ward._id,
+                        name: ward.name,
+                        wardNumber: ward.wardNumber,
+                        department: ward.department_Name
+                    }
+                },
+                patient: patientDetails,
+                history: bed.history.filter(h => !h.isDeleted)
+            }
+        });
+
+    } catch (error) {
+        console.error('Error in getPatientbyBedId:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
+// Soft delete a ward
+exports.deleteWard = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const ward = await hospitalModel.ward.findById(id).notDeleted();
+        if (!ward) {
+            return res.status(404).json({
+                success: false,
+                message: "Ward not found"
+            });
+        }
+
+        // Check if any beds are occupied
+        const occupiedBeds = ward.beds.some(bed => bed.occupied);
+        if (occupiedBeds) {
+            return res.status(400).json({
+                success: false,
+                message: "Cannot delete ward with occupied beds"
+            });
+        }
+
+        await ward.softDelete();
+
+        // Remove from department
+        await hospitalModel.Department.updateMany(
+            { ward: id },
+            { $pull: { ward: id } }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Ward deleted successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete ward",
+            error: error.message
+        });
+    }
+};
+
+// Get bed history
+exports.getBedHistory = async (req, res) => {
+    try {
+        const { wardId, bedNumber } = req.params;
+
+        const ward = await hospitalModel.ward.findById(wardId).notDeleted();
+        if (!ward) {
+            return res.status(404).json({
+                success: false,
+                message: "Ward not found"
+            });
+        }
+
+        const bed = ward.beds.find(b =>
+            b.bedNumber.toString().trim().toUpperCase() === bedNumber.toString().trim().toUpperCase() &&
+            !b.isDeleted
+        );
+
+        if (!bed) {
+            return res.status(404).json({
+                success: false,
+                message: "Bed not found in ward"
+            });
+        }
+
+        // Return history with only MRNo
+        const history = bed.history
+            .filter(h => !h.isDeleted)
+            .map(h => ({
+                patientMRNo: h.patientMRNo,
+                admissionDate: h.admissionDate,
+                dischargeDate: h.dischargeDate
+            }));
+
+        res.status(200).json({
+            success: true,
+            history
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to get bed history",
+            error: error.message
+        });
+    }
+};
