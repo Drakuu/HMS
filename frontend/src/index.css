@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* @theme {
+  --color-primary-50: oklch(98.4% 0.014 180.72);
+} */
+
+@theme static {
+  /* primary color of the website */
+  --color-primary-50: var(--color-teal-50);
+  --color-primary-100: var(--color-teal-100);
+  --color-primary-200: var(--color-teal-200);
+  --color-primary-300: var(--color-teal-300);
+  --color-primary-400: var(--color-teal-400);
+  --color-primary-500: var(--color-teal-500);
+  --color-primary-600: var(--color-teal-600);
+  --color-primary-700: var(--color-teal-700);
+  --color-primary-800: var(--color-teal-800);
+  --color-primary-900: var(--color-teal-900);
+  --color-navbar: var(--color-teal-950);
+
+  /* color for delete btn */
+  --color-danger-100: var(--color-red-100);
+  --color-danger-300: var(--color-red-300);
+  --color-danger-600: var(--color-red-600);
+
+  /* color for the edit btn */
+  --color-edit-100: var(--color-yellow-100);
+  --color-edit-300: var(--color-yellow-300);
+  --color-edit-600: var(--color-yellow-600);
+
+  /* color for the  active/sccess btn */
+  --color-success-100: var(--color-teal-100);
+  --color-success-300: var(--color-teal-300);
+  --color-success-600: var(--color-teal-600);
+
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}

@@ -1,0 +1,32 @@
+/* ot.css */
+/* Drag and drop styles */
+[data-rbd-drag-handle-context-id] {
+    cursor: grab;
+  }
+  
+  [data-rbd-draggable-context-id] {
+    transition: all 0.2s ease;
+  }
+  
+  [data-rbd-draggable-context-id][data-rbd-dragging-context-id] {
+    background: #f0f7ff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  [data-rbd-placeholder-context-id] {
+    background: #c8ebfb;
+    opacity: 0.5;
+    border-radius: 4px;
+  }
+  
+  .drag-handle {
+    cursor: grab;
+    width: 24px;
+    text-align: center;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  
+  .drag-handle:hover {
+    opacity: 1;
+  }
