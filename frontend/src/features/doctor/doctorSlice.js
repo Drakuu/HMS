@@ -28,10 +28,14 @@ export const createDoctor = createAsyncThunk(
     } catch (error) {
       console.error("Detailed create doctor error:", error.response?.data || error.message);
       if (error.response) {
+        const data = error.response.data || {};
         return rejectWithValue({
-          message: error.response.data.message || 'Failed to submit doctor data',
+          message: data.message || 'Failed to submit doctor data',
           statusCode: error.response.status,
-          errors: error.response.data.errors // Include validation errors if available
+          errors: data.errors,
+          errorType: data.errorType,
+          field: data.field,
+          value: data.value,
         });
       }
       return rejectWithValue({

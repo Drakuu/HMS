@@ -191,7 +191,6 @@ const createStaff = async (req, res) => {
   }
 };
 
-
 const getAllStaff = async (req, res) => {
   try {
     const staffList = await hospitalModel.Staff.find({ isDeleted: false })
@@ -245,6 +244,12 @@ const getStaffById = async (req, res) => {
 const updateStaffById = async (req, res) => {
   const { id } = req.params;
   const {
+    user_Name,
+    user_Email,
+    user_Contact,
+    user_Address,
+    user_CNIC,
+    user_Access,
     designation,
     department,
     qualifications,
@@ -252,14 +257,17 @@ const updateStaffById = async (req, res) => {
     dateOfBirth,
     emergencyContact,
     shift,
-    shiftTiming
+    shiftTiming,
+    labSpecialization,
+    radiologyCertification
   } = req.body;
 
   try {
+    // Find the staff and populate the user data
     const staff = await hospitalModel.Staff.findOne({
       _id: id,
       isDeleted: false
-    });
+    }).populate('user');
 
     if (!staff) {
       return res.status(404).json({
@@ -268,15 +276,113 @@ const updateStaffById = async (req, res) => {
       });
     }
 
+    // Validation for CNIC format if provided
+    if (user_CNIC) {
+      const cnicRegex = /^[0-9]{5}-[0-9]{7}-[0-9]$/;
+      if (!cnicRegex.test(user_CNIC)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid CNIC format. Expected format: 12345-1234567-1"
+        });
+      }
+    }
+
+    // Validation for email format if provided
+    if (user_Email && !/^\S+@\S+\.\S+$/.test(user_Email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format"
+      });
+    }
+
+    // Check for duplicate user data (excluding the current user)
+    if (user_CNIC || user_Contact || user_Email) {
+      const duplicateConditions = {
+        _id: { $ne: staff.user._id },
+        $or: []
+      };
+
+      if (user_CNIC) duplicateConditions.$or.push({ user_CNIC });
+      if (user_Contact) duplicateConditions.$or.push({ user_Contact });
+      if (user_Email) duplicateConditions.$or.push({ user_Email });
+
+      if (duplicateConditions.$or.length > 0) {
+        const existingUser = await hospitalModel.User.findOne(duplicateConditions);
+
+        if (existingUser) {
+          let conflictField = '';
+          if (existingUser.user_CNIC === user_CNIC) conflictField = 'CNIC';
+          else if (existingUser.user_Contact === user_Contact) conflictField = 'phone number';
+          else if (existingUser.user_Email === user_Email) conflictField = 'email';
+
+          return res.status(409).json({
+            success: false,
+            message: `User with this ${conflictField} already exists`,
+            conflictField
+          });
+        }
+      }
+    }
+
+    // Update user fields if provided
+    const userUpdates = {};
+    if (user_Name) userUpdates.user_Name = user_Name;
+    if (user_Email) userUpdates.user_Email = user_Email;
+    if (user_Contact) userUpdates.user_Contact = user_Contact;
+    if (user_Address) userUpdates.user_Address = user_Address;
+    if (user_CNIC) userUpdates.user_CNIC = user_CNIC;
+    if (user_Access) {
+      // Validate user access type
+      const allowedStaffTypes = ["Receptionist", "Lab", "Radiology", "Nurse"];
+      if (!allowedStaffTypes.includes(user_Access)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid staff type. Must be one of: ${allowedStaffTypes.join(", ")}`
+        });
+      }
+      userUpdates.user_Access = user_Access;
+    }
+
+    // If user access changed, generate a new identifier
+    if (user_Access && user_Access !== staff.user.user_Access) {
+      try {
+        userUpdates.user_Identifier = await utils.generateUniqueStaffId(user_Access, user_Name || staff.user.user_Name);
+      } catch (err) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to generate unique staff ID",
+          error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
+      }
+    }
+
+    // Update user document
+    if (Object.keys(userUpdates).length > 0) {
+      await hospitalModel.User.findByIdAndUpdate(
+        staff.user._id,
+        { $set: userUpdates },
+        { new: true, runValidators: true }
+      );
+    }
+
     // Update staff fields
-    staff.designation = designation || staff.designation;
-    staff.department = department || staff.department;
-    staff.qualifications = qualifications || staff.qualifications;
-    staff.gender = gender || staff.gender;
-    staff.dateOfBirth = dateOfBirth || staff.dateOfBirth;
-    staff.emergencyContact = emergencyContact || staff.emergencyContact;
-    staff.shift = shift || staff.shift;
-    staff.shiftTiming = shiftTiming || staff.shiftTiming;
+    if (designation) staff.designation = designation;
+    if (department) staff.department = department;
+    if (qualifications) staff.qualifications = Array.isArray(qualifications)
+      ? qualifications
+      : [qualifications].filter(Boolean);
+    if (gender) staff.gender = gender;
+    if (dateOfBirth) staff.dateOfBirth = dateOfBirth;
+    if (emergencyContact) staff.emergencyContact = emergencyContact;
+    if (shift) staff.shift = shift;
+    if (shiftTiming) staff.shiftTiming = shiftTiming;
+
+    // Handle specialization fields based on user access
+    if (user_Access === "Lab" && labSpecialization) {
+      staff.labSpecialization = labSpecialization;
+    } else if (user_Access === "Radiology" && radiologyCertification) {
+      staff.radiologyCertification = radiologyCertification;
+    }
 
     // Handle file upload if needed
     if (req.files?.profilePicture?.[0]) {
@@ -287,16 +393,53 @@ const updateStaffById = async (req, res) => {
 
     await staff.save();
 
+    // Get the updated staff with populated user data
+    const updatedStaff = await hospitalModel.Staff.findById(id).populate('user');
+
     res.status(200).json({
       success: true,
-      data: staff
+      message: 'Staff updated successfully',
+      data: updatedStaff
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
+    console.error('Staff update error:', error);
+
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+
+      return res.status(409).json({
+        success: false,
+        message: `Duplicate entry: ${field} (${value}) already exists.`,
+        errorType: 'DUPLICATE_KEY',
+        field,
+        value
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors
+      });
+    }
+
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid value for field '${error.path}': ${error.value}`
+      });
+    }
+
+    return res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: "An unexpected error occurred while updating staff",
+      error: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        stack: error.stack
+      } : undefined
     });
   }
 };

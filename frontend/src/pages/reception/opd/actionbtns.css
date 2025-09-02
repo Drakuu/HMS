@@ -167,3 +167,36 @@
     50% { transform: scale(1.05); opacity: 0.3; }
     100% { transform: scale(1); opacity: 0.7; }
   }
+
+
+
+    .react-select-container .react-select__control {
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      box-shadow: 0 1px 2px 0 rgba(165, 247, 199, 0.05);
+      min-height: 44px;
+    }
+  
+    .react-select-container .react-select__control--is-focused {
+      border-color: #5cf5a9;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+  
+    .react-select-container .react-select__value-container {
+      padding: 8px 12px;
+    }
+  
+    .react-select-container .react-select__input {
+      padding: 0;
+      margin: 0;
+    }
+  
+    .react-select-container .react-select__indicator {
+      padding: 8px;
+    }
+    .react-select__control {
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 4px rgba(255, 80, 80, 0.1);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }

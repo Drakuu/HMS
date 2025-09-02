@@ -195,7 +195,7 @@ const getDoctorById = async (req, res) => {
       deleted: false,
     }).populate({
       path: 'user',
-      select: 'user_Identifier user_Name user_Email user_CNIC user_Access user_Contact isVerified isDeleted  user_Address' // Only include these fields from User
+      select: 'user_Identifier user_Name user_Password user_Email user_CNIC user_Access user_Contact isVerified isDeleted  user_Address' // Only include these fields from User
     });
 
     if (!doctor) {
@@ -210,17 +210,17 @@ const getDoctorById = async (req, res) => {
       });
     }
 
-    console.log("Searching for patients with:", {
-      doctorName: doctor.user.user_Name,
-      department: doctor.doctor_Department
-    });
+    // console.log("Searching for patients with:", {
+    //   doctorName: doctor.user.user_Name,
+    //   department: doctor.doctor_Department
+    // });
 
     const patients = await hospitalModel.Patient.find({
       "patient_HospitalInformation.doctor_Name": doctor.user.user_Name,
       "patient_HospitalInformation.doctor_Department": doctor.doctor_Department
     });
 
-    console.log("Found patients:", patients);
+    // console.log("Found patients:", patients);
 
     // console.log("Doctor details with patients: ", patients);
 
@@ -306,7 +306,9 @@ const deleteDoctor = async (req, res) => {
 const updateDoctor = async (req, res) => {
   try {
     const { doctorId } = req.params;
-    const doctor = await hospitalModel.Doctor.findById(doctorId);
+
+    // Find the doctor and populate the user data
+    const doctor = await hospitalModel.Doctor.findById(doctorId).populate('user');
 
     if (!doctor) {
       return res.status(404).json({
@@ -316,12 +318,13 @@ const updateDoctor = async (req, res) => {
     }
 
     const {
-      doctor_Name,
-      doctor_Email,
-      doctor_Contact,
-      doctor_Address,
+      user_Name,
+      user_Email,
+      user_Contact,
+      user_Address,
+      user_Password,
+      user_CNIC,
       doctor_Department,
-      doctor_CNIC,
       doctor_Type,
       doctor_Specialization,
       doctor_Qualifications,
@@ -351,19 +354,34 @@ const updateDoctor = async (req, res) => {
       console.error('Error parsing contract:', e);
     }
 
-    // Build update data
-    const updateData = {
-      doctor_Name: doctor_Name !== undefined ? doctor_Name : doctor.doctor_Name,
-      doctor_Email: doctor_Email !== undefined ? doctor_Email : doctor.doctor_Email,
-      doctor_Contact: doctor_Contact !== undefined ? doctor_Contact : doctor.doctor_Contact,
-      doctor_Address: doctor_Address !== undefined ? doctor_Address : doctor.doctor_Address,
+    // Update User model (personal information)
+    const userUpdateData = {};
+    if (user_Name !== undefined) userUpdateData.user_Name = user_Name;
+    if (user_Password !== undefined) userUpdateData.user_Password = user_Password.hash ? await bcrypt.hash(user_Password, 10) : doctor.user.user_Password;
+    if (user_Email !== undefined) userUpdateData.user_Email = user_Email;
+    if (user_Contact !== undefined) userUpdateData.user_Contact = user_Contact;
+    if (user_Address !== undefined) userUpdateData.user_Address = user_Address;
+    if (user_CNIC !== undefined) userUpdateData.user_CNIC = user_CNIC;
+
+    // Update user if there are changes
+    if (Object.keys(userUpdateData).length > 0) {
+      await hospitalModel.User.findByIdAndUpdate(
+        doctor.user._id,
+        userUpdateData,
+        { new: true, runValidators: true }
+      );
+    }
+
+    // Build doctor update data
+    const doctorUpdateData = {
       doctor_Department: doctor_Department !== undefined ? doctor_Department : doctor.doctor_Department,
-      doctor_CNIC: doctor_CNIC !== undefined ? doctor_CNIC : doctor.doctor_CNIC,
       doctor_Type: doctor_Type !== undefined ? doctor_Type : doctor.doctor_Type,
       doctor_Specialization: doctor_Specialization !== undefined ? doctor_Specialization : doctor.doctor_Specialization,
-      doctor_Qualifications: doctor_Qualifications !== undefined ? doctor_Qualifications : doctor.doctor_Qualifications,
+      doctor_Qualifications: doctor_Qualifications !== undefined ?
+        (Array.isArray(doctor_Qualifications) ? doctor_Qualifications : [doctor_Qualifications]) :
+        doctor.doctor_Qualifications,
       doctor_LicenseNumber: doctor_LicenseNumber !== undefined ? doctor_LicenseNumber : doctor.doctor_LicenseNumber,
-      doctor_Fee: doctor_Fee !== undefined ? doctor_Fee : doctor.doctor_Fee,
+      doctor_Fee: doctor_Fee !== undefined ? Number(doctor_Fee) : doctor.doctor_Fee,
       doctor_Image: { filePath: newDoctor_ImagePath },
       doctor_Contract: {
         doctor_Percentage: parsedContract?.doctor_Percentage ?? doctor.doctor_Contract.doctor_Percentage,
@@ -376,9 +394,13 @@ const updateDoctor = async (req, res) => {
 
     const updatedDoctor = await hospitalModel.Doctor.findByIdAndUpdate(
       doctorId,
-      updateData,
+      doctorUpdateData,
       { new: true, runValidators: true }
-    );
+    ).populate({
+      path: 'user',
+      select: 'user_Identifier user_Name user_Email user_Password user_CNIC user_Access user_Contact isVerified isDeleted user_Address'
+    });
+
     if (!updatedDoctor) {
       return res.status(500).json({
         success: false,
@@ -389,14 +411,44 @@ const updateDoctor = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Doctor updated successfully",
-      information: updatedDoctor,
+      data: updatedDoctor,
     });
   } catch (error) {
     console.error("Error updating doctor:", error);
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      const value = error.keyValue[field];
+
+      let fieldName = field;
+      if (field === 'user_Email') fieldName = 'email';
+      if (field === 'user_CNIC') fieldName = 'CNIC';
+      if (field === 'user_Contact') fieldName = 'contact number';
+
+      return res.status(409).json({
+        success: false,
+        message: `This ${fieldName} (${value}) is already registered. Please use a different ${fieldName}.`,
+        errorType: 'DUPLICATE_KEY',
+        field: fieldName,
+        value: value
+      });
+    }
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: errors
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: "Internal server error",
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

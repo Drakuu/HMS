@@ -19,6 +19,8 @@ import { InputField, RadioGroup } from '../../../components/common/FormFields'
 import { FormSection, FormGrid } from '../../../components/common/FormSection';
 import { Button, ButtonGroup } from '../../../components/common/Buttons';
 import { getRoleRoute } from '../../../utils/getRoleRoute';
+import Select from 'react-select'
+import './actionbtns.css'
 
 const NewOpd = ({ mode = "create" }) => {
     const dispatch = useDispatch();
@@ -468,38 +470,84 @@ const NewOpd = ({ mode = "create" }) => {
         : "Edit the patient details below";
 
     // Doctor select component (since it has special logic)
-    const DoctorSelect = () => (
-        <div className="space-y-1 mb-6">
-            <label className="block text-sm font-medium text-gray-700">Consulting Doctor</label>
-            <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaUserMd className="text-primary-600" />
+    // Doctor select component using react-select
+    const DoctorSelect = () => {
+        // Format doctors for react-select
+        const doctorOptions = doctorsStatus === 'loading'
+            ? []
+            : getFormattedDoctors().map(doctor => ({
+                value: doctor.id,
+                label: `${doctor.name} (${doctor.department}) - ${doctor.specialization}`,
+                data: doctor // Store the full doctor data
+            }));
+
+        const handleDoctorChange = (selectedOption) => {
+            if (selectedOption) {
+                const doctorData = selectedOption.data;
+                setFormData(prev => ({
+                    ...prev,
+                    doctorName: doctorData.name,
+                    doctorGender: doctorData.gender,
+                    doctorQualification: doctorData.qualification,
+                    doctorFee: doctorData.fee,
+                    doctorSpecialization: doctorData.specialization,
+                    doctorDepartment: doctorData.department,
+                    totalFee: doctorData.fee - (prev.discount || 0)
+                }));
+            } else {
+                // Clear doctor info if no selection
+                setFormData(prev => ({
+                    ...prev,
+                    doctorName: "",
+                    doctorGender: "",
+                    doctorQualification: "",
+                    doctorFee: "",
+                    doctorSpecialization: "",
+                    doctorDepartment: "",
+                    totalFee: 0
+                }));
+            }
+        };
+
+        // Find the currently selected option
+        const selectedOption = doctorOptions.find(option =>
+            option.data.name === formData.doctorName
+        );
+
+        return (
+            <div className="space-y-1 mb-6">
+                <label className="block text-sm font-medium text-gray-700">
+                    Consulting Doctor
+                </label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                        <FaUserMd className="text-primary-600" />
+                    </div>
+                    <Select
+                        options={doctorOptions}
+                        value={selectedOption}
+                        onChange={handleDoctorChange}
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                        placeholder="Select Doctor"
+                        isDisabled={doctorsStatus === 'loading'}
+                        isLoading={doctorsStatus === 'loading'}
+                        isClearable={true}
+                        noOptionsMessage={() =>
+                            doctorsStatus === 'loading' ? 'Loading doctors...' : 'No doctors found'
+                        }
+                        styles={{
+                            control: (base) => ({
+                                ...base,
+                                paddingLeft: '40px',
+                                minHeight: '44px'
+                            })
+                        }}
+                    />
                 </div>
-                <select
-                    name="doctor"
-                    value={formData.doctorName}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 appearance-none"
-                    required
-                    disabled={doctorsStatus === 'loading'}
-                >
-                    <option value="">Select Doctor</option>
-                    {doctorsStatus === 'loading' ? (
-                        <option>Loading doctors...</option>
-                    ) : (
-                        getFormattedDoctors().map(doctor => (
-                            <option key={doctor.id}
-                                value={`${doctor.name}`}
-                                data-doctor={JSON.stringify(doctor)}
-                            >
-                                {doctor.name} ({doctor.department}) ({doctor.specialization})
-                            </option>
-                        ))
-                    )}
-                </select>
             </div>
-        </div>
-    );
+        );
+    };
 
     // Action buttons component
     const ActionButtons = () => (
