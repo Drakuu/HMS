@@ -27,13 +27,15 @@ const AddlabPatient = () => {
     Age: '',
     ReferredBy: '',
     Guardian: '',
-    MaritalStatus: '',
+    // MaritalStatus: '',
   });
   const [selectedTestId, setSelectedTestId] = useState("");
   const [testRows, setTestRows] = useState([]);
   const [submissionResult, setSubmissionResult] = useState(null);
   const [dob, setDob] = useState(null);
   const [printData, setPrintData] = useState(null);
+  const [useDefaultContact, setUseDefaultContact] = useState(false);
+  const [defaultContactNumber] = useState("0000-0000000"); // Default contact number
 
   const testList = useSelector((state) => state.patientTest.tests);
 
@@ -41,6 +43,15 @@ const AddlabPatient = () => {
     dispatch(fetchAllTests());
     return () => dispatch(resetPatientTestStatus());
   }, [dispatch]);
+
+  // Add useEffect to handle default contact number
+  useEffect(() => {
+    if (useDefaultContact) {
+      setPatient(prev => ({ ...prev, ContactNo: defaultContactNumber }));
+    } else if (patient.ContactNo === defaultContactNumber) {
+      setPatient(prev => ({ ...prev, ContactNo: '' }));
+    }
+  }, [useDefaultContact, defaultContactNumber]);
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return '';
@@ -89,6 +100,11 @@ const AddlabPatient = () => {
         return;
       }
 
+      // Check if contact number is empty and suggest using default
+      if (!patientData.contactNo || patientData.contactNo.trim() === '') {
+        setUseDefaultContact(true);
+      }
+
       setPatient({
         MRNo: patientData.mrno || '',
         CNIC: patientData.cnic || '',
@@ -99,7 +115,7 @@ const AddlabPatient = () => {
         Age: patientData.age || calculateAge(patientData.DateOfBirth) || '',
         ReferredBy: patientData.referredBy || '',
         Guardian: patientData.gaurdian || '',
-        MaritalStatus: patientData.maritalStatus || '',
+        // MaritalStatus: patientData.maritalStatus || '',
       });
     } catch (err) {
       console.error("❌ Patient not found:", err);
@@ -302,7 +318,7 @@ const AddlabPatient = () => {
             Age: patient.Age,
             ReferredBy: patient.ReferredBy,
             Guardian: patient.patient_Guardian,
-            MaritalStatus: patient.MaritalStatus,
+            // MaritalStatus: patient.MaritalStatus,
           },
           tests: testRows,
           totalAmount,
@@ -358,6 +374,9 @@ const AddlabPatient = () => {
           handleSearch={handleSearch}
           handleDobChange={handleDobChange}
           setMode={setMode}
+          useDefaultContact={useDefaultContact}
+          setUseDefaultContact={setUseDefaultContact}
+          defaultContactNumber={defaultContactNumber}
         />
       </FormSection>
 

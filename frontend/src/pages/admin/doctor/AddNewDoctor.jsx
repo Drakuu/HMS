@@ -81,15 +81,6 @@ const DoctorForm = ({ mode = 'create' }) => {
   }, [dispatch, doctorId, isEditMode]);
 
   useEffect(() => {
-    if (status === 'succeeded') {
-      const timer = setTimeout(() => {
-        navigate(getRoleRoute('doctors'));
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [status, navigate]);
-
-  useEffect(() => {
     if (isEditMode && currentDoctor) {
       setFormData({
         doctor_Name: currentDoctor.user.user_Name || '',
@@ -230,6 +221,7 @@ const DoctorForm = ({ mode = 'create' }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submission started');
 
     // Validate required fields
     if (!formData.doctor_Name.trim()) {
@@ -237,7 +229,6 @@ const DoctorForm = ({ mode = 'create' }) => {
       return;
     }
 
-    // In handleSubmit
     if (!/^\d{4}-\d{7}$/.test(formData.doctor_Contact)) {
       toast.error("Contact must be in format 03XX-XXXXXXX");
       return;
@@ -245,6 +236,27 @@ const DoctorForm = ({ mode = 'create' }) => {
 
     if (!isEditMode && !formData.doctor_password) {
       toast.error("Password is required");
+      return;
+    }
+
+    // Additional validations
+    if (!formData.doctor_Department) {
+      toast.error("Department is required");
+      return;
+    }
+
+    if (!formData.doctor_Type) {
+      toast.error("Doctor type is required");
+      return;
+    }
+
+    if (!formData.doctor_CNIC) {
+      toast.error("CNIC is required");
+      return;
+    }
+
+    if (!formData.doctor_Contract.doctor_JoiningDate) {
+      toast.error("Joining date is required");
       return;
     }
 
@@ -270,7 +282,6 @@ const DoctorForm = ({ mode = 'create' }) => {
       formToSubmit.append(`doctor_Qualifications[${i}]`, qual);
     });
 
-    // In handleSubmit, when appending contract data:
     formToSubmit.append('doctor_Contract[doctor_Percentage]', String(Number(formData.doctor_Contract.doctor_Percentage)));
     formToSubmit.append('doctor_Contract[hospital_Percentage]', String(Number(formData.doctor_Contract.hospital_Percentage)));
     formToSubmit.append('doctor_Contract[contract_Time]', formData.doctor_Contract.contract_Time);
@@ -280,32 +291,40 @@ const DoctorForm = ({ mode = 'create' }) => {
     if (imageFile) formToSubmit.append('doctor_Image', imageFile);
     if (agreementFile) formToSubmit.append('doctor_Agreement', agreementFile);
 
-    // Debug: Log FormData contents
-    for (let [key, value] of formToSubmit.entries()) {
-      console.log(key, value);
-    }
-
     try {
+      let result;
       if (isEditMode && doctorId) {
-        await dispatch(updateDoctorById({ doctorId, updatedData: formToSubmit })).unwrap();
+        result = await dispatch(updateDoctorById({ doctorId, updatedData: formToSubmit })).unwrap();
         toast.success("Doctor updated successfully!");
       } else {
-        await dispatch(createDoctor(formToSubmit)).unwrap();
+        result = await dispatch(createDoctor(formToSubmit)).unwrap();
         toast.success("Doctor created successfully!");
         resetLocalForm();
       }
-      navigate(getRoleRoute('doctors'));
+
+      console.log('Success result:', result);
+
+      // Navigate after success
+      setTimeout(() => {
+        navigate(getRoleRoute('doctors'));
+      }, 1500);
+
     } catch (err) {
+      console.error('Error details:', err);
+
       if (err.payload?.statusCode === 409) {
         toast.error("This email or CNIC is already registered");
+      } else if (err.payload?.errors) {
+        // Handle validation errors from backend
+        const errorMessages = Object.values(err.payload.errors).flat().join(', ');
+        toast.error(errorMessages);
+      } else if (err.payload?.message) {
+        toast.error(err.payload.message);
       } else {
-        const errorMsg = err.payload?.errors
-          ? Object.values(err.payload.errors).join(', ')
-          : err.payload?.message || `Failed to ${isEditMode ? 'update' : 'create'} doctor`;
-        toast.error(errorMsg);
+        toast.error(`Failed to ${isEditMode ? 'update' : 'create'} doctor. Please try again.`);
       }
     }
-  }
+  };
 
   const formatPhoneNumber = (value) => {
     if (!value) return value;
@@ -381,18 +400,6 @@ const DoctorForm = ({ mode = 'create' }) => {
       }));
     }
   };
-
-  useEffect(() => {
-    if (status === 'succeeded') {
-      if (!isEditMode) {
-        resetLocalForm();
-      }
-      dispatch(resetDoctorState());
-    } else if (status === 'failed') {
-      toast.error(error || `Failed to ${isEditMode ? 'update' : 'create'} doctor`);
-      dispatch(resetDoctorState());
-    }
-  }, [status, error, navigate, dispatch, isEditMode]);
 
   const contractFields = [
     {
@@ -552,7 +559,6 @@ const DoctorForm = ({ mode = 'create' }) => {
     }
   ];
 
-
   // Form configuration
   const formConfig = {
     title: isEditMode ? "Edit Doctor" : "Doctor Registration",
@@ -651,6 +657,7 @@ const DoctorForm = ({ mode = 'create' }) => {
           >
             Cancel
           </button>
+
           <button
             type="submit"
             disabled={status === 'loading'}

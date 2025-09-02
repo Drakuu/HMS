@@ -30,7 +30,7 @@ const PrintReportSummary = ({ reports, dateRange }) => {
   };
 
   // Calculate totals
-  
+
   const calculateTotals = () => {
     return reports.reduce(
       (acc, report) => {
@@ -49,7 +49,7 @@ const PrintReportSummary = ({ reports, dateRange }) => {
   };
 
   const totals = calculateTotals();
-        // console.log("the totalstotalstotals: ",totals )
+  // console.log("the totalstotalstotals: ",totals )
 
   // Get referred doctors with counts
   const getReferredDoctors = () => {
@@ -122,7 +122,7 @@ const PrintReportSummary = ({ reports, dateRange }) => {
           <h1 className="text-xl font-bold uppercase tracking-wide">
             AL-SHAHBAZ MODERN DIAGNOSTIC CENTER
           </h1>
-         
+
           <h2 className="text-md font-medium mt-2">
             Report Summary: {formatDate(dateRange.startDate)}
             {dateRange.endDate && ` to ${formatDate(dateRange.endDate)}`}
@@ -148,7 +148,7 @@ const PrintReportSummary = ({ reports, dateRange }) => {
           ))}
         </div> */}
 
-<div className="grid grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-4 gap-3 mb-6">
           {[
             { label: "Total Amount", value: totals.totalAmount },
             { label: "Total Paid", value: totals.totalPaid },
@@ -164,7 +164,7 @@ const PrintReportSummary = ({ reports, dateRange }) => {
               </p>
             </div>
           ))}
-          </div>
+        </div>
 
         {/* Referred Doctors Section */}
         <div className="mb-6">
@@ -195,6 +195,7 @@ const PrintReportSummary = ({ reports, dateRange }) => {
                 <tr className="bg-gray-50 text-left border-b">
                   <th className="p-2 border border-gray-200">#</th>
                   <th className="p-2 border border-gray-200">Patient_Name</th>
+                  <th className="p-2 border border-gray-200">Test Names</th>
                   <th className="p-2 border border-gray-200">MR No.</th>
                   <th className="p-2 border border-gray-200">Recp. #</th>
                   <th className="p-2 border border-gray-200">Date</th>
@@ -228,6 +229,12 @@ const PrintReportSummary = ({ reports, dateRange }) => {
                       </td>
                       <td className="p-2 border border-gray-200">
                         {safeData(report.patient_Detail?.patient_Name)}
+                      </td>
+                      <td className="p-2 border border-gray-200">
+                        {report.selectedTests
+                          ?.map(test => test.testDetails?.testName || "N/A")
+                          ?.filter(name => name !== "N/A")
+                          ?.join(", ")}
                       </td>
                       <td className="p-2 border border-gray-200">
                         {safeData(report.patient_Detail?.patient_MRNo)}
@@ -266,7 +273,7 @@ const PrintReportSummary = ({ reports, dateRange }) => {
             </table>
           </div>
         </div>
-           
+
 
         {/* Footer */}
         <div className="text-center text-xs text-gray-500 pt-4 border-t absolute bottom-0 left-0 right-0 pb-2">
