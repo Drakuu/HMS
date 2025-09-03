@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const criticalTestSchema = new mongoose.Schema({
   testName: { type: String, required: true },
@@ -22,4 +22,4 @@ const criticalResultSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("CriticalResult", criticalResultSchema);
+module.exports = mongoose.model("CriticalResult", criticalResultSchema);

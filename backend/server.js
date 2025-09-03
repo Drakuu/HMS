@@ -36,9 +36,10 @@ app.use('/', indexRouter);
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '0.0.0.0';
+const MODE = process.env.NODE_ENV || 'development';
 
 app.listen(PORT, HOST, () => {
-  console.log(
-    `Server running in ${process.env.NODE_ENV} mode on http://${HOST}:${PORT}`
-  );
+  // If binding to 0.0.0.0, show localhost in the message for clarity
+  const shownHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
+  console.log(`Server running in ${MODE} mode on http://${shownHost}:${PORT}`);
 });

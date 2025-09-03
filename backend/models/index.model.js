@@ -14,7 +14,6 @@ const PatientTest = require("./patientTest.model")
 const TestManagment = require('./testmanagement.model')
 const Appointment = require("./appointment.model")
 const TestResult = require("./testResult.model")
-
 const Staff = require('./staff.model')
 
 const RadiologyReport = require("./RadiologyReport");

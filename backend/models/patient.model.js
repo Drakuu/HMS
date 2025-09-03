@@ -1,35 +1,59 @@
 const mongoose = require("mongoose");
 
+const visitSchema = new mongoose.Schema({
+  visitDate: { type: Date, default: Date.now },
+  doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
+  purpose: { type: String, },
+  disease: { type: String },
+  doctorFee: { type: Number, },
+  discount: { type: Number, default: 0 },
+  totalFee: { type: Number, },
+
+  // Payment tracking fields
+  amountPaid: { type: Number, default: 0 }, // Actual amount patient paid
+  amountDue: { type: Number, required: true }, // Remaining amount to be paid
+  amountStatus: {
+    type: String,
+    enum: ['paid', 'pending', 'partial'],
+    default: 'pending'
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cash', 'card', 'bank_transfer', 'online', 'other'],
+    default: 'cash'
+  },
+  paymentDate: { type: Date },
+  paymentNotes: { type: String },
+  token: { type: Number, },
+  referredBy: { type: String },
+  notes: { type: String }
+}, { timestamps: true });
+
 const patientSchema = new mongoose.Schema(
   {
-    patient_MRNo: { type: String, },
-    patient_Name: { type: String },
-    patient_ContactNo: { type: String },
+    patient_MRNo: { type: String, unique: true, },
+    patient_Name: { type: String, },
+    patient_ContactNo: { type: String, },
     patient_Guardian: {
-      guardian_Relation: { type: String, },
-      guardian_Name: { type: String, },
-      guardian_Contact: { type: String, },
+      guardian_Relation: { type: String },
+      guardian_Name: { type: String },
+      guardian_Contact: { type: String },
     },
-    patient_CNIC: { type: String },
-    patient_Gender: { type: String },
-    patient_Age: { type: String },
-    patient_DateOfBirth: { type: String },
+    patient_CNIC: { type: String, unique: true, sparse: true },
+    patient_Gender: { type: String, enum: ['male', 'female', 'other'], },
+    patient_Age: { type: Number },
+    patient_DateOfBirth: { type: Date },
     patient_Address: { type: String },
-    patient_BloodType: { type: String },
-    patient_MaritalStatus: { type: String },
-    patient_HospitalInformation: {
-      doctor_Name: { type: String },
-      doctor_Department: { type: String },
-      doctor_Specialization: { type: String },
-      qualification: { type: String },
-      gender: { type: String },
-      doctor_Fee: { type: Number },
-      discount: { type: Number },
-      total_Fee: { type: Number },
-      amount_Status: { type: String, },
-      token: { type: Number, },
-      referredBy: { type: String },
-    },
+    patient_BloodType: { type: String, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] },
+    patient_MaritalStatus: { type: String, enum: ['single', 'married', 'divorced', 'widowed'] },
+
+    visits: [visitSchema],
+    lastVisit: { type: Date },
+    totalVisits: { type: Number, default: 0 },
+
+    // Patient financial summary
+    totalAmountPaid: { type: Number, default: 0 }, // Total paid across all visits
+    totalAmountDue: { type: Number, default: 0 },  // Total due across all visits
     
     deleted: { type: Boolean, default: false },
   },
@@ -38,6 +62,12 @@ const patientSchema = new mongoose.Schema(
   }
 );
 
-const Patient = mongoose.model("Patient", patientSchema);
+// Indexes for faster search
+patientSchema.index({ patient_MRNo: 1 });
+patientSchema.index({ patient_CNIC: 1 });
+patientSchema.index({ patient_ContactNo: 1 });
+patientSchema.index({ patient_Name: 1 });
+patientSchema.index({ "patient_Guardian.guardian_Contact": 1 });
 
+const Patient = mongoose.model("Patient", patientSchema);
 module.exports = Patient;

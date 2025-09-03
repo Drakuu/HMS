@@ -1,7 +1,7 @@
-import CriticalResult from "../models/CriticalResult.js";
+const CriticalResult = require("../models/criticalResult.model")
 
 // ✅ Create a new Critical Result
-export const createCriticalResult = async (req, res) => {
+ const createCriticalResult = async (req, res) => {
   try {
     const newResult = new CriticalResult(req.body);
     await newResult.save();
@@ -12,7 +12,7 @@ export const createCriticalResult = async (req, res) => {
 };
 
 // ✅ Get all Critical Results
-export const getAllCriticalResults = async (req, res) => {
+ const getAllCriticalResults = async (req, res) => {
   try {
     const results = await CriticalResult.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: results });
@@ -22,7 +22,7 @@ export const getAllCriticalResults = async (req, res) => {
 };
 
 // ✅ Get Critical Result by ID
-export const getCriticalResultById = async (req, res) => {
+ const getCriticalResultById = async (req, res) => {
   try {
     const result = await CriticalResult.findById(req.params.id);
     if (!result) {
@@ -35,7 +35,7 @@ export const getCriticalResultById = async (req, res) => {
 };
 
 // ✅ Update Critical Result
-export const updateCriticalResult = async (req, res) => {
+ const updateCriticalResult = async (req, res) => {
   try {
     const updated = await CriticalResult.findByIdAndUpdate(
       req.params.id,
@@ -52,7 +52,7 @@ export const updateCriticalResult = async (req, res) => {
 };
 
 // ✅ Delete Critical Result
-export const deleteCriticalResult = async (req, res) => {
+ const deleteCriticalResult = async (req, res) => {
   try {
     const deleted = await CriticalResult.findByIdAndDelete(req.params.id);
     if (!deleted) {
@@ -63,3 +63,11 @@ export const deleteCriticalResult = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+module.exports = {
+  createCriticalResult,
+  getAllCriticalResults,
+  getCriticalResultById,
+  updateCriticalResult,
+  deleteCriticalResult,
+}

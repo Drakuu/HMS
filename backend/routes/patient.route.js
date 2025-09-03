@@ -41,10 +41,17 @@ router.delete(
 );
 router.put(
   "/update-patient/:patient_MRNo",
-//  passportAuth.authenticate("jwt", { session: false }),
+  //  passportAuth.authenticate("jwt", { session: false }),
   // checkRole(['Doctor', 'Admin', 'Receptionist',]),
 
   controller.patient.updatePatient
 )
+
+router.get(
+  "/search-patients",
+  // passportAuth.authenticate("jwt", { session: false }),
+  // checkRole(['Doctor', 'Admin', 'Receptionist']),
+  controller.patient.searchPatient
+);
 
 module.exports = router;

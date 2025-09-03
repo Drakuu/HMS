@@ -5,7 +5,7 @@ const {
   getCriticalResultById,
   updateCriticalResult,
   deleteCriticalResult,
-} = require("../controllers/criticalResultController.js");
+} = require("../controllers/criticalResult.controller");
 
 const router = express.Router();
 
