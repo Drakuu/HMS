@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import doctorReducer from "../features/doctor/doctorSlice";
 import appointmentReducer from "../features/appointments/appointmentSlice";
-import { patientReducer, mrNumberReducer } from "../features/patient/patientSlice";
+import patientReducer from "../features/patient/patientSlice";
 import ipdPatientReducer from '../features/ipdPatient/IpdPatientSlice';
 import staffReducer from "../features/staff/staffslice"
 import roomReducer from '../features/roomsManagment/RoomSlice';
@@ -25,7 +25,6 @@ const store = configureStore({
     doctor: doctorReducer,
     appointments: appointmentReducer,
     patients: patientReducer,
-    mrNumber: mrNumberReducer,
     ipdPatient: ipdPatientReducer,
     staff: staffReducer,
     room: roomReducer,

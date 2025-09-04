@@ -21,22 +21,22 @@ router.get(
 
 router.get(
   "/get-patient-by-id/:patientId",
-
-
+  //  passportAuth.authenticate("jwt", { session: false }),
+  // checkRole(['Doctor', 'Admin', 'Receptionist',]),
   controller.patient.getPatientById
 );
 
 router.get(
   "/get-patient-by-mrno/:patient_MRNo",
-
-
+  //  passportAuth.authenticate("jwt", { session: false }),
+  // checkRole(['Doctor', 'Admin', 'Receptionist',]),
   controller.patient.getPatientByMRNo
 );
 
 router.delete(
   "/delete-patient/:patientId",
-
-
+  //  passportAuth.authenticate("jwt", { session: false }),
+  // checkRole(['Doctor', 'Admin', 'Receptionist',]),
   controller.patient.deletePatient
 );
 router.put(

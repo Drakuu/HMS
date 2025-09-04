@@ -10,8 +10,8 @@ const visitSchema = new mongoose.Schema({
   totalFee: { type: Number, },
 
   // Payment tracking fields
-  amountPaid: { type: Number, default: 0 }, // Actual amount patient paid
-  amountDue: { type: Number, required: true }, // Remaining amount to be paid
+  amountPaid: { type: Number, default: 0 },
+  amountDue: { type: Number, required: true },
   amountStatus: {
     type: String,
     enum: ['paid', 'pending', 'partial'],
@@ -24,9 +24,12 @@ const visitSchema = new mongoose.Schema({
   },
   paymentDate: { type: Date },
   paymentNotes: { type: String },
+
+  // VCO field
+  verbalConsentObtained: { type: Boolean, default: false },
+  
   token: { type: Number, },
   referredBy: { type: String },
-  notes: { type: String }
 }, { timestamps: true });
 
 const patientSchema = new mongoose.Schema(
@@ -52,9 +55,9 @@ const patientSchema = new mongoose.Schema(
     totalVisits: { type: Number, default: 0 },
 
     // Patient financial summary
-    totalAmountPaid: { type: Number, default: 0 }, // Total paid across all visits
-    totalAmountDue: { type: Number, default: 0 },  // Total due across all visits
-    
+    totalAmountPaid: { type: Number, default: 0 },
+    totalAmountDue: { type: Number, default: 0 }, 
+
     deleted: { type: Boolean, default: false },
   },
   {

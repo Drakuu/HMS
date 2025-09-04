@@ -376,3 +376,40 @@ export const TextAreaField = ({
     </div>
   );
 };
+
+// Add to FormFields.js
+export const Checkbox = ({
+  name,
+  label,
+  checked,
+  onChange,
+  disabled = false,
+  className = "",
+  helperText = ""
+}) => {
+  return (
+    <div className={`flex items-start space-x-3 ${className}`}>
+      <div className="flex items-center h-5">
+        <input
+          id={name}
+          name={name}
+          type="checkbox"
+          checked={checked}
+          onChange={onChange}
+          disabled={disabled}
+          className="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+        />
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor={name} className="text-sm font-medium text-gray-700 cursor-pointer">
+          {label}
+        </label>
+        {helperText && (
+          <p className="mt-1 text-xs text-gray-500">
+            {helperText}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
