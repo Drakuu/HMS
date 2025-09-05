@@ -78,7 +78,9 @@ const NewOpd = ({ mode = "create" }) => {
   // Function to handle patient selection from search results
   const handlePatientSelect = (patient) => {
     dispatch(setSelectedPatient(patient));
-    // populateForm(patient);
+    if (formMode === "create") {
+    populateForm(patient);
+    }
     setShowSearchResults(false);
     setSearchResults([]);
 
@@ -262,7 +264,7 @@ const NewOpd = ({ mode = "create" }) => {
           </form>
         )}
 
-     
+
       </div>
     </div>
   );

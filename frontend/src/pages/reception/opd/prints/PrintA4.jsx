@@ -8,30 +8,56 @@ const PrintA4 = ({ formData }) => {
   };
 
   // Extract data with proper fallbacks based on your actual form structure
-  const patientMRNo = formData?.patient_MRNo || formData?.patientMRNo || 'N/A';
-  const patientName = formData?.patient_Name || formData?.patientName || 'N/A';
-  const patientAge = formData?.patient_Age || formData?.age || 'N/A';
-  const patientGender = formData?.patient_Gender || formData?.gender || 'N/A';
-  const guardianName = formData?.patient_Guardian?.guardian_Name || formData?.guardianName || 'N/A';
-  const guardianContact = formData?.patient_Guardian?.guardian_Contact || formData?.guardianContact || 'N/A';
-  const guardianRelation = formData?.patient_Guardian?.guardian_Relation || formData?.guardianRelation || 'N/A';
-  const patientAddress = formData?.patient_Address || formData?.address || 'N/A';
-  const maritalStatus = formData?.patient_MaritalStatus || formData?.maritalStatus || 'N/A';
+  const patientMRNo = formData?.patient_MRNo || formData?.patientMRNo || '_______';
+  const patientName = formData?.patient_Name || formData?.patientName || '_______';
+  const patientAge = formData?.patient_Age || formData?.age || '_______';
+  const patientGender = formData?.patient_Gender || formData?.gender || '_______';
+  const guardianName = formData?.patient_Guardian?.guardian_Name || formData?.guardianName || '_______';
+  const guardianContact = formData?.patient_Guardian?.guardian_Contact || formData?.guardianContact || '_______';
+  const guardianRelation = formData?.patient_Guardian?.guardian_Relation || formData?.guardianRelation || '_______';
+  const patientAddress = formData?.patient_Address || formData?.address || '_______';
+  const maritalStatus = formData?.patient_MaritalStatus || formData?.maritalStatus || '_______';
 
-  const doctorName = formData?.doctorDetails?.name || formData?.doctorName || 'N/A';
-  const doctorQualification = formData?.doctorDetails?.qualification || formData?.doctorQualification || 'N/A';
-  const doctorDepartment = formData?.doctorDetails?.department || formData?.doctorDepartment || 'N/A';
-  const doctorSpecialization = formData?.doctorDetails?.specialization || formData?.doctorSpecialization || 'N/A';
+  const doctorName = formData?.doctorDetails?.name || formData?.doctorName || '_______';
+  const doctorQualification = formData?.doctorDetails?.qualification || formData?.doctorQualification || '_______';
+  const doctorDepartment = formData?.doctorDetails?.department || formData?.doctorDepartment || '_______';
+  const doctorSpecialization = formData?.doctorDetails?.specialization || formData?.doctorSpecialization || '_______';
 
   // Visit data
-  const purpose = formData?.visitData?.purpose || 'N/A';
-  const disease = formData?.visitData?.disease || 'N/A';
-  const referredBy = formData?.visitData?.referredBy || 'N/A';
+  const purpose = formData?.visitData?.purpose || '_______';
+  const disease = formData?.visitData?.disease || '_______';
+  const referredBy = formData?.visitData?.referredBy || '_______';
+  const verbalConsentObtained = formData?.visitData?.verbalConsentObtained || false;
 
   // Payment info
   const amountStatus = formData?.visitData?.amountStatus || 'cash';
-  const token =  formData?.visitData?.token || 0;
-  const notes =  formData?.visitData?.notes || 0;
+  const token = formData?.visitData?.token || 0;
+  const notes = formData?.visitData?.notes || 0;
+
+  // Convert logo to base64 for reliable printing
+  const [logoDataUrl, setLogoDataUrl] = React.useState('');
+
+  React.useEffect(() => {
+    // Convert logo to base64 for reliable printing
+    const convertImageToBase64 = (url, callback) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const dataURL = canvas.toDataURL('image/png');
+        callback(dataURL);
+      };
+      img.src = url;
+    };
+
+    convertImageToBase64(Logo, (base64) => {
+      setLogoDataUrl(base64);
+    });
+  }, []);
 
   return (
     <html>
@@ -47,6 +73,12 @@ const PrintA4 = ({ formData }) => {
               font-family: 'Roboto', sans-serif;
               font-weight: 400;
               font-size: 18px;
+              background-image: ${logoDataUrl ? `url(${logoDataUrl})` : 'none'};
+              background-repeat: no-repeat;
+              background-position: center;
+              background-size: 300px;
+              background-attachment: fixed;
+              opacity: 1;
             }
             
             /* Form title */
@@ -72,7 +104,7 @@ const PrintA4 = ({ formData }) => {
               margin: 5mm 10mm;
             }
               
-            body {
+            .print-body {
               margin: 0;
               padding: 5mm;
               color: #333;
@@ -90,10 +122,10 @@ const PrintA4 = ({ formData }) => {
               position: fixed;
               top: 50%;
               left: 50%;
-              transform: translate(-50%, -50%);
-              opacity: 0.1;
+              transform: translate(-50%, -50%) rotate(-45deg);
+              opacity: 0.08;
               z-index: -1;
-              width: 300px;
+              width: 400px;
               height: auto;
               pointer-events: none;
             }
@@ -197,7 +229,7 @@ const PrintA4 = ({ formData }) => {
               height: 100%;
               border-radius: 2mm;
               box-sizing: border-box;
-              background-color: #f9f9f9;
+              background-color: rgba(249, 249, 249, 0.9);
             }
 
             .footer {
@@ -243,6 +275,9 @@ const PrintA4 = ({ formData }) => {
               max-width: 80mm;
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
+              position: absolute;
+              bottom: 5mm;
+              right: 0;
             }
 
             .contact-info div:first-child {
@@ -270,7 +305,7 @@ const PrintA4 = ({ formData }) => {
               padding: 3mm;
               border: 1px solid #ddd;
               border-radius: 2mm;
-              background: #f8fafc;
+              background: rgba(248, 250, 252, 0.9);
             }
 
             .payment-row {
@@ -285,15 +320,58 @@ const PrintA4 = ({ formData }) => {
               padding-top: 2mm;
               margin-top: 2mm;
             }
+            
+            .disclamare {
+              position: absolute;
+              bottom: 2mm;
+              left: 50%;
+              transform: translateX(-50%);
+              font-size: 14px;
+              color: red;
+              font-weight: bold;
+              text-align: center;
+              width: 100%;
+            }
+
+            .content {
+              position: relative;
+              z-index: 1;
+            }
+
+            /* Checkbox styles for printing */
+            .vco-checkbox {
+              width: 14px;
+              height: 14px;
+              border: 2px solid #333;
+              display: inline-block;
+              margin-right: 5px;
+              vertical-align: middle;
+              position: relative;
+            }
+            
+            .vco-checkbox.checked:before {
+              content: "✓";
+              position: absolute;
+              top: -2px;
+              left: 1px;
+              font-size: 12px;
+              font-weight: bold;
+            }
 
             @media print {
-              body {
+              .print-body {
                 padding: 0;
                 margin: 0;
                 width: 210mm;
                 height: 297mm;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                background-image: ${logoDataUrl ? `url(${logoDataUrl})` : 'none'} !important;
+                background-repeat: no-repeat !important;
+                background-position: center !important;
+                background-size: 300px !important;
+                background-attachment: fixed !important;
+                opacity: 1 !important;
               }
               
               * {
@@ -306,18 +384,35 @@ const PrintA4 = ({ formData }) => {
               }
               
               .watermark {
-                opacity: 0.05;
+                opacity: 0.05 !important;
               }
               
               .contact-info {
                 background: #0891b2 !important;
+              }
+              
+              .good-border {
+                background-color: rgba(249, 249, 249, 0.9) !important;
+              }
+              
+              .payment-info {
+                background: rgba(248, 250, 252, 0.9) !important;
+              }
+              
+              .vco-checkbox {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
               }
             }
           `}
         </style>
       </head>
       <body className="print-body">
-        <img src={Logo} className="watermark" alt="Hospital Watermark" />
+        {/* Watermark background */}
+        {logoDataUrl && (
+          <img src={logoDataUrl} className="watermark" alt="Hospital Watermark" />
+        )}
+
         <div className="content">
           <div className="date-time">
             {new Date().toLocaleDateString()} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -327,7 +422,7 @@ const PrintA4 = ({ formData }) => {
 
           <div className="header-container">
             <div className="logo-section">
-              <img src={Logo} className="logo" alt="Hospital Logo" />
+              <img src={logoDataUrl || Logo} className="logo" alt="Hospital Logo" />
               <div className="hospital-name">Al-Shahbaz Hospital</div>
               <div className="hospital-name-urdu">
                 الشہباز ہسپتال
@@ -365,8 +460,8 @@ const PrintA4 = ({ formData }) => {
                 <span className="detail-value">{safeData(patientAddress)}</span>
               </div>
               <div className="detail-row">
-                <span className="detail-label">Marital Status:</span>
-                <span className="detail-value">{safeData(maritalStatus)}</span>
+                <span className="detail-label">Referred By:</span>
+                <span className="detail-value">{safeData(referredBy)}</span>
               </div>
             </div>
 
@@ -375,6 +470,10 @@ const PrintA4 = ({ formData }) => {
               <div className="detail-row">
                 <span className="detail-label">Doctor Name:</span>
                 <span className="detail-value">{safeData(doctorName)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Qualification:</span>
+                <span className="detail-value">{safeData(doctorQualification)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Department:</span>
@@ -393,32 +492,41 @@ const PrintA4 = ({ formData }) => {
                 <span className="detail-value">{safeData(disease)}</span>
               </div>
               <div className="detail-row">
-                <span className="detail-label">Referred By:</span>
-                <span className="detail-value">{safeData(referredBy)}</span>
+                <span className="detail-label">Payment Status:</span>
+                <span style={{ textTransform: 'capitalize' }}>{safeData(amountStatus)}</span>
               </div>
-            </div>
-          </div>
-
-          <div className="payment-info">
-            <div className="section-title">PAYMENT INFORMATION</div>
-            <div className="payment-row">
-              <span>Payment Status:</span>
-              <span>Rs. {amountStatus}</span>
+              <div className="detail-row">
+                <span className="detail-label">VCO:</span>
+                <span className="detail-value">
+                  <span className={`vco-checkbox ${verbalConsentObtained ? 'checked' : ''}`}></span>
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="main-content-area">
             <div className="good-border">
               <div className="section-title">DOCTOR'S NOTES & OBSERVATIONS</div>
-              <div style={{ minHeight: '150mm', marginTop: '3mm' }}>
+              <div style={{ minHeight: '150mm', marginTop: '3mm', whiteSpace: 'pre-wrap' }}>
                 {safeData(notes, 'No notes recorded.')}
               </div>
             </div>
           </div>
 
           <div className="footer">
-            <div className="signature-box">Doctor Signature</div>
-            <div className="signature-box">Patient/Guardian Signature</div>
+            <div className="signature-box">
+              Doctor Signature/Stamp
+            </div>
+          </div>
+
+          <div className="disclamare">
+            Note: Not Valid For The Court !
+          </div>
+
+          <div className="contact-info">
+            <div>Al-Shabaz Hospital</div>
+            <div>Loc: Thana Road Kahuta</div>
+            <div>Ph: 051-3312120, 3311111</div>
           </div>
         </div>
 

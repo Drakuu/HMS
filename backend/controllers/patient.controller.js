@@ -279,10 +279,15 @@ const createPatient = async (req, res) => {
       totalAmountDue: newVisit.amountDue
     });
 
+    // After creating patient, populate the complete data
+    const populatedPatient = await hospitalModel.Patient.findById(patient._id)
+      .populate('visits.doctor')
+      .populate('visits.doctor.user');
+
     return res.status(201).json({
       success: true,
       message: "New patient created successfully with first visit",
-      information: { patient: await populatePatient(patient._id) },
+      information: { patient: populatedPatient },
     });
 
   } catch (error) {

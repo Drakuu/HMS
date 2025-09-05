@@ -6,7 +6,7 @@ import PrintPdf from "../pages/reception/opd/prints/PrintPdf";
 
 export const printThermal = (formData) => {
    console.log("Printing thermal with data:", formData); // Debug log
-   const printWindow = window.open('', '_blank', 'width=300,height=400');
+   const printWindow = window.open('', '_blank',);
    const htmlContent = `
     <!DOCTYPE html>
     ${ReactDOMServer.renderToString(<PrintThermal formData={formData} />)}
@@ -50,7 +50,11 @@ export const printPdf = (formData) => {
    pdfWindow.document.close();
 };
 
+// In your printUtils.js, make sure handlePrint accepts both parameters
 export const handlePrint = (formData, printOption) => {
+   console.log("Printing with data:", formData);
+   console.log("Token value:", formData?.visitData?.token);
+
    if (!printOption) {
       throw new Error('Please select a print option');
    }

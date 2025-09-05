@@ -34,7 +34,7 @@ const ManageOpd = () => {
     return { start: today, end: today };
   });
 
-  console.log("Patients from store:", patients);
+  // console.log("Patients from store:", patients);
   useEffect(() => {
     // single fetch is enough
     dispatch(fetchPatients()).unwrap().catch((err) => {

@@ -56,6 +56,7 @@ export const usePatientForm = (mode = "create") => {
          referredBy: "",
          amountPaid: 0,
          paymentMethod: "cash",
+         amountStatus: "cash",
          verbalConsentObtained: false,
          token: "",
          notes: ""
@@ -150,6 +151,7 @@ export const usePatientForm = (mode = "create") => {
             referredBy: targetVisit.referredBy || "",
             amountPaid: targetVisit.amountPaid || 0,
             paymentMethod: targetVisit.paymentMethod || "cash",
+            amountStatus: targetVisit.amountStatus || "",
             verbalConsentObtained: targetVisit.verbalConsentObtained || false,
             token: targetVisit.token || "",
             notes: targetVisit.notes || ""
@@ -204,7 +206,7 @@ export const usePatientForm = (mode = "create") => {
       if (validationErrors.length > 0) {
          validationErrors.forEach(error => toast.error(error));
          setIsSubmitting(false);
-         return;
+         return null;
       }
 
       // Prepare payload with proper validation
@@ -222,7 +224,6 @@ export const usePatientForm = (mode = "create") => {
          ...(formData.patient_BloodType && { patient_BloodType: formData.patient_BloodType }),
          ...(formData.patient_MaritalStatus && { patient_MaritalStatus: formData.patient_MaritalStatus }),
          visitData: {
-            ...formData.visitData,
             visitId: formData.visitData.visitId, // Include visitId for updates
             doctor: formData.visitData.doctor,
             purpose: formData.visitData.purpose || "Consultation", // Default purpose
@@ -231,8 +232,9 @@ export const usePatientForm = (mode = "create") => {
             referredBy: formData.visitData.referredBy || "",
             amountPaid: parseFloat(formData.visitData.amountPaid) || 0,
             paymentMethod: formData.visitData.paymentMethod || "cash",
+            amountStatus: formData.visitData.amountStatus || "cash",
             verbalConsentObtained: Boolean(formData.visitData.verbalConsentObtained),
-            token: formData.visitData.token ||  "NAN",
+            token: formData.visitData.token || "",
             notes: formData.visitData.notes || ""
          }
       };
@@ -245,23 +247,92 @@ export const usePatientForm = (mode = "create") => {
       });
 
       try {
+         let result;
          if (mode === "create") {
-            await dispatch(createPatient(payload)).unwrap();
+            result = await dispatch(createPatient(payload)).unwrap();
             toast.success("Patient created successfully!");
+
+            // Update form state with the complete data returned from server
+            if (result?.information?.patient) {
+               const serverPatient = result.information.patient;
+               const latestVisit = serverPatient.visits?.[serverPatient.visits.length - 1] || {};
+
+               // Update form state with server data including token and MR number
+               setFormData(prev => ({
+                  ...prev,
+                  // Patient information
+                  patient_MRNo: serverPatient.patient_MRNo || prev.patient_MRNo,
+                  patient_Name: serverPatient.patient_Name || prev.patient_Name,
+                  patient_ContactNo: serverPatient.patient_ContactNo || prev.patient_ContactNo,
+                  patient_Guardian: serverPatient.patient_Guardian || prev.patient_Guardian,
+                  patient_CNIC: serverPatient.patient_CNIC || prev.patient_CNIC,
+                  patient_Gender: serverPatient.patient_Gender || prev.patient_Gender,
+                  patient_Age: serverPatient.patient_Age || prev.patient_Age,
+                  patient_DateOfBirth: serverPatient.patient_DateOfBirth || prev.patient_DateOfBirth,
+                  patient_Address: serverPatient.patient_Address || prev.patient_Address,
+                  patient_BloodType: serverPatient.patient_BloodType || prev.patient_BloodType,
+                  patient_MaritalStatus: serverPatient.patient_MaritalStatus || prev.patient_MaritalStatus,
+
+                  // Visit data
+                  visitData: {
+                     ...prev.visitData,
+                     visitId: latestVisit._id || prev.visitData.visitId,
+                     token: latestVisit.token || prev.visitData.token,
+                     purpose: latestVisit.purpose || prev.visitData.purpose,
+                     disease: latestVisit.disease || prev.visitData.disease,
+                     discount: latestVisit.discount || prev.visitData.discount,
+                     referredBy: latestVisit.referredBy || prev.visitData.referredBy,
+                     amountPaid: latestVisit.amountPaid || prev.visitData.amountPaid,
+                     paymentMethod: latestVisit.paymentMethod || prev.visitData.paymentMethod,
+                     amountStatus: latestVisit.amountStatus || prev.visitData.amountStatus,
+                     verbalConsentObtained: Boolean(latestVisit.verbalConsentObtained ?? prev.visitData.verbalConsentObtained),
+                     notes: latestVisit.notes || prev.visitData.notes
+                  },
+
+                  // Doctor details (if available in response)
+                  doctorDetails: serverPatient.doctorDetails || prev.doctorDetails
+               }));
+
+               console.log("Form updated with server data:", {
+                  patient_MRNo: serverPatient.patient_MRNo,
+                  token: latestVisit.token
+               });
+            }
+
+            return result;
+
          } else {
+            // Edit mode
             if (!formData.patient_MRNo) {
                throw new Error("MR Number is required");
             }
 
-            await dispatch(updatePatient({
+            result = await dispatch(updatePatient({
                mrNo: formData.patient_MRNo,
                updatedData: payload
             })).unwrap();
 
             toast.success("Patient updated successfully!");
+
+            // For edit mode, also update with returned data if available
+            if (result?.information?.patient) {
+               const serverPatient = result.information.patient;
+               const latestVisit = serverPatient.visits?.find(v => v._id === formData.visitData.visitId) ||
+                  serverPatient.visits?.[serverPatient.visits.length - 1] || {};
+
+               setFormData(prev => ({
+                  ...prev,
+                  visitData: {
+                     ...prev.visitData,
+                     token: latestVisit.token || prev.visitData.token,
+                     // Keep other visit data but update token
+                  }
+               }));
+            }
+
+            return result;
          }
-         resetForm();
-         navigate(getRoleRoute('/OPD/manage'));
+
       } catch (err) {
          console.error("Submission error:", err);
          toast.error(
@@ -273,6 +344,7 @@ export const usePatientForm = (mode = "create") => {
                pauseOnHover: true,
             }
          );
+         throw err; // Re-throw to handle in saveAndPrint
       } finally {
          setIsSubmitting(false);
       }
@@ -554,17 +626,15 @@ export const usePatientForm = (mode = "create") => {
       setIsSubmitting(true);
 
       try {
-         // First save the data
-         await handleSave(e);
+         // Save the data and get the complete result
+         const result = await handleSave(e);
 
-         // Then print using the utility function
-         setTimeout(() => {
-            handlePrint(formData, formData.printOption);
-         }, 500);
+         // Print immediately - formData is already updated with token and MR number
+         handlePrint(formData, formData.printOption);
 
       } catch (error) {
          console.error("Save and print failed:", error);
-         toast.error(error.message || "Save failed - not printing");
+         toast.error("Save failed - not printing");
       } finally {
          setIsSubmitting(false);
       }
