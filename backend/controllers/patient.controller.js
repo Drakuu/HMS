@@ -67,20 +67,19 @@ const searchPatient = async (req, res) => {
   }
 };
 
-// Helper function to populate patient data
+// In your backend controller - make sure populate is working
 const populatePatient = async (patientId) => {
   return await hospitalModel.Patient.findById(patientId)
-    .populate('visits.doctor', 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications')
     .populate({
       path: 'visits.doctor',
+      select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
       populate: {
         path: 'user',
-        select: 'firstName lastName email'
+        select: 'user_Name user_Email user_Contact' // Add all fields you need
       }
     });
 };
 
-// Create patient - can be new patient or add visit to existing patient
 const createPatient = async (req, res) => {
   try {
     const {
@@ -314,12 +313,12 @@ const getPatientById = async (req, res) => {
       _id: patientId,
       deleted: false,
     })
-      .populate('visits.doctor', 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications')
       .populate({
         path: 'visits.doctor',
+        select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
         populate: {
           path: 'user',
-          select: 'firstName lastName email'
+          select: 'user_Name user_Email user_Contact' // Add all fields you need
         }
       });
 
@@ -344,7 +343,6 @@ const getPatientById = async (req, res) => {
   }
 };
 
-// Update patient - can update patient info and/or specific visit including payments and VCO
 const updatePatient = async (req, res) => {
   try {
     const { patient_MRNo } = req.params;
@@ -359,15 +357,14 @@ const updatePatient = async (req, res) => {
       patient_Address,
       patient_BloodType,
       patient_MaritalStatus,
-      visitData, // Optional: if provided, update or add visit
-      visitId // Optional: if provided with visitData, update specific visit
+      visitData // This now contains visitId for specific visit updates
     } = req.body;
 
     // Find by patient_MRNo instead of _id
     const patient = await hospitalModel.Patient.findOne({
       patient_MRNo,
       deleted: false
-    });
+    }).populate('visits.doctor', 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications');
 
     if (!patient) {
       return res.status(404).json({
@@ -376,22 +373,33 @@ const updatePatient = async (req, res) => {
       });
     }
 
-    // Update patient basic information
-    if (patient_Name) patient.patient_Name = patient_Name;
-    if (patient_ContactNo) patient.patient_ContactNo = patient_ContactNo;
-    if (patient_Guardian) patient.patient_Guardian = { ...patient.patient_Guardian, ...patient_Guardian };
-    if (patient_CNIC) patient.patient_CNIC = patient_CNIC;
-    if (patient_Gender) patient.patient_Gender = patient_Gender;
-    if (patient_Age) patient.patient_Age = parseInt(patient_Age);
-    if (patient_DateOfBirth) patient.patient_DateOfBirth = new Date(patient_DateOfBirth);
-    if (patient_Address) patient.patient_Address = patient_Address;
-    if (patient_BloodType) patient.patient_BloodType = patient_BloodType;
-    if (patient_MaritalStatus) patient.patient_MaritalStatus = patient_MaritalStatus;
+    // Update patient basic information (only if provided)
+    const updateFields = {
+      patient_Name, patient_ContactNo, patient_CNIC, patient_Gender,
+      patient_Age, patient_DateOfBirth, patient_Address, patient_BloodType, patient_MaritalStatus
+    };
 
-    // Handle visit data
+    Object.keys(updateFields).forEach(key => {
+      if (updateFields[key] !== undefined && updateFields[key] !== null && updateFields[key] !== '') {
+        patient[key] = key === 'patient_Age' ? parseInt(updateFields[key]) :
+          key === 'patient_DateOfBirth' ? new Date(updateFields[key]) : updateFields[key];
+      }
+    });
+
+    // Update guardian information if provided
+    if (patient_Guardian) {
+      patient.patient_Guardian = {
+        ...patient.patient_Guardian,
+        ...patient_Guardian
+      };
+    }
+
+    // Handle visit data updates
     if (visitData) {
+      const { visitId, ...visitUpdateData } = visitData;
+
       if (visitId) {
-        // Update existing visit
+        // UPDATE EXISTING VISIT
         const visit = patient.visits.id(visitId);
         if (!visit) {
           return res.status(404).json({
@@ -400,47 +408,75 @@ const updatePatient = async (req, res) => {
           });
         }
 
-        if (visitData.purpose) visit.purpose = visitData.purpose;
-        if (visitData.disease !== undefined) visit.disease = visitData.disease;
-        if (visitData.discount !== undefined) {
-          visit.discount = visitData.discount;
-          visit.totalFee = Math.max(0, visit.doctorFee - visitData.discount);
-          // Recalculate amount due if discount changes
-          visit.amountDue = Math.max(0, visit.totalFee - visit.amountPaid);
+        // Update visit fields if provided
+        if (visitUpdateData.purpose !== undefined) visit.purpose = visitUpdateData.purpose;
+        if (visitUpdateData.disease !== undefined) visit.disease = visitUpdateData.disease;
+        if (visitUpdateData.referredBy !== undefined) visit.referredBy = visitUpdateData.referredBy;
+        if (visitUpdateData.notes !== undefined) visit.notes = visitUpdateData.notes;
+        if (visitUpdateData.verbalConsentObtained !== undefined) {
+          visit.verbalConsentObtained = visitUpdateData.verbalConsentObtained;
         }
-        if (visitData.referredBy !== undefined) visit.referredBy = visitData.referredBy;
 
-        // Update payment fields if provided
-        if (visitData.amountPaid !== undefined) {
-          visit.amountPaid = visitData.amountPaid;
-          visit.amountDue = Math.max(0, visit.totalFee - visitData.amountPaid);
-          visit.amountStatus = visitData.amountPaid >= visit.totalFee ? 'paid' :
-            (visitData.amountPaid > 0 ? 'partial' : 'pending');
+        // Handle doctor change - if doctor ID is provided and different from current
+        if (visitUpdateData.doctor && visitUpdateData.doctor !== visit.doctor?.toString()) {
+          const newDoctor = await hospitalModel.Doctor.findById(visitUpdateData.doctor);
+          if (!newDoctor) {
+            return res.status(404).json({
+              success: false,
+              message: "Doctor not found",
+            });
+          }
 
-          // Set payment date if payment is made
-          if (visitData.amountPaid > 0 && !visit.paymentDate) {
+          visit.doctor = visitUpdateData.doctor;
+          visit.doctorFee = newDoctor.doctor_Fee || 0;
+
+          // Recalculate fees with existing discount
+          const discount = visit.discount || 0;
+          visit.totalFee = Math.max(0, visit.doctorFee - discount);
+          visit.amountDue = Math.max(0, visit.totalFee - (visit.amountPaid || 0));
+        }
+
+        // Handle discount changes
+        if (visitUpdateData.discount !== undefined) {
+          visit.discount = parseFloat(visitUpdateData.discount) || 0;
+          visit.totalFee = Math.max(0, visit.doctorFee - visit.discount);
+          visit.amountDue = Math.max(0, visit.totalFee - (visit.amountPaid || 0));
+        }
+
+        // Handle payment updates
+        if (visitUpdateData.amountPaid !== undefined) {
+          const newAmountPaid = parseFloat(visitUpdateData.amountPaid) || 0;
+          visit.amountPaid = newAmountPaid;
+          visit.amountDue = Math.max(0, visit.totalFee - newAmountPaid);
+
+          // Update payment status
+          visit.amountStatus = newAmountPaid >= visit.totalFee ? 'paid' :
+            (newAmountPaid > 0 ? 'partial' : 'pending');
+
+          // Set payment date if payment is made now
+          if (newAmountPaid > 0 && !visit.paymentDate) {
             visit.paymentDate = new Date();
           }
         }
-        if (visitData.paymentMethod) visit.paymentMethod = visitData.paymentMethod;
-        if (visitData.paymentNotes !== undefined) visit.paymentNotes = visitData.paymentNotes;
-        if (visitData.paymentDate) visit.paymentDate = new Date(visitData.paymentDate);
 
-        // Update VCO field if provided
-        if (visitData.verbalConsentObtained !== undefined) {
-          visit.verbalConsentObtained = visitData.verbalConsentObtained;
+        if (visitUpdateData.paymentMethod !== undefined) {
+          visit.paymentMethod = visitUpdateData.paymentMethod;
+        }
+
+        if (visitUpdateData.paymentDate !== undefined) {
+          visit.paymentDate = visitUpdateData.paymentDate ? new Date(visitUpdateData.paymentDate) : null;
         }
 
       } else {
-        // Add new visit
-        if (!visitData.doctor || !visitData.purpose) {
+        // ADD NEW VISIT (if no visitId provided)
+        if (!visitUpdateData.doctor) {
           return res.status(400).json({
             success: false,
-            message: "Doctor and purpose are required for new visit",
+            message: "Doctor is required for new visit",
           });
         }
 
-        const doctor = await hospitalModel.Doctor.findById(visitData.doctor);
+        const doctor = await hospitalModel.Doctor.findById(visitUpdateData.doctor);
         if (!doctor) {
           return res.status(404).json({
             success: false,
@@ -452,32 +488,34 @@ const updatePatient = async (req, res) => {
         const token = await utils.generateUniqueToken(currentDate.toISOString().split('T')[0]);
 
         const doctorFee = doctor.doctor_Fee || 0;
-        const discount = visitData?.discount || 0;
+        const discount = parseFloat(visitUpdateData?.discount) || 0;
         const totalFee = Math.max(0, doctorFee - discount);
+        const amountPaid = parseFloat(visitUpdateData?.amountPaid) || 0;
 
         const newVisit = {
           visitDate: currentDate,
-          doctor: visitData.doctor,
-          purpose: visitData.purpose,
-          disease: visitData.disease || "",
+          doctor: visitUpdateData.doctor,
+          purpose: visitUpdateData.purpose || "Consultation",
+          disease: visitUpdateData.disease || "",
           doctorFee: doctorFee,
           discount: discount,
           totalFee: totalFee,
 
           // Payment fields
-          amountPaid: visitData?.amountPaid || 0,
-          amountDue: Math.max(0, totalFee - (visitData?.amountPaid || 0)),
-          amountStatus: visitData?.amountPaid >= totalFee ? 'paid' :
-            (visitData?.amountPaid > 0 ? 'partial' : 'pending'),
-          paymentMethod: visitData?.paymentMethod || 'cash',
-          paymentDate: visitData?.amountPaid > 0 ? currentDate : null,
-          paymentNotes: visitData?.paymentNotes || "",
+          amountPaid: amountPaid,
+          amountDue: Math.max(0, totalFee - amountPaid),
+          amountStatus: amountPaid >= totalFee ? 'paid' :
+            (amountPaid > 0 ? 'partial' : 'pending'),
+          paymentMethod: visitUpdateData.paymentMethod || 'cash',
+          paymentDate: amountPaid > 0 ? currentDate : null,
+          paymentNotes: visitUpdateData.paymentNotes || "",
 
           // VCO field
-          verbalConsentObtained: visitData?.verbalConsentObtained || false,
+          verbalConsentObtained: visitUpdateData.verbalConsentObtained || false,
 
           token: token,
-          referredBy: visitData?.referredBy || "",
+          referredBy: visitUpdateData.referredBy || "",
+          notes: visitUpdateData.notes || ""
         };
 
         patient.visits.push(newVisit);
@@ -492,14 +530,36 @@ const updatePatient = async (req, res) => {
 
     await patient.save();
 
+    // Populate the updated patient data for response
+    const populatedPatient = await hospitalModel.Patient.findById(patient._id)
+      .populate({
+        path: 'visits.doctor',
+        select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
+        populate: {
+          path: 'user',
+          select: 'user_Name user_Email user_Contact' // Add all fields you need
+        }
+      });
+
     return res.status(200).json({
       success: true,
       message: "Patient updated successfully",
-      information: { patient: await populatePatient(patient._id) },
+      information: { patient: populatedPatient },
     });
 
   } catch (error) {
     console.error("Error updating patient:", error);
+
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      return res.status(409).json({
+        success: false,
+        message: `Patient with this ${field.replace('patient_', '').replace('_', ' ')} already exists`,
+        duplicateField: field
+      });
+    }
+
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -507,7 +567,6 @@ const updatePatient = async (req, res) => {
   }
 };
 
-// controllers/patient.controller.js  (replace getAllPatients)
 const getAllPatients = async (req, res) => {
   try {
     // Pagination
@@ -560,10 +619,13 @@ const getAllPatients = async (req, res) => {
         'patient_Address patient_BloodType patient_MaritalStatus totalVisits lastVisit visits'
       )
       .slice('visits', -1) // only last visit
-      .populate('visits.doctor', 'doctor_Department doctor_Specialization user') // doctor basics + user ref
       .populate({
         path: 'visits.doctor',
-        populate: { path: 'user', select: 'firstName lastName' } // for doctor name
+        select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
+        populate: {
+          path: 'user',
+          select: 'user_Name user_Email user_Contact' // Add all fields you need
+        }
       })
       .sort(sortOptions)
       .skip(skip)
@@ -603,15 +665,15 @@ const getPatientByMRNo = async (req, res) => {
       patient_MRNo,
       deleted: false,
     })
-      .populate('visits.doctor', 'doctor_Department doctor_Specialization doctor_Fee user')
       .populate({
         path: 'visits.doctor',
+        select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
         populate: {
           path: 'user',
-          select: 'firstName lastName'
+          select: 'user_Name user_Email user_Contact'
         }
       });
-
+  
     if (!patient) {
       return res.status(404).json({
         success: false,

@@ -1,6 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { FaChevronLeft, FaChevronRight, FaFileMedical, FaMoneyBillWave, FaClock, FaCheckCircle } from "react-icons/fa";
 
 const PatientDetailModal = ({ patient, loading, onClose }) => {
+  const [currentVisitPage, setCurrentVisitPage] = useState(1);
+  const [visitsPerPage] = useState(5); // Show 5 visits per page
+  const [expandedVisit, setExpandedVisit] = useState(null);
+  const [isLoadingVisits, setIsLoadingVisits] = useState(false);
+
+  // Reset pagination when patient changes
+  useEffect(() => {
+    setCurrentVisitPage(1);
+    setExpandedVisit(null);
+  }, [patient]);
+
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -16,9 +28,46 @@ const PatientDetailModal = ({ patient, loading, onClose }) => {
 
   if (!patient) return null;
 
+  const visits = patient.visits || [];
+  const totalVisits = visits.length;
+console.log("Patient Visits:", visits);
+  // Calculate pagination
+  const indexOfLastVisit = currentVisitPage * visitsPerPage;
+  const indexOfFirstVisit = indexOfLastVisit - visitsPerPage;
+  const currentVisits = visits.slice(indexOfFirstVisit, indexOfLastVisit);
+  const totalPages = Math.ceil(totalVisits / visitsPerPage);
+
+  const toggleVisitExpand = (visitIndex) => {
+    setExpandedVisit(expandedVisit === visitIndex ? null : visitIndex);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatCurrency = (amount) => {
+    return `Rs. ${amount?.toLocaleString() || '0'}`;
+  };
+
+  const getPaymentStatusColor = (status) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'partial': return 'bg-yellow-100 text-yellow-800';
+      case 'pending': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-white/20 backdrop-blur-lg z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-primary-600 text-white p-4 rounded-t-lg sticky top-0 z-10">
           <div className="flex justify-between items-center">
@@ -31,9 +80,12 @@ const PatientDetailModal = ({ patient, loading, onClose }) => {
               &times;
             </button>
           </div>
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-2 gap-2 flex-wrap">
             <span className="bg-white text-primary-600 px-2 py-1 rounded-md text-sm font-bold">
               MR#: {patient.patient_MRNo || 'N/A'}
+            </span>
+            <span className="bg-white text-primary-600 px-2 py-1 rounded-md text-sm font-bold">
+              Total Visits: {totalVisits}
             </span>
           </div>
         </div>
@@ -87,29 +139,138 @@ const PatientDetailModal = ({ patient, loading, onClose }) => {
             </div>
           </div>
 
-          {/* Hospital Info */}
+          {/* Visit History */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold text-gray-800 border-b pb-2 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              Hospital Information
+              <FaFileMedical className="w-5 h-5 mr-2 text-primary-500" />
+              Visit History ({totalVisits} visits)
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <DetailItem label="Consulting Doctor" value={patient.patient_HospitalInformation?.doctor_Name} />
-              <DetailItem label="Department" value={patient.patient_HospitalInformation?.doctor_Department} />
-              <DetailItem label="Specialization" value={patient.patient_HospitalInformation?.doctor_Specialization} />
-              <DetailItem label="Token #" value={patient.patient_HospitalInformation?.token} />
-              <DetailItem label="Fee" value={`Rs. ${patient.patient_HospitalInformation?.total_Fee}`} />
-              <DetailItem label="Payment Status" value={
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${patient.patient_HospitalInformation?.amount_Status === 'Pending'
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-green-100 text-green-800'
-                  }`}>
-                  {patient.patient_HospitalInformation?.amount_Status || 'Paid'}
-                </span>
-              } />
-            </div>
+
+            {isLoadingVisits ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
+              </div>
+            ) : totalVisits === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <FaFileMedical className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                <p>No visit history found</p>
+              </div>
+            ) : (
+              <>
+                {/* Visit List */}
+                <div className="space-y-3">
+                  {currentVisits.map((visit, index) => (
+                    <div key={index} className="border rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => toggleVisitExpand(index)}
+                        className="w-full p-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center text-left"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                            <FaFileMedical className="text-primary-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-800">
+                              Visit #{totalVisits - (indexOfFirstVisit + index)}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {formatDate(visit.visitDate)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(visit.amountStatus)}`}>
+                            {visit.amountStatus?.toUpperCase() || 'PENDING'}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {formatCurrency(visit.totalFee)}
+                          </span>
+                          <FaChevronRight
+                            className={`transform transition-transform ${expandedVisit === index ? 'rotate-90' : ''}`}
+                          />
+                        </div>
+                      </button>
+
+                      {/* Expanded Visit Details */}
+                      {expandedVisit === index && (
+                        <div className="p-4 bg-white border-t">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <DetailItem label="Doctor" value={visit.doctor?.user?.user_Name} />
+                            <DetailItem label="Department" value={visit.doctor?.doctor_Department} />
+                            <DetailItem label="Purpose" value={visit.purpose} />
+                            <DetailItem label="Disease" value={visit.disease || 'Not specified'} />
+                            <DetailItem label="Token #" value={visit.token} />
+                            <DetailItem label="Referred By" value={visit.referredBy || 'Not referred'} />
+                          </div>
+
+                          {/* Payment Details */}
+                          <div className="mt-4 pt-4 border-t">
+                            <h5 className="font-semibold text-gray-700 mb-3 flex items-center">
+                              <FaMoneyBillWave className="mr-2 text-green-500" />
+                              Payment Details
+                            </h5>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <DetailItem label="Consultation Fee" value={formatCurrency(visit.doctorFee)} />
+                              <DetailItem label="Discount" value={formatCurrency(visit.discount)} />
+                              <DetailItem label="Total Fee" value={formatCurrency(visit.totalFee)} />
+                              <DetailItem label="Amount Paid" value={formatCurrency(visit.amountPaid)} />
+                              <DetailItem label="Amount Due" value={formatCurrency(visit.amountDue)} />
+                              <DetailItem label="Payment Method" value={visit.paymentMethod?.toUpperCase()} />
+                            </div>
+                          </div>
+
+                          {/* Additional Info */}
+                          <div className="mt-4 pt-4 border-t">
+                            <div className="flex items-center space-x-4">
+                              {visit.verbalConsentObtained && (
+                                <span className="flex items-center text-sm text-green-600">
+                                  <FaCheckCircle className="mr-1" /> Verbal Consent Obtained
+                                </span>
+                              )}
+                              {visit.paymentDate && (
+                                <span className="flex items-center text-sm text-gray-600">
+                                  <FaClock className="mr-1" /> Paid on: {formatDate(visit.paymentDate)}
+                                </span>
+                              )}
+                            </div>
+                            {visit.notes && (
+                              <div className="mt-3">
+                                <p className="text-sm text-gray-600"><strong>Notes:</strong> {visit.notes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center mt-6 space-x-2">
+                    <button
+                      onClick={() => setCurrentVisitPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentVisitPage === 1}
+                      className="p-2 rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      <FaChevronLeft />
+                    </button>
+
+                    <span className="text-sm text-gray-600">
+                      Page {currentVisitPage} of {totalPages}
+                    </span>
+
+                    <button
+                      onClick={() => setCurrentVisitPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentVisitPage === totalPages}
+                      className="p-2 rounded-md border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    >
+                      <FaChevronRight />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 

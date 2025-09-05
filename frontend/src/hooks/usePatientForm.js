@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { fetchAllDoctors } from '../features/doctor/doctorSlice';
-import { createPatient, fetchPatientByMrNo, updatePatient , searchPatients } from '../features/patient/patientSlice';
-import { selectSelectedPatient } from '../features/patient/patientSlice';
+import { createPatient, fetchPatientByMrNo, updatePatient, searchPatients, selectSelectedPatient } from '../features/patient/patientSlice';
 import { getRoleRoute } from '../utils/getRoleRoute';
+import { handlePrint } from '../utils/printUtils';
 
 export const usePatientForm = (mode = "create") => {
    const dispatch = useDispatch();
@@ -14,6 +14,10 @@ export const usePatientForm = (mode = "create") => {
 
    const [isLoading, setIsLoading] = useState(false);
    const [isSubmitting, setIsSubmitting] = useState(false);
+   const [selectedVisitId, setSelectedVisitId] = useState(null);
+   const [showVisitSelector, setShowVisitSelector] = useState(false);
+   const [isFormDataReady, setIsFormDataReady] = useState(false);
+   const [localSelectedPatient, setLocalSelectedPatient] = useState(null);
 
    const { searchResults: reduxSearchResults, searchStatus } = useSelector((state) => state.patients);
    const { doctors: doctorsList, status: doctorsStatus } = useSelector((state) => state.doctor);
@@ -53,6 +57,7 @@ export const usePatientForm = (mode = "create") => {
          amountPaid: 0,
          paymentMethod: "cash",
          verbalConsentObtained: false,
+         token: "",
          notes: ""
       },
 
@@ -75,14 +80,16 @@ export const usePatientForm = (mode = "create") => {
       dispatch(fetchAllDoctors());
    }, [dispatch]);
 
-   // Fetch patient data for edit mode
+   // In your NewOpd component, modify the useEffect that fetches patient data
    useEffect(() => {
       if (mode === "edit" && patientMRNo) {
          setIsLoading(true);
          dispatch(fetchPatientByMrNo(patientMRNo))
             .unwrap()
             .then((patientData) => {
-               populateForm(patientData);
+               // Just set the patient data, don't populate the form
+               setLocalSelectedPatient(patientData);
+               setShowVisitSelector(true);
             })
             .catch((err) => {
                console.error("Error fetching patient:", err);
@@ -93,22 +100,30 @@ export const usePatientForm = (mode = "create") => {
       }
    }, [mode, patientMRNo, dispatch, navigate]);
 
-   // Populate form when selectedPatient changes
-   useEffect(() => {
-      if (mode === "edit" && selectedPatient) {
-         populateForm(selectedPatient);
-      }
-   }, [selectedPatient, mode]);
-
-   const populateForm = (patientData) => {
+   // Modify populateForm to handle visit selection
+   const populateForm = (patientData, visitId = null) => {
       if (!patientData) return;
 
-      // Get the latest visit or empty object
-      const latestVisit = patientData.visits?.[patientData.visits.length - 1] || {};
-      const doctor = latestVisit.doctor || {};
+      console.log("Populating form with patient data:", patientData);
+      console.log("Visit ID provided:", visitId);
+
+      // If no visitId provided, use the latest visit
+      let targetVisit = patientData.visits?.[patientData.visits.length - 1] || {};
+
+      if (visitId) {
+         // Find the specific visit by ID
+         targetVisit = patientData.visits.find(v => v._id === visitId) || targetVisit;
+         console.log("Found target visit:", targetVisit);
+      }
+
+      const doctor = targetVisit.doctor || {};
       const user = doctor.user || {};
 
-      setFormData({
+      console.log("Doctor object:", doctor);
+      console.log("User object:", user);
+
+      // Build the new form data object with CORRECT field names
+      const newFormData = {
          patient_MRNo: patientData.patient_MRNo || "",
          patient_Name: patientData.patient_Name || "",
          patient_ContactNo: patientData.patient_ContactNo || "",
@@ -120,25 +135,28 @@ export const usePatientForm = (mode = "create") => {
          patient_CNIC: patientData.patient_CNIC || "",
          patient_Gender: patientData.patient_Gender || "",
          patient_Age: patientData.patient_Age || "",
-         patient_DateOfBirth: patientData.patient_DateOfBirth || "",
+         patient_DateOfBirth: patientData.patient_DateOfBirth ?
+            new Date(patientData.patient_DateOfBirth).toISOString().split('T')[0] : "",
          patient_Address: patientData.patient_Address || "",
          patient_BloodType: patientData.patient_BloodType || "",
          patient_MaritalStatus: patientData.patient_MaritalStatus || "",
 
          visitData: {
-            doctor: latestVisit.doctor?._id || "",
-            purpose: latestVisit.purpose || "",
-            disease: latestVisit.disease || "",
-            discount: latestVisit.discount || 0,
-            referredBy: latestVisit.referredBy || "",
-            amountPaid: latestVisit.amountPaid || 0,
-            paymentMethod: latestVisit.paymentMethod || "cash",
-            verbalConsentObtained: latestVisit.verbalConsentObtained || false,
-            notes: latestVisit.notes || ""
+            visitId: targetVisit._id || "", // Store the visit ID for updates
+            doctor: targetVisit.doctor?._id || "", // CORRECT: use 'doctor' not 'doctorId'
+            purpose: targetVisit.purpose || "",
+            disease: targetVisit.disease || "",
+            discount: targetVisit.discount || 0,
+            referredBy: targetVisit.referredBy || "",
+            amountPaid: targetVisit.amountPaid || 0,
+            paymentMethod: targetVisit.paymentMethod || "cash",
+            verbalConsentObtained: targetVisit.verbalConsentObtained || false,
+            token: targetVisit.token || "",
+            notes: targetVisit.notes || ""
          },
 
          doctorDetails: {
-            name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+            name: user.user_Name || "N/A",
             gender: doctor.doctor_Gender || "",
             qualification: Array.isArray(doctor.doctor_Qualifications)
                ? doctor.doctor_Qualifications.join(", ")
@@ -149,7 +167,11 @@ export const usePatientForm = (mode = "create") => {
          },
 
          printOption: ""
-      });
+      };
+
+      console.log("New form data to be set:", newFormData);
+      setFormData(newFormData);
+      setIsFormDataReady(true); // Add this line
    };
 
    const resetForm = () => {
@@ -200,6 +222,8 @@ export const usePatientForm = (mode = "create") => {
          ...(formData.patient_BloodType && { patient_BloodType: formData.patient_BloodType }),
          ...(formData.patient_MaritalStatus && { patient_MaritalStatus: formData.patient_MaritalStatus }),
          visitData: {
+            ...formData.visitData,
+            visitId: formData.visitData.visitId, // Include visitId for updates
             doctor: formData.visitData.doctor,
             purpose: formData.visitData.purpose || "Consultation", // Default purpose
             disease: formData.visitData.disease || "",
@@ -208,6 +232,7 @@ export const usePatientForm = (mode = "create") => {
             amountPaid: parseFloat(formData.visitData.amountPaid) || 0,
             paymentMethod: formData.visitData.paymentMethod || "cash",
             verbalConsentObtained: Boolean(formData.visitData.verbalConsentObtained),
+            token: formData.visitData.token ||  "NAN",
             notes: formData.visitData.notes || ""
          }
       };
@@ -500,7 +525,63 @@ export const usePatientForm = (mode = "create") => {
       }
    };
 
+   // In your usePatientForm hook, update the handleVisitSelect function
+   const handleVisitSelect = (visitId) => {
+      console.log("Visit selected:", visitId);
 
+      if (localSelectedPatient) {
+         populateForm(localSelectedPatient, visitId);
+         setSelectedVisitId(visitId);
+         setShowVisitSelector(false);
+         toast.success(`Visit selected for editing`);
+      } else {
+         toast.error("Patient data not available");
+      }
+   };
+
+   const showVisitSelection = () => {
+      setShowVisitSelector(true);
+   }
+
+   const handleSaveAndPrint = async (e) => {
+      if (e) e.preventDefault();
+
+      if (!formData.printOption) {
+         toast.error("Please select a print option");
+         return;
+      }
+
+      setIsSubmitting(true);
+
+      try {
+         // First save the data
+         await handleSave(e);
+
+         // Then print using the utility function
+         setTimeout(() => {
+            handlePrint(formData, formData.printOption);
+         }, 500);
+
+      } catch (error) {
+         console.error("Save and print failed:", error);
+         toast.error(error.message || "Save failed - not printing");
+      } finally {
+         setIsSubmitting(false);
+      }
+   };
+
+   const handlePrintOnly = () => {
+      if (!formData.printOption) {
+         toast.error("Please select a print option");
+         return;
+      }
+
+      try {
+         handlePrint(formData, formData.printOption);
+      } catch (error) {
+         toast.error(error.message);
+      }
+   };
 
    return {
       isLoading,
@@ -521,5 +602,15 @@ export const usePatientForm = (mode = "create") => {
       validMaritalStatuses,
       populateForm,
       handleSearch,
+      selectedVisitId,
+      showVisitSelector,
+      handleVisitSelect,
+      setShowVisitSelector,
+      isFormDataReady,
+      localSelectedPatient,
+      showVisitSelection,
+      selectedPatient,
+      handleSaveAndPrint,
+      handlePrint: handlePrintOnly,
    };
 };

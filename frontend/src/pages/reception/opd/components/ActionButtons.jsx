@@ -1,3 +1,4 @@
+// components/ActionButtons.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, ButtonGroup } from '../../../../components/common/Buttons';
@@ -8,7 +9,8 @@ const ActionButtons = ({
    mode,
    isSubmitting,
    onSave,
-   onSubmit
+   onSubmit,
+   onPrint,
 }) => {
    const navigate = useNavigate();
 
@@ -24,6 +26,7 @@ const ActionButtons = ({
 
          <ButtonGroup>
             <Button
+               type="button"
                variant="success"
                onClick={onSave}
                disabled={isSubmitting}
@@ -32,6 +35,15 @@ const ActionButtons = ({
                {isSubmitting ? 'Saving...' : mode === "create" ? 'Save Only' : 'Update Only'}
             </Button>
             <Button
+               type="button"
+               onClick={onPrint}
+               disabled={isSubmitting}
+               icon={AiOutlinePrinter}
+            >
+               Print Only
+            </Button>
+            <Button
+               type="submit"
                onClick={onSubmit}
                disabled={isSubmitting}
                icon={AiOutlinePrinter}

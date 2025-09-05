@@ -1,8 +1,37 @@
 import React from 'react';
-import Logo from '../../../assets/images/logo1.png';
+import Logo from '../../../../assets/images/logo1.png';
 
 const PrintA4 = ({ formData }) => {
-  const safeData = (value, fallback = '_________') => value || fallback;
+  const safeData = (value, fallback = '_________') => {
+    if (value === null || value === undefined || value === '') return fallback;
+    return value;
+  };
+
+  // Extract data with proper fallbacks based on your actual form structure
+  const patientMRNo = formData?.patient_MRNo || formData?.patientMRNo || 'N/A';
+  const patientName = formData?.patient_Name || formData?.patientName || 'N/A';
+  const patientAge = formData?.patient_Age || formData?.age || 'N/A';
+  const patientGender = formData?.patient_Gender || formData?.gender || 'N/A';
+  const guardianName = formData?.patient_Guardian?.guardian_Name || formData?.guardianName || 'N/A';
+  const guardianContact = formData?.patient_Guardian?.guardian_Contact || formData?.guardianContact || 'N/A';
+  const guardianRelation = formData?.patient_Guardian?.guardian_Relation || formData?.guardianRelation || 'N/A';
+  const patientAddress = formData?.patient_Address || formData?.address || 'N/A';
+  const maritalStatus = formData?.patient_MaritalStatus || formData?.maritalStatus || 'N/A';
+
+  const doctorName = formData?.doctorDetails?.name || formData?.doctorName || 'N/A';
+  const doctorQualification = formData?.doctorDetails?.qualification || formData?.doctorQualification || 'N/A';
+  const doctorDepartment = formData?.doctorDetails?.department || formData?.doctorDepartment || 'N/A';
+  const doctorSpecialization = formData?.doctorDetails?.specialization || formData?.doctorSpecialization || 'N/A';
+
+  // Visit data
+  const purpose = formData?.visitData?.purpose || 'N/A';
+  const disease = formData?.visitData?.disease || 'N/A';
+  const referredBy = formData?.visitData?.referredBy || 'N/A';
+
+  // Payment info
+  const amountStatus = formData?.visitData?.amountStatus || 'cash';
+  const token =  formData?.visitData?.token || 0;
+  const notes =  formData?.visitData?.notes || 0;
 
   return (
     <html>
@@ -11,32 +40,32 @@ const PrintA4 = ({ formData }) => {
         <style>
           {`
             @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap');
-      @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&family=Roboto:wght@400;500&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&family=Roboto:wght@400;500&display=swap');
 
- /* Base font for all text */
-      body {
-        font-family: 'Roboto', sans-serif;
-        font-weight: 400;
-         font-size: 18px;
-      }
-      
-      /* Form title */
-      .form-title {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 600;
-      }
-      
-      /* Section headers */
-      .section-title, .vital-title {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 500;
-         font-size: 14px;    
-      }
-      
-      /* Labels */
-      .detail-label { 
-        font-weight: 500; /* Semi-bold for labels */
-      }
+            /* Base font for all text */
+            body {
+              font-family: 'Roboto', sans-serif;
+              font-weight: 400;
+              font-size: 18px;
+            }
+            
+            /* Form title */
+            .form-title {
+              font-family: 'Montserrat', sans-serif;
+              font-weight: 600;
+            }
+            
+            /* Section headers */
+            .section-title, .vital-title {
+              font-family: 'Montserrat', sans-serif;
+              font-weight: 500;
+              font-size: 14px;    
+            }
+            
+            /* Labels */
+            .detail-label { 
+              font-weight: 500; /* Semi-bold for labels */
+            }
 
             @page {
               size: A4;
@@ -90,7 +119,7 @@ const PrintA4 = ({ formData }) => {
             }
 
             .hospital-name {
-            font-family: 'Montserrat', sans-serif;
+              font-family: 'Montserrat', sans-serif;
               font-size: 20px;
               font-weight: 600;
               color: #2b6cb0;
@@ -224,16 +253,38 @@ const PrintA4 = ({ formData }) => {
             .no-print {
               display: none;
             }
-              .hospital-name-urdu {
-                 font-family: 'Noto Nastaliq Urdu', sans-serif;
-                 font-size: 26px;
-                 margin-top: 0.75rem;
-                 margin-right: 1rem;
-                 direction: rtl;
-                 line-height: 1.4;
-                 font-weight: 800;
-                 color: #2b6cb0;
-              }
+            
+            .hospital-name-urdu {
+              font-family: 'Noto Nastaliq Urdu', sans-serif;
+              font-size: 26px;
+              margin-top: 0.75rem;
+              margin-right: 1rem;
+              direction: rtl;
+              line-height: 1.4;
+              font-weight: 800;
+              color: #2b6cb0;
+            }
+
+            .payment-info {
+              margin-top: 5mm;
+              padding: 3mm;
+              border: 1px solid #ddd;
+              border-radius: 2mm;
+              background: #f8fafc;
+            }
+
+            .payment-row {
+              display: flex;
+              justify-content: space-between;
+              margin: 2mm 0;
+            }
+
+            .payment-total {
+              font-weight: bold;
+              border-top: 1px solid #ccc;
+              padding-top: 2mm;
+              margin-top: 2mm;
+            }
 
             @media print {
               body {
@@ -278,111 +329,96 @@ const PrintA4 = ({ formData }) => {
             <div className="logo-section">
               <img src={Logo} className="logo" alt="Hospital Logo" />
               <div className="hospital-name">Al-Shahbaz Hospital</div>
-              <div className="hospital-name-urdu" >
+              <div className="hospital-name-urdu">
                 الشہباز ہسپتال
               </div>
             </div>
 
-
             <div className="patient-details-section">
               <div className="section-title">PATIENT DETAILS</div>
               <div className="detail-row">
+                <span className="detail-label">Token Number:</span>
+                <span className="detail-value">{safeData(token)}</span>
+              </div>
+              <div className="detail-row">
                 <span className="detail-label">MR Number:</span>
-                <span className="detail-value">  {safeData(formData?.patientMRNo || formData?.patient_MRNo || formData?.mrNumber)}</span>
+                <span className="detail-value">{safeData(patientMRNo)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Patient Name:</span>
-                <span className="detail-value">{safeData(formData.patientName)}</span>
+                <span className="detail-value">{safeData(patientName)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Age/Gender:</span>
-                <span className="detail-value">{safeData(formData.age)}/{safeData(formData.gender)}</span>
+                <span className="detail-value">{safeData(patientAge)}/{safeData(patientGender)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Guardian Name:</span>
-                <span className="detail-value">{safeData(formData.guardianName || formData.patient_Guardian?.guardian_Name)}</span>
+                <span className="detail-value">{safeData(guardianName)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Guardian Contact:</span>
-                <span className="detail-value">{safeData(formData.guardianContact || formData.patient_Guardian?.guardian_Contact)}/{safeData(formData.guardianRelation || formData.patient_Guardian?.guardian_Relation)}</span>
+                <span className="detail-value">{safeData(guardianContact)}/{safeData(guardianRelation)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Address:</span>
-                <span className="detail-value">{safeData(formData.address)}</span>
+                <span className="detail-value">{safeData(patientAddress)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Marital Status:</span>
-                <span className="detail-value">{safeData(formData.maritalStatus)}</span>
+                <span className="detail-value">{safeData(maritalStatus)}</span>
               </div>
             </div>
 
             <div className="doctor-details-section">
-              <div className="section-title">DOCTOR DETAILS</div>
+              <div className="section-title">DOCTOR & VISIT DETAILS</div>
               <div className="detail-row">
                 <span className="detail-label">Doctor Name:</span>
-                <span className="detail-value">{safeData(formData.doctorName)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Gender:</span>
-                <span className="detail-value">{safeData(formData.doctorGender)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Qualification:</span>
-                <span className="detail-value">{safeData(formData.doctorQualification)}</span>
+                <span className="detail-value">{safeData(doctorName)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Department:</span>
-                <span className="detail-value">{safeData(formData.doctorDepartment)}</span>
+                <span className="detail-value">{safeData(doctorDepartment)}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-label">Specialization:</span>
-                <span className="detail-value">{safeData(formData.doctorSpecialization)}</span>
+                <span className="detail-value">{safeData(doctorSpecialization)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Visit Purpose:</span>
+                <span className="detail-value">{safeData(purpose)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Disease/Condition:</span>
+                <span className="detail-value">{safeData(disease)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Referred By:</span>
+                <span className="detail-value">{safeData(referredBy)}</span>
               </div>
             </div>
           </div>
 
-          <div className="vital-signs">
-            <div className="vital-signs-left">
-              <div className="vital-title">VITAL SIGNS</div>
-              <div className="detail-row">
-                <span className="detail-label">Blood Pressure:</span>
-                <span className="detail-value">{safeData(formData.bloodPressure)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Temperature:</span>
-                <span className="detail-value">{safeData(formData.temperature)}</span>
-              </div>
-            </div>
-            <div className="vital-signs-right">
-              <div className="vital-title">ADDITIONAL INFO</div>
-              <div className="detail-row">
-                <span className="detail-label">Pulse:</span>
-                <span className="detail-value">{safeData(formData.pulse)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Weight:</span>
-                <span className="detail-value">{safeData(formData.weight)}</span>
-              </div>
+          <div className="payment-info">
+            <div className="section-title">PAYMENT INFORMATION</div>
+            <div className="payment-row">
+              <span>Payment Status:</span>
+              <span>Rs. {amountStatus}</span>
             </div>
           </div>
 
           <div className="main-content-area">
             <div className="good-border">
-              {/* Doctor's notes area */}
+              <div className="section-title">DOCTOR'S NOTES & OBSERVATIONS</div>
+              <div style={{ minHeight: '150mm', marginTop: '3mm' }}>
+                {safeData(notes, 'No notes recorded.')}
+              </div>
             </div>
           </div>
 
           <div className="footer">
             <div className="signature-box">Doctor Signature</div>
-            {/* <div className="contact-info">
-              <div>
-                <div>Al-Shahbaz Hospital Kahuta</div>
-                <div>Near Thana Road</div>
-              </div>
-              <div style={{ marginTop: '1mm' }}>
-                <span>03XX-XXXXXXX</span> | <span>042-XXXXXX</span>
-              </div>
-            </div> */}
+            <div className="signature-box">Patient/Guardian Signature</div>
           </div>
         </div>
 
@@ -400,10 +436,8 @@ const PrintA4 = ({ formData }) => {
         }} onClick={() => window.print()}>
           Print
         </button>
-
       </body>
     </html>
-
   );
 };
 

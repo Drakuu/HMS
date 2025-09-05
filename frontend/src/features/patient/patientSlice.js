@@ -151,6 +151,9 @@ const patientSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    setSelectedPatient: (state, action) => {  
+      state.selectedPatient = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -280,5 +283,6 @@ export const selectSelectedPatientStatus = (state) => state.patients.selectedPat
 export const selectSearchResults = (state) => state.patients.searchResults;
 export const selectSearchStatus = (state) => state.patients.searchStatus;
 export const selectPatientError = (state) => state.patients.error;
+export const { setSelectedPatient } = patientSlice.actions;
 
 export default patientSlice.reducer;
