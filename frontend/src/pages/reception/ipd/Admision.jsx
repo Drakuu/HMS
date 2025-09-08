@@ -14,13 +14,13 @@ import { getallDepartments } from '../../../features/department/DepartmentSlice'
 import { getwardsbydepartmentId } from '../../../features/ward/Wardslice';
 
 // Components
-import HeaderSection from './components/HeaderSection';
-import WardTypeTabs from './components/WardTypeTabs';
-import PatientsTable from './components/PatientsTable';
-import EmptyState from './components/EmptyState';
-import SuccessModal from './components/modals/SuccessModal';
-import DeleteModal from './components/modals/DeleteModal';
-import EditModal from './components/modals/EditModal';
+import HeaderSection from './getall/HeaderSection';
+import WardTypeTabs from './getall/WardTypeTabs';
+import PatientsTable from './getall/PatientsTable';
+import EmptyState from './getall/EmptyState';
+import SuccessModal from './getall/modals/SuccessModal';
+import DeleteModal from './getall/modals/DeleteModal';
+import EditModal from './getall/modals/EditModal';
 
 const AdmittedPatients = () => {
   const dispatch = useDispatch();

@@ -216,8 +216,7 @@ const getDoctorById = async (req, res) => {
     // });
 
     const patients = await hospitalModel.Patient.find({
-      "patient_HospitalInformation.doctor_Name": doctor.user.user_Name,
-      "patient_HospitalInformation.doctor_Department": doctor.doctor_Department
+      "visits.doctor": doctor._id,
     });
 
     // console.log("Found patients:", patients);

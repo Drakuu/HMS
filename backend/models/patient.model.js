@@ -27,6 +27,24 @@ const visitSchema = new mongoose.Schema({
 
   // VCO field
   verbalConsentObtained: { type: Boolean, default: false },
+  // Refund tracking fields
+  totalRefunded: {
+    type: Number,
+    default: 0
+  },
+
+  remainingAmount: {
+    type: Number,
+    default: function () {
+      return this.amountPaid - this.totalRefunded;
+    }
+  },
+
+  refundStatus: {
+    type: String,
+    enum: ['not_refunded', 'partially_refunded', 'fully_refunded'],
+    default: 'not_refunded'
+  },
   
   token: { type: Number, },
   referredBy: { type: String },

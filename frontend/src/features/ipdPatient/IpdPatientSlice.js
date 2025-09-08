@@ -21,13 +21,13 @@ export const admitPatient = createAsyncThunk(
         patientData,
         { headers: getAuthHeaders() }
       );
-      return response.data.data; // Use the nested data property
+      return response.data.data;
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to admit patient';
-      return rejectWithValue({ 
+      return rejectWithValue({
         message,
         statusCode: error.response?.status || 500,
-        validationErrors: error.response?.data?.errors 
+        validationErrors: error.response?.data?.errors
       });
     }
   }
@@ -37,12 +37,12 @@ export const getAllAdmittedPatients = createAsyncThunk(
   'ipdPatient/getAllAdmittedPatients',
   async (params = {}, { rejectWithValue }) => {
     try {
-      const { page = 1, limit = 20, ward_Type, search, ward_id } = params;
+      const { page = 1, limit = 20, ward_Type, search, ward_id, admission_Type } = params;
       const response = await axios.get(
         `${API_URL}/admittedPatient/get-admitted-patients`,
-        { 
-          params: { page, limit, ward_Type, search, ward_id },
-          headers: getAuthHeaders() 
+        {
+          params: { page, limit, ward_Type, search, ward_id, admission_Type },
+          headers: getAuthHeaders()
         }
       );
       return response.data;
@@ -93,13 +93,12 @@ export const updatePatientAdmission = createAsyncThunk(
 export const dischargePatient = createAsyncThunk(
   'ipdPatient/dischargePatient',
   async (dischargeData, { rejectWithValue }) => {
-    console.log('discharge data is ', dischargeData)
     try {
       const { id, ...rest } = dischargeData;
-      const url = id 
+      const url = id
         ? `${API_URL}/admittedPatient/discharge-patient/${id}`
         : `${API_URL}/admittedPatient/discharge-patient`;
-      
+
       const response = await axios.post(
         url,
         rest,
@@ -158,7 +157,8 @@ const initialState = {
   filters: {
     ward_Type: '',
     search: '',
-    ward_id: ''
+    ward_id: '',
+    admission_Type: ''
   }
 };
 

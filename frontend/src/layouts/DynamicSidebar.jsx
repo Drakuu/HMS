@@ -225,11 +225,11 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <OTIcon className="text-lg" />,
         links: [{ href: "OTMain", label: "OT Schedule" }],
       },
-      // {
-      //   name: "Accounts",
-      //   icon: <AccountsIcon className="text-lg" />,
-      //   links: [{ href: "account/bill-list", label: "Bill list" }],
-      // },
+      {
+        name: "Refunds",
+        icon: <AccountsIcon className="text-lg" />,
+        links: [{ href: "refunds", label: "Refund Opd" }],
+      },
       {
         name: "Inventory",
         icon: <InventoryIcon className="text-lg" />,

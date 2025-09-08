@@ -1,6 +1,6 @@
 import React from "react";
-import { FormSection, FormGrid } from "../../../components/common/FormSection";
-import { InputField } from "../../../components/common/FormFields";
+import { FormSection, FormGrid } from "../../../../components/common/FormSection";
+import { InputField } from "../../../../components/common/FormFields";
 
 const PatientInfoSection = ({ formData, handleChange, bloodGroups }) => {
   const fieldConfig = [
@@ -37,11 +37,10 @@ const PatientInfoSection = ({ formData, handleChange, bloodGroups }) => {
     },
     {
       name: "gender", label: "Gender", type: "select", icon: "man", options: ["Male", "Female"],
-      required: true
     },
-    {
-      name: "maritalStatus", label: "Marital Status", type: "select", icon: "ring", options: ["Single", "Married", "Divorced", "Widowed"]
-    },
+    // {
+    //   name: "maritalStatus", label: "Marital Status", type: "select", icon: "ring", options: ["Single", "Married", "Divorced", "Widowed"]
+    // },
     {
       name: "bloodGroup", label: "Blood Group", type: "select", icon: "heartbeat", options: bloodGroups
     },

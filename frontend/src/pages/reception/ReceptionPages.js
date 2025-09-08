@@ -30,6 +30,9 @@ import Calendar from './calendar/Calendar';
 import OTMain from './operationTheater/OTMain';
 import OTPatientDetails from './operationTheater/OTPatientDetails';
 
+// Refund
+import RefundManagement from './refund/AddRefund';
+
 export {
   ReceptionDashboard,
   HRDashboard,
@@ -51,7 +54,5 @@ export {
   BillList,
   Calendar,
   BedDetails,
-  // AddNewDoctor,
-  // DoctorPannel,
-  // DoctorDetails,
+  RefundManagement,
 };

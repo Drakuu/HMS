@@ -7,16 +7,17 @@ const { passportAuth, checkRole, doctorOnly } = require('../middleware/index.mid
 router.post(
   "/create-patient",
 
-
   controller.patient.createPatient
 );
 
 
 router.get(
   "/get-patients",
-
-
   controller.patient.getAllPatients
+);
+router.get(
+  "/with-refund-history/:patientMRNo",
+  controller.patient.getPatientWithRefundHistory
 );
 
 router.get(

@@ -1,3 +1,4 @@
+// config/passport.js
 require("dotenv").config();
 const passport = require("passport");
 const hospitalModel = require("../models/index.model");
@@ -14,18 +15,14 @@ const opts = {
 passport.use(
   new JwtStrategy(opts, async (jwt_payload, done) => {
     try {
-      // const user = await hospitalModel.User.findOne({
-      //   $or: [
-      //     { user_Email: jwt_payload.user_Email },
-      //     { user_Identifier: jwt_payload.user_Identifier }
-      //   ]
-      // });
+      // Find the user in database using the ID from JWT payload
+      const user = await hospitalModel.User.findById(jwt_payload.id || jwt_payload._id);
 
       // console.log("The JWT payload is:", jwt_payload);
       // console.log("Authenticated user:", user);
-// console.log("The jwt jwt_payload: ", jwt_payload)
-      if (jwt_payload) {
-        return done(null, jwt_payload); // Authentication successful
+
+      if (user) {
+        return done(null, user); // Authentication successful with user object
       } else {
         return done(null, false, { message: "User not found" }); // User not found
       }

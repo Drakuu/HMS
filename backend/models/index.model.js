@@ -15,7 +15,7 @@ const TestManagment = require('./testmanagement.model')
 const Appointment = require("./appointment.model")
 const TestResult = require("./testResult.model")
 const Staff = require('./staff.model')
-
+const Refund = require("./refundopd.model")
 const RadiologyReport = require("./RadiologyReport");
 
 
@@ -36,7 +36,7 @@ const Hospital = {
     TestManagment,
     Appointment,
     TestResult,
-
+    Refund,
     Staff,
 
     RadiologyReport

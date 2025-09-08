@@ -127,6 +127,23 @@ export const searchPatients = createAsyncThunk(
   }
 );
 
+// Get patient with full refund history
+export const getPatientWithRefundHistory = createAsyncThunk(
+  "patient/getPatientWithRefundHistory",
+  async (patientMRNo, { rejectWithValue }) => {
+    try {
+      const config = getAuthHeaders();
+      const response = await axios.get(
+        `${API_URL}/patient/with-refund-history/${patientMRNo}`,
+        config
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 // Patient slice
 const patientSlice = createSlice({
   name: "patients",
@@ -137,6 +154,11 @@ const patientSlice = createSlice({
     status: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
     selectedPatientStatus: "idle",
     searchStatus: "idle",
+    patientData:null,
+    visits: [],
+    refunds: [],
+    refundSummary: null,
+    loading: false,
     error: null,
   },
   reducers: {
@@ -154,6 +176,13 @@ const patientSlice = createSlice({
     setSelectedPatient: (state, action) => {  
       state.selectedPatient = action.payload;
     },
+    clearPatientData: (state) => {
+      state.patientData = null;
+      state.visits = [];
+      state.refunds = [];
+      state.refundSummary = null;
+    },
+
   },
   extraReducers: (builder) => {
     builder
@@ -264,6 +293,26 @@ const patientSlice = createSlice({
       .addCase(searchPatients.rejected, (state, action) => {
         state.searchStatus = "failed";
         state.error = action.payload;
+      })
+      // Get Patient with Refund History
+      .addCase(getPatientWithRefundHistory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getPatientWithRefundHistory.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload && action.payload.success) {
+          state.patientData = action.payload.data.patient;
+          state.visits = action.payload.data.visits;
+          state.refunds = action.payload.data.refunds;
+          state.refundSummary = action.payload.data.refundSummary;
+        } else {
+          state.error = "Failed to fetch patient data";
+        }
+      })
+      .addCase(getPatientWithRefundHistory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Error fetching patient data";
       });
   },
 });
@@ -272,7 +321,8 @@ const patientSlice = createSlice({
 export const {
   clearSelectedPatient,
   clearSearchResults,
-  clearError
+  clearPatientData,
+  clearError,
 } = patientSlice.actions;
 
 export const selectAllPatients = (state) => state.patients.patients;

@@ -2,7 +2,6 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import {
   ReceptionDashboard,
-  
   HRDashboard,
   PatientDashboard,
   OTPatientDetails,
@@ -21,6 +20,7 @@ import {
   StockManagement,
   Calendar,
   BedDetails,
+  RefundManagement,
 } from '../pages/reception/ReceptionPages';
 import AdminDashboard from "../pages/admin/dashboard/AdminDashboard";
 import DynamicLayout from '../layouts/DynamicLayout';
@@ -75,6 +75,10 @@ const ReceptionRoutes = () => {
 
           {/* Calendar route */}
           <Route path="calendar" element={<Calendar />} />
+
+          {/* REFUND */}
+          <Route path="refunds" element={<RefundManagement />} />
+
         </Route>
       </Route>
     </Routes>

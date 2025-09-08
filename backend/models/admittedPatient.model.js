@@ -2,46 +2,50 @@ const mongoose = require("mongoose");
 
 const admittedPatientSchema = new mongoose.Schema(
   {
-    patient_MRNo: { type: String, },
-    patient_Name: { type: String },
-    patient_CNIC: { type: String },
-    patient_Gender: { type: String },
-    patient_DateOfBirth: { type: Date },
-    patient_Address: { type: String },
-    patient_Guardian: {
-      guardian_Relation: String,
-      guardian_Name: String,
-      guardian_Contact: String
-    },
+    // Reference to the original patient
+    patient: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient', required: true },
+
     admission_Details: {
-      admission_Date: { type: Date },
+      admission_Date: { type: Date, default: Date.now },
       discharge_Date: { type: Date },
-      admitting_Doctor: { type: String },
+      admitting_Doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', },
       diagnosis: { type: String },
       admission_Type: { type: String }
     },
+
     ward_Information: {
       ward_Type: { type: String },
       ward_No: { type: String },
       bed_No: { type: String },
       pdCharges: { type: Number, default: 0 },
-      ward_Id: { type: mongoose.Schema.Types.ObjectId } // Add if needed
+      ward_Id: { type: mongoose.Schema.Types.ObjectId }
     },
+
     financials: {
       admission_Fee: { type: Number, default: 0 },
       discount: { type: Number, default: 0 },
       total_Charges: { type: Number, default: 0 },
       payment_Status: { type: String, default: "paid" },
-      perDayCharges: {
-        amount: { type: Number, default: 0 },
-        status: { type: String, default: "Unpaid" },
-        startDate: { type: Date, default: Date.now }
-      }
     },
-    status: { type: String },
+
+    status: {
+      type: String,
+      enum: ['Admitted', 'Discharged', 'Transferred'],
+      default: 'Admitted'
+    },
+
     deleted: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
+
+// Virtual for patient MR Number (for easy access)
+admittedPatientSchema.virtual('patient_MRNo').get(function () {
+  return this.patient?.patient_MRNo;
+});
+
+// Ensure virtuals are included when converting to JSON
+admittedPatientSchema.set('toJSON', { virtuals: true });
+admittedPatientSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model("AdmittedPatient", admittedPatientSchema);

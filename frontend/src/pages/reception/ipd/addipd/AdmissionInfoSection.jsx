@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import { FormSection, FormGrid } from "../../../components/common/FormSection";
-import { InputField } from "../../../components/common/FormFields";
+import { FormSection, FormGrid } from "../../../../components/common/FormSection";
+import { InputField } from "../../../../components/common/FormFields";
 import { useDispatch, useSelector } from "react-redux";
-import { getallDepartments } from "../../../features/department/DepartmentSlice";
-import { getwardsbydepartmentId } from "../../../features/ward/Wardslice";
+import { getallDepartments } from "../../../../features/department/DepartmentSlice";
+import { getwardsbydepartmentId } from "../../../../features/ward/Wardslice";
+import { fetchAllDoctors } from "../../../../features/doctor/doctorSlice"
 
 const AdmissionInfoSection = ({ formData, handleChange }) => {
   const dispatch = useDispatch();
@@ -53,16 +54,15 @@ const AdmissionInfoSection = ({ formData, handleChange }) => {
     label: "Admission Type",
     type: "select",
     icon: "health",
-    options: ["SSP", "Private", "PTCL", "Straight-Life"],
+    options: ["SSP", "Private", "PTCL", "State-Life"],
     required: true,
     },
     {
-      name: "doctor",
+      name: "doctorId",
       label: "Doctor",
       type: "text",
       icon: "userMd",
       placeholder: "Enter Doctor Name",
-      required: true,
     },
     {
       name: "departmentId",
@@ -116,29 +116,6 @@ const AdmissionInfoSection = ({ formData, handleChange }) => {
       icon: "dollar",
       placeholder: "Enter Admission Fee",
       required: true,
-    },
-    {
-      name: "perDayCharges",
-      label: "Per Day Charges",
-      type: "number",
-      icon: "dollar",
-      placeholder: "Enter per day charges",
-      min: "0",
-    },
-    {
-      name: "perDayChargesStatus",
-      label: "Per Day Charges Status",
-      type: "select",
-      icon: "dollar",
-      options: ["Unpaid", "Partial", "Paid"],
-      value: formData.perDayChargesStatus || "Unpaid",
-    },
-    {
-      name: "perDayChargesStartDate",
-      label: "Per Day Charges Start Date",
-      type: "date",
-      icon: "calendar",
-      value: formData.perDayChargesStartDate || new Date().toISOString().split('T')[0],
     },
     {
       name: "discount",

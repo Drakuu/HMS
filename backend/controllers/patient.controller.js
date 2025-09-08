@@ -2,6 +2,7 @@ const hospitalModel = require("../models/index.model");
 const utils = require("../utils/utilsIndex");
 
 // Search patient by multiple fields
+// Modified search function that returns all visits
 const searchPatient = async (req, res) => {
   try {
     const { searchTerm, page = 1, limit = 10 } = req.query;
@@ -13,8 +14,6 @@ const searchPatient = async (req, res) => {
       });
     }
 
-    const skip = (page - 1) * limit;
-
     const patients = await hospitalModel.Patient.find({
       deleted: false,
       $or: [
@@ -25,37 +24,21 @@ const searchPatient = async (req, res) => {
         { "patient_Guardian.guardian_Contact": { $regex: searchTerm, $options: 'i' } }
       ]
     })
-      .select('patient_MRNo patient_Name patient_ContactNo patient_CNIC patient_Gender patient_Age totalVisits lastVisit totalAmountPaid totalAmountDue')
-      .sort({ lastVisit: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const totalCount = await hospitalModel.Patient.countDocuments({
-      deleted: false,
-      $or: [
-        { patient_MRNo: { $regex: searchTerm, $options: 'i' } },
-        { patient_CNIC: { $regex: searchTerm, $options: 'i' } },
-        { patient_ContactNo: { $regex: searchTerm, $options: 'i' } },
-        { patient_Name: { $regex: searchTerm, $options: 'i' } },
-        { "patient_Guardian.guardian_Contact": { $regex: searchTerm, $options: 'i' } }
-      ]
-    });
-
-    const totalPages = Math.ceil(totalCount / limit);
+      .populate({
+        path: 'visits.doctor',
+        select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
+        populate: {
+          path: 'user',
+          select: 'user_Name user_Email user_Contact'
+        }
+      });
 
     return res.status(200).json({
       success: true,
       message: "Patients found successfully",
       information: {
         patients,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages,
-          totalCount,
-          hasNext: parseInt(page) < totalPages,
-          hasPrev: parseInt(page) > 1,
-          limit: parseInt(limit)
-        }
+        totalCount: patients.length
       },
     });
   } catch (error) {
@@ -735,6 +718,115 @@ const deletePatient = async (req, res) => {
   }
 };
 
+const getPatientWithRefundHistory = async (req, res) => {
+  try {
+    const { patientMRNo } = req.params;
+
+    // Find patient with all visits populated
+    const patient = await hospitalModel.Patient.findOne({
+      patient_MRNo: patientMRNo,
+      deleted: false,
+    })
+      .populate({
+        path: 'visits.doctor',
+        select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
+        populate: {
+          path: 'user',
+          select: 'user_Name user_Email user_Contact'
+        }
+      });
+
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: "Patient not found",
+      });
+    }
+
+    // Get all refunds for this patient
+    const refunds = await hospitalModel.Refund.find({ patient: patient._id })
+      .populate('processedBy', 'user_Name user_Email')
+      .populate('authorizedBy', 'user_Name user_Email')
+      .sort({ refundDate: -1 });
+
+    // Calculate refund summaries for each visit
+    const visitsWithRefundInfo = await Promise.all(
+      patient.visits.map(async (visit) => {
+        const visitRefunds = refunds.filter(refund =>
+          refund.visit.toString() === visit._id.toString()
+        );
+
+        const totalRefunded = visitRefunds.reduce((sum, refund) => sum + refund.refundAmount, 0);
+        const refundable = visit.amountPaid - totalRefunded;
+
+        return {
+          _id: visit._id,
+          visitDate: visit.visitDate,
+          doctor: visit.doctor,
+          purpose: visit.purpose,
+          disease: visit.disease,
+          amountPaid: visit.amountPaid,
+          paymentMethod: visit.paymentMethod,
+          paymentStatus: visit.amountStatus,
+          totalRefunded,
+          refundable,
+          isFullyRefunded: refundable === 0,
+          refunds: visitRefunds,
+          canRefund: refundable > 0
+        };
+      })
+    );
+
+    // Calculate overall patient refund summary
+    const totalAmountPaid = patient.visits.reduce((sum, visit) => sum + (visit.amountPaid || 0), 0);
+    const totalRefunded = refunds.reduce((sum, refund) => sum + refund.refundAmount, 0);
+    const totalRefundable = totalAmountPaid - totalRefunded;
+
+    const refundSummary = {
+      totalAmountPaid,
+      totalRefunded,
+      totalRefundable,
+      refundPercentage: totalAmountPaid > 0 ? (totalRefunded / totalAmountPaid) * 100 : 0,
+      totalRefunds: refunds.length,
+      refundsByStatus: {
+        pending: refunds.filter(r => r.refundStatus === 'pending').length,
+        partial: refunds.filter(r => r.refundStatus === 'partial').length,
+        full: refunds.filter(r => r.refundStatus === 'full').length,
+        cancelled: refunds.filter(r => r.refundStatus === 'cancelled').length,
+        rejected: refunds.filter(r => r.refundStatus === 'rejected').length
+      }
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Patient data with refund history retrieved successfully",
+      data: {
+        patient: {
+          _id: patient._id,
+          patient_MRNo: patient.patient_MRNo,
+          patient_Name: patient.patient_Name,
+          patient_ContactNo: patient.patient_ContactNo,
+          patient_CNIC: patient.patient_CNIC,
+          patient_Gender: patient.patient_Gender,
+          patient_Age: patient.patient_Age,
+          totalVisits: patient.totalVisits,
+          lastVisit: patient.lastVisit
+        },
+        visits: visitsWithRefundInfo,
+        refunds: refunds,
+        refundSummary: refundSummary
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching patient with refund history:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const patient = {
   searchPatient,
   createPatient,
@@ -743,6 +835,7 @@ const patient = {
   getPatientByMRNo,
   deletePatient,
   getPatientById,
+  getPatientWithRefundHistory,
 };
 
 module.exports = patient;
