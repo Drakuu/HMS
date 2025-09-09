@@ -18,7 +18,7 @@ const DoctorSelect = ({
                <FaUserMd className="text-primary-600" />
             </div>
             <Select
-            required={true}
+            // required={true}
                options={doctorOptions}
                value={selectedDoctor}
                onChange={onDoctorChange}

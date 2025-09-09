@@ -55,7 +55,7 @@ const populatePatient = async (patientId) => {
   return await hospitalModel.Patient.findById(patientId)
     .populate({
       path: 'visits.doctor',
-      select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Gender doctor_Type doctor_LicenseNumber',
+      select: 'doctor_Department doctor_Specialization doctor_Fee user doctor_Qualifications doctor_Type doctor_LicenseNumber',
       populate: {
         path: 'user',
         select: 'user_Name user_Email user_Contact' // Add all fields you need
@@ -80,35 +80,32 @@ const createPatient = async (req, res) => {
       visitData // Required for both new and existing patients
     } = req.body;
 
-    // Validate visit data
-    if (!visitData?.doctor) {
-      return res.status(400).json({
-        success: false,
-        message: "Doctor is required for the visit",
-      });
-    }
+    let doctor = null;
+    let doctorFee = 0;
 
-    // Check if doctor exists
-    const doctor = await hospitalModel.Doctor.findById(visitData.doctor);
-    if (!doctor) {
-      return res.status(404).json({
-        success: false,
-        message: "Doctor not found",
-      });
+    // Only check doctor if provided and valid
+    if (visitData?.doctor && visitData.doctor.trim() !== '') {
+      doctor = await hospitalModel.Doctor.findById(visitData.doctor);
+      if (!doctor) {
+        return res.status(404).json({
+          success: false,
+          message: "Doctor not found",
+        });
+      }
+      doctorFee = doctor.doctor_Fee || 0;
     }
 
     const currentDate = new Date();
     const token = await utils.generateUniqueToken(currentDate.toISOString().split('T')[0]);
 
     // Calculate visit details
-    const doctorFee = doctor.doctor_Fee || 0;
     const discount = visitData?.discount || 0;
     const totalFee = Math.max(0, doctorFee - discount);
 
     // Create visit object
     const newVisit = {
       visitDate: currentDate,
-      doctor: visitData.doctor,
+      doctor: visitData.doctor || null,
       purpose: visitData.purpose || "Consultation",
       disease: visitData.disease || "",
       doctorFee: doctorFee,

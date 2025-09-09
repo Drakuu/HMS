@@ -35,14 +35,6 @@ const ActionButtons = ({
                {isSubmitting ? 'Saving...' : mode === "create" ? 'Save Only' : 'Update Only'}
             </Button>
             <Button
-               type="button"
-               onClick={onPrint}
-               disabled={isSubmitting}
-               icon={AiOutlinePrinter}
-            >
-               Print Only
-            </Button>
-            <Button
                type="submit"
                onClick={onSubmit}
                disabled={isSubmitting}

@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const visitSchema = new mongoose.Schema({
   visitDate: { type: Date, default: Date.now },
-  doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
+  doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' },
   purpose: { type: String, },
   disease: { type: String },
   doctorFee: { type: Number, },

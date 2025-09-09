@@ -49,7 +49,7 @@ export const usePatientForm = (mode = "create") => {
 
       // Visit Information
       visitData: {
-         doctor: "",
+         doctor: null,
          purpose: "",
          disease: "",
          discount: 0,
@@ -298,7 +298,7 @@ export const usePatientForm = (mode = "create") => {
                   token: latestVisit.token
                });
             }
-
+            navigate(getRoleRoute(`/OPD/manage`));
             return result;
 
          } else {
@@ -544,7 +544,7 @@ export const usePatientForm = (mode = "create") => {
    };
 
    const handleDoctorSelect = (selectedOption) => {
-      if (selectedOption) {
+      if (selectedOption && selectedOption.data && selectedOption.data.id) {
          const doctorData = selectedOption.data;
          setFormData(prev => ({
             ...prev,
@@ -566,7 +566,7 @@ export const usePatientForm = (mode = "create") => {
             ...prev,
             visitData: {
                ...prev.visitData,
-               doctor: ""
+               doctor: null
             },
             doctorDetails: {
                name: "",

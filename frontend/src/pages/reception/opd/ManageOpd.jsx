@@ -6,20 +6,19 @@ import {
   selectSelectedPatient,
   selectSelectedPatientStatus,
   clearSelectedPatient,
-  // NOTE: selector name fix
   selectAllPatients,
 } from "../../../features/patient/patientSlice";
-import { AiOutlineEdit, AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
+import { AiOutlineEdit, AiOutlineDelete, AiOutlineEye, AiOutlinePrinter } from "react-icons/ai";
 import { FiSearch } from "react-icons/fi";
 import PatientDetailModal from "./PatientDetailModal";
 import DeletePatientConfirmation from './DeletePatientConfirmation';
 import { useNavigate } from 'react-router-dom';
+import PrintOptionsModal from './components/PrintOptionsModal'; // New component for print options
 
 const ManageOpd = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // FIX: use correct selector
   const patients = useSelector(selectAllPatients);
   const selectedPatient = useSelector(selectSelectedPatient);
   const patientLoading = useSelector(selectSelectedPatientStatus);
@@ -27,6 +26,8 @@ const ManageOpd = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState(null);
+  const [patientToPrint, setPatientToPrint] = useState(null); // Patient selected for printing
+  const [showPrintModal, setShowPrintModal] = useState(false); // Controls print modal visibility
 
   // Default date range = today
   const [dateRange, setDateRange] = useState(() => {
@@ -34,9 +35,7 @@ const ManageOpd = () => {
     return { start: today, end: today };
   });
 
-  // console.log("Patients from store:", patients);
   useEffect(() => {
-    // single fetch is enough
     dispatch(fetchPatients()).unwrap().catch((err) => {
       console.error("Error fetching all patients:", err);
     });
@@ -50,6 +49,16 @@ const ManageOpd = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     dispatch(clearSelectedPatient());
+  };
+
+  const handlePrint = (patient) => {
+    setPatientToPrint(patient);
+    setShowPrintModal(true);
+  };
+
+  const handleClosePrintModal = () => {
+    setShowPrintModal(false);
+    setPatientToPrint(null);
   };
 
   const handleDateRangeChange = (type, value) => {
@@ -66,7 +75,7 @@ const ManageOpd = () => {
 
   // helpers
   const toTitle = (g) => g ? (g[0].toUpperCase() + g.slice(1)) : '';
-  const latestVisitOf = (p) => p?.visits?.[0] || null; // server returns only last visit
+  const latestVisitOf = (p) => p?.visits?.[0] || null;
   const doctorNameOf = (visit) => {
     const u = visit?.doctor?.user;
     if (u?.firstName || u?.lastName) return [u?.firstName, u?.lastName].filter(Boolean).join(' ');
@@ -87,7 +96,7 @@ const ManageOpd = () => {
       // Date filter by lastVisit (fallback createdAt)
       let matchesDate = true;
       const baseDate = new Date(p.lastVisit || p.createdAt);
-      if (isNaN(baseDate.getTime())) return matchesSearch; // ignore date filter if invalid
+      if (isNaN(baseDate.getTime())) return matchesSearch;
 
       if (dateRange.start || dateRange.end) {
         if (dateRange.start && !dateRange.end) {
@@ -124,6 +133,14 @@ const ManageOpd = () => {
           patient={selectedPatient}
           loading={patientLoading === "loading"}
           onClose={handleCloseModal}
+        />
+      )}
+
+      {/* Print Options Modal */}
+      {showPrintModal && patientToPrint && (
+        <PrintOptionsModal
+          patient={patientToPrint}
+          onClose={handleClosePrintModal}
         />
       )}
 
@@ -313,6 +330,14 @@ const ManageOpd = () => {
                             aria-label={`Edit ${p.patient_Name}`}
                           >
                             <AiOutlineEdit className="h-5 w-5" />
+                          </button>
+
+                          <button
+                            onClick={() => handlePrint(p)}
+                            className="text-blue-600 border border-blue-200 hover:text-blue-900 p-1 rounded-md hover:bg-blue-50"
+                            aria-label={`Print ${p.patient_Name}`}
+                          >
+                            <AiOutlinePrinter className="h-5 w-5" />
                           </button>
 
                           <button
