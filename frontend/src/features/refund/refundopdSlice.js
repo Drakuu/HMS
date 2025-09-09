@@ -18,7 +18,7 @@ const getAuthHeaders = () => {
    };
 };
 
-// Create Refund async action - FIXED
+// Create Refund async action
 export const createRefund = createAsyncThunk(
    "refund/createRefund",
    async (refundData, { rejectWithValue }) => {
@@ -32,7 +32,7 @@ export const createRefund = createAsyncThunk(
    }
 );
 
-// Get Refunds by Patient MR Number async action - FIXED
+// Get Refunds by Patient MR Number async action
 export const getRefundsByMRNumber = createAsyncThunk(
    "refund/getRefundsByMRNumber",
    async (mrNumber, { rejectWithValue }) => {
@@ -46,7 +46,7 @@ export const getRefundsByMRNumber = createAsyncThunk(
    }
 );
 
-// Get Patient Visits for Refund Selection async action - FIXED
+// Get Patient Visits for Refund Selection async action
 export const getPatientVisitsForRefund = createAsyncThunk(
    "refund/getPatientVisitsForRefund",
    async (mrNumber, { rejectWithValue }) => {
@@ -60,7 +60,7 @@ export const getPatientVisitsForRefund = createAsyncThunk(
    }
 );
 
-// Update Refund Status async action - FIXED
+// Update Refund Status async action
 export const updateRefundStatus = createAsyncThunk(
    "refund/updateRefundStatus",
    async ({ id, statusData }, { rejectWithValue }) => {
@@ -78,7 +78,7 @@ export const updateRefundStatus = createAsyncThunk(
    }
 );
 
-// Get Refund Statistics async action - FIXED
+// Get Refund Statistics async action
 export const getRefundStatistics = createAsyncThunk(
    "refund/getRefundStatistics",
    async ({ startDate, endDate } = {}, { rejectWithValue }) => {
@@ -98,7 +98,7 @@ export const getRefundStatistics = createAsyncThunk(
    }
 );
 
-// Get Refund by ID async action - FIXED
+// Get Refund by ID async action
 export const getRefundById = createAsyncThunk(
    "refund/getRefundById",
    async (id, { rejectWithValue }) => {
@@ -112,7 +112,7 @@ export const getRefundById = createAsyncThunk(
    }
 );
 
-// Get All Refunds async action - FIXED
+// Get All Refunds async action - UPDATED to use correct endpoint
 export const getAllRefunds = createAsyncThunk(
    "refund/getAllRefunds",
    async (filters = {}, { rejectWithValue }) => {
@@ -121,6 +121,7 @@ export const getAllRefunds = createAsyncThunk(
             ...getAuthHeaders(),
             params: filters,
          };
+         // Use the correct endpoint - either /refund/refunds or /refund/get-all
          const response = await axios.get(`${API_URL}/refund/refunds`, config);
          return response.data;
       } catch (error) {
@@ -129,7 +130,23 @@ export const getAllRefunds = createAsyncThunk(
    }
 );
 
-// The rest of your slice remains the same...
+// Alternative: If you need to support both endpoints for backward compatibility
+export const getAllRefundsLegacy = createAsyncThunk(
+   "refund/getAllRefundsLegacy",
+   async (filters = {}, { rejectWithValue }) => {
+      try {
+         const config = {
+            ...getAuthHeaders(),
+            params: filters,
+         };
+         const response = await axios.get(`${API_URL}/refund/get-all`, config);
+         return response.data;
+      } catch (error) {
+         return rejectWithValue(error.response?.data || error.message);
+      }
+   }
+);
+
 const refundSlice = createSlice({
    name: "refund",
    initialState: {
@@ -144,6 +161,7 @@ const refundSlice = createSlice({
          status: "",
          startDate: "",
          endDate: "",
+         patientMRNo: "",
       },
    },
    reducers: {
@@ -167,6 +185,7 @@ const refundSlice = createSlice({
             status: "",
             startDate: "",
             endDate: "",
+            patientMRNo: "",
          };
       },
    },
@@ -180,10 +199,10 @@ const refundSlice = createSlice({
          .addCase(createRefund.fulfilled, (state, action) => {
             state.loading = false;
             if (action.payload && action.payload.success) {
-               state.refunds.unshift(action.payload.data);
-               state.successMessage = "Refund created successfully!";
+               state.refunds.unshift(action.payload.data.refund); // Updated to match new response structure
+               state.successMessage = action.payload.message || "Refund created successfully!";
             } else {
-               state.error = "Failed to create refund";
+               state.error = action.payload?.message || "Failed to create refund";
             }
          })
          .addCase(createRefund.rejected, (state, action) => {
@@ -201,7 +220,7 @@ const refundSlice = createSlice({
             if (action.payload && action.payload.success) {
                state.refunds = action.payload.data;
             } else {
-               state.error = "Failed to fetch refunds";
+               state.error = action.payload?.message || "Failed to fetch refunds";
             }
          })
          .addCase(getRefundsByMRNumber.rejected, (state, action) => {
@@ -219,7 +238,7 @@ const refundSlice = createSlice({
             if (action.payload && action.payload.success) {
                state.patientVisits = action.payload.data.visits || [];
             } else {
-               state.error = "Failed to fetch patient visits";
+               state.error = action.payload?.message || "Failed to fetch patient visits";
             }
          })
          .addCase(getPatientVisitsForRefund.rejected, (state, action) => {
@@ -242,9 +261,12 @@ const refundSlice = createSlice({
                if (index !== -1) {
                   state.refunds[index] = updatedRefund;
                }
-               state.successMessage = "Refund status updated successfully!";
+               if (state.refundDetails && state.refundDetails._id === updatedRefund._id) {
+                  state.refundDetails = updatedRefund;
+               }
+               state.successMessage = action.payload.message || "Refund status updated successfully!";
             } else {
-               state.error = "Failed to update refund status";
+               state.error = action.payload?.message || "Failed to update refund status";
             }
          })
          .addCase(updateRefundStatus.rejected, (state, action) => {
@@ -262,7 +284,7 @@ const refundSlice = createSlice({
             if (action.payload && action.payload.success) {
                state.statistics = action.payload.data;
             } else {
-               state.error = "Failed to fetch refund statistics";
+               state.error = action.payload?.message || "Failed to fetch refund statistics";
             }
          })
          .addCase(getRefundStatistics.rejected, (state, action) => {
@@ -280,7 +302,7 @@ const refundSlice = createSlice({
             if (action.payload && action.payload.success) {
                state.refundDetails = action.payload.data;
             } else {
-               state.error = "Failed to fetch refund details";
+               state.error = action.payload?.message || "Failed to fetch refund details";
             }
          })
          .addCase(getRefundById.rejected, (state, action) => {
@@ -298,15 +320,43 @@ const refundSlice = createSlice({
             if (action.payload && action.payload.success) {
                state.refunds = action.payload.data;
             } else {
-               state.error = "Failed to fetch refunds";
+               state.error = action.payload?.message || "Failed to fetch refunds";
             }
          })
          .addCase(getAllRefunds.rejected, (state, action) => {
             state.loading = false;
             state.error = action.payload?.message || "Error fetching refunds";
+         })
+
+         // Get All Refunds (Legacy endpoint)
+         .addCase(getAllRefundsLegacy.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+         })
+         .addCase(getAllRefundsLegacy.fulfilled, (state, action) => {
+            state.loading = false;
+            if (action.payload && action.payload.success) {
+               state.refunds = action.payload.data;
+            } else {
+               state.error = action.payload?.message || "Failed to fetch refunds";
+            }
+         })
+         .addCase(getAllRefundsLegacy.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload?.message || "Error fetching refunds";
          });
    },
 });
+
+// Selector exports
+export const selectRefunds = (state) => state.refund.refunds;
+export const selectRefundDetails = (state) => state.refund.refundDetails;
+export const selectRefundLoading = (state) => state.refund.loading;
+export const selectRefundError = (state) => state.refund.error;
+export const selectRefundStatistics = (state) => state.refund.statistics;
+export const selectPatientVisits = (state) => state.refund.patientVisits;
+export const selectSuccessMessage = (state) => state.refund.successMessage;
+export const selectRefundFilters = (state) => state.refund.filters;
 
 export const {
    clearSuccessMessage,

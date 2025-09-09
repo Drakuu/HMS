@@ -7,9 +7,9 @@ const VisitSelection = ({ patientData, visits, onVisitSelect, onCancel }) => {
 
    // DEBUG: Log props to see what's being received
    useEffect(() => {
-      console.log('VisitSelection - patientData:', patientData);
-      console.log('VisitSelection - visits:', visits);
-      console.log('VisitSelection - visits length:', visits?.length);
+      // console.log('VisitSelection - patientData:', patientData);
+      // console.log('VisitSelection - visits:', visits);
+      // console.log('VisitSelection - visits length:', visits?.length);
    }, [patientData, visits]);
 
    const handleVisitSelect = (visitId) => {
@@ -19,7 +19,7 @@ const VisitSelection = ({ patientData, visits, onVisitSelect, onCancel }) => {
    const handleConfirm = () => {
       if (selectedVisitId) {
          const selectedVisit = visits.find(v => v._id === selectedVisitId);
-         console.log('Selected visit:', selectedVisit);
+         // console.log('Selected visit:', selectedVisit);
          onVisitSelect(selectedVisit);
       }
    };
@@ -92,7 +92,7 @@ const VisitSelection = ({ patientData, visits, onVisitSelect, onCancel }) => {
          {/* Visits List */}
          <div className="grid gap-4 mb-6">
             {visits.map((visit, index) => {
-               console.log(`Rendering visit ${index}:`, visit); // Debug each visit
+               // console.log(`Rendering visit ${index}:`, visit); // Debug each visit
 
                return (
                   <div

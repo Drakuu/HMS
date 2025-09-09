@@ -136,12 +136,39 @@ exports.getRefundsByMRNumber = async (req, res) => {
 
       // Now find refunds for this patient
       const refunds = await hospitalModel.Refund.find({ patient: patient._id })
-         .populate('patient', 'patient_MRNo patient_Name')
+         .populate('patient', 'patient_MRNo patient_Name patient_ContactNo patient_CNIC')
+         .populate('processedBy', 'user_Name user_Email')
          .sort({ refundDate: -1 });
+
+      // Enhance refunds with visit details
+      const refundsWithVisitDetails = await Promise.all(
+         refunds.map(async (refund) => {
+            const refundObj = refund.toObject();
+
+            if (refund.visit) {
+               const visit = patient.visits.id(refund.visit);
+               if (visit) {
+                  refundObj.visitDetails = {
+                     _id: visit._id,
+                     visitDate: visit.visitDate,
+                     purpose: visit.purpose,
+                     amountPaid: visit.amountPaid,
+                     totalFee: visit.totalFee,
+                     discount: visit.discount,
+                     paymentMethod: visit.paymentMethod,
+                     token: visit.token,
+                     doctor: visit.doctor
+                  };
+               }
+            }
+
+            return refundObj;
+         })
+      );
 
       res.json({
          success: true,
-         data: refunds
+         data: refundsWithVisitDetails
       });
 
    } catch (error) {
@@ -149,6 +176,108 @@ exports.getRefundsByMRNumber = async (req, res) => {
       res.status(500).json({
          success: false,
          message: 'Server error while fetching refunds'
+      });
+   }
+};
+
+exports.getRefunds = async (req, res) => {
+   try {
+      // Get query parameters for filtering
+      const { status, startDate, endDate, patientMRNo } = req.query;
+
+      // Build filter object
+      const filter = {};
+
+      if (status) {
+         filter.status = status;
+      }
+
+      if (startDate || endDate) {
+         filter.refundDate = {};
+         if (startDate) {
+            filter.refundDate.$gte = new Date(startDate);
+         }
+         if (endDate) {
+            filter.refundDate.$lte = new Date(endDate);
+            // Set end of day for end date
+            filter.refundDate.$lte.setHours(23, 59, 59, 999);
+         }
+      }
+
+      // Find refunds with population of patient data
+      let refunds = await hospitalModel.Refund.find(filter)
+         .populate({
+            path: 'patient',
+            select: 'patient_MRNo patient_Name patient_ContactNo patient_CNIC patient_Gender patient_Age patient_Address',
+            model: hospitalModel.Patient
+         })
+         .populate({
+            path: 'processedBy',
+            select: 'user_Name user_Email'
+         })
+         .sort({ refundDate: -1 });
+
+      // If patientMRNo filter is provided, filter results
+      if (patientMRNo) {
+         refunds = refunds.filter(refund =>
+            refund.patient && refund.patient.patient_MRNo === patientMRNo
+         );
+      }
+
+      // For each refund, we need to manually get the visit details from the patient
+      const refundsWithVisitDetails = await Promise.all(
+         refunds.map(async (refund) => {
+            const refundObj = refund.toObject();
+
+            if (refund.patient && refund.visit) {
+               // Find the specific visit in the patient's visits array
+               const patient = await hospitalModel.Patient.findById(refund.patient._id);
+               if (patient) {
+                  const visit = patient.visits.id(refund.visit);
+                  if (visit) {
+                     refundObj.visitDetails = {
+                        _id: visit._id,
+                        visitDate: visit.visitDate,
+                        purpose: visit.purpose,
+                        amountPaid: visit.amountPaid,
+                        totalFee: visit.totalFee,
+                        discount: visit.discount,
+                        paymentMethod: visit.paymentMethod,
+                        token: visit.token,
+                        doctor: visit.doctor // This is just the ID, you might want to populate doctor details separately
+                     };
+
+                     // If you need doctor details, you can populate them here
+                     if (visit.doctor) {
+                        const doctor = await hospitalModel.Doctor.findById(visit.doctor)
+                           .populate('user', 'user_Name');
+                        if (doctor) {
+                           refundObj.visitDetails.doctorDetails = {
+                              name: doctor.user?.user_Name || 'N/A',
+                              department: doctor.doctor_Department || 'N/A'
+                           };
+                        }
+                     }
+                  }
+               }
+            }
+
+            return refundObj;
+         })
+      );
+
+      res.json({
+         success: true,
+         data: refundsWithVisitDetails,
+         count: refundsWithVisitDetails.length
+      });
+
+   } catch (error) {
+      console.error('Error fetching refunds:', error);
+      res.status(500).json({
+         success: false,
+         message: 'Server error while fetching refunds',
+         error: error.message
       });
    }
 };
@@ -214,6 +343,72 @@ exports.getPatientVisitsForRefund = async (req, res) => {
    }
 };
 
+exports.getRefundById = async (req, res) => {
+   try {
+      const { id } = req.params;
+
+      const refund = await hospitalModel.Refund.findById(id)
+         .populate('patient', 'patient_MRNo patient_Name patient_ContactNo patient_CNIC patient_Gender patient_Age patient_Address')
+         .populate('processedBy', 'user_Name user_Email');
+
+      if (!refund) {
+         return res.status(404).json({
+            success: false,
+            message: 'Refund not found'
+         });
+      }
+
+      // Add visit details
+      const refundObj = refund.toObject();
+
+      if (refund.patient && refund.visit) {
+         const patient = await hospitalModel.Patient.findById(refund.patient._id);
+         if (patient) {
+            const visit = patient.visits.id(refund.visit);
+            if (visit) {
+               refundObj.visitDetails = {
+                  _id: visit._id,
+                  visitDate: visit.visitDate,
+                  purpose: visit.purpose,
+                  amountPaid: visit.amountPaid,
+                  totalFee: visit.totalFee,
+                  discount: visit.discount,
+                  paymentMethod: visit.paymentMethod,
+                  token: visit.token,
+                  doctor: visit.doctor
+               };
+
+               // Add doctor details if available
+               if (visit.doctor) {
+                  const doctor = await hospitalModel.Doctor.findById(visit.doctor)
+                     .populate('user', 'user_Name');
+                  if (doctor) {
+                     refundObj.visitDetails.doctorDetails = {
+                        name: doctor.user?.user_Name || 'N/A',
+                        department: doctor.doctor_Department || 'N/A'
+                     };
+                  }
+               }
+            }
+         }
+      }
+
+      res.json({
+         success: true,
+         data: refundObj
+      });
+
+   } catch (error) {
+      console.error('Error fetching refund:', error);
+      res.status(500).json({
+         success: false,
+         message: 'Server error while fetching refund',
+         error: error.message
+      });
+   }
+};
+
+
 // Update refund status
 exports.updateRefundStatus = async (req, res) => {
    try {
@@ -246,6 +441,64 @@ exports.updateRefundStatus = async (req, res) => {
       res.status(500).json({
          success: false,
          message: 'Server error while updating refund status'
+      });
+   }
+};
+
+exports.getRefundStatistics = async (req, res) => {
+   try {
+      const { startDate, endDate } = req.query;
+
+      const filter = {};
+
+      if (startDate || endDate) {
+         filter.refundDate = {};
+         if (startDate) {
+            filter.refundDate.$gte = new Date(startDate);
+         }
+         if (endDate) {
+            filter.refundDate.$lte = new Date(endDate);
+            filter.refundDate.$lte.setHours(23, 59, 59, 999);
+         }
+      }
+
+      const refunds = await hospitalModel.Refund.find(filter);
+
+      const statistics = {
+         totalRefunds: refunds.length,
+         totalRefundAmount: refunds.reduce((sum, refund) => sum + (refund.refundAmount || 0), 0),
+         byStatus: {},
+         byPaymentMethod: {},
+         dailyBreakdown: {}
+      };
+
+      // Calculate statistics by status
+      refunds.forEach(refund => {
+         statistics.byStatus[refund.status] = (statistics.byStatus[refund.status] || 0) + 1;
+      });
+
+      // Calculate statistics by payment method
+      refunds.forEach(refund => {
+         statistics.byPaymentMethod[refund.refundMethod] = (statistics.byPaymentMethod[refund.refundMethod] || 0) + 1;
+      });
+
+      // Calculate daily breakdown
+      refunds.forEach(refund => {
+         const date = refund.refundDate.toISOString().split('T')[0];
+         statistics.dailyBreakdown[date] = (statistics.dailyBreakdown[date] || 0) + (refund.refundAmount || 0);
+      });
+
+      res.json({
+         success: true,
+         data: statistics
+      });
+
+   } catch (error) {
+      console.error('Error fetching refund statistics:', error);
+      res.status(500).json({
+         success: false,
+         message: 'Server error while fetching refund statistics',
+         error: error.message
       });
    }
 };

@@ -24,7 +24,7 @@ const VisitSelector = ({ visits, onSelectVisit, onClose, patientName }) => {
       }
    };
 
-   console.log("Rendering VisitSelector with visits:", visits);
+   // console.log("Rendering VisitSelector with visits:", visits);
    return (
       
       <div className="fixed inset-0 flex items-center justify-center bg-white/30 backdrop-blur-lg z-50 p-4">

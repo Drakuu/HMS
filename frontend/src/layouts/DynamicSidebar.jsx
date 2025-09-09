@@ -73,7 +73,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         return "/lab";
       case "doctor":
         return "/doctor";
-        case "radiology":
+      case "radiology":
         return "/radiology";
       default:
         return "/";
@@ -89,8 +89,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <DashboardIcon className="text-lg" />,
         links: [{ href: "dashboard", label: "Admin Dashboard" }],
       },
-      
-        {
+
+      {
         name: 'Departments',
         icon: <GroupsIcon className="text-lg" />,
         links: [
@@ -133,7 +133,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
           { href: 'RadiologyPennal', label: `Radiology` },
         ],
       },
-    
+
     ],
     doctor: [
       {
@@ -168,13 +168,13 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <NotesIcon className="text-lg" />,
         links: [{ href: "notes", label: "Notes / Diagnosis" }],
       },
-     
+
       {
         name: "Settings",
         icon: <SettingsIcon className="text-lg" />,
         links: [{ href: "settings", label: "Settings" }],
       },
-    
+
     ],
     receptionist: [
       {
@@ -228,7 +228,10 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
       {
         name: "Refunds",
         icon: <AccountsIcon className="text-lg" />,
-        links: [{ href: "refunds", label: "Refund Opd" }],
+        links: [
+          { href: "refunds", label: "Refund Opd" },
+          { href: "manage-refunds", label: "All Opd Refunds" }
+        ],
       },
       {
         name: "Inventory",
@@ -260,7 +263,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <PatientTestIcon className="text-lg" />,
         links: [
           { href: "patient-test", label: "Patients Test" },
-          { href: "all-patients", label: "All patients" }, 
+          { href: "all-patients", label: "All patients" },
         ],
       },
       {
@@ -268,7 +271,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <TestReportIcon className="text-lg" />,
         links: [
           { href: "test-report", label: "Patients Reports" },
-          {href : "critical-reports", label: "Critical Reports"},
+          { href: "critical-reports", label: "Critical Reports" },
           // { href: "all-reports", label: "All reports" },
         ],
       },
@@ -324,9 +327,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
   return (
     <div
       ref={sidebarRef}
-      className={`fixed lg:relative z-30 h-full w-64 bg-primary-600 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0`}
+      className={`fixed lg:relative z-30 h-full w-64 bg-primary-600 text-white flex flex-col shadow-lg transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
     >
       <div className="p-4 border-b border-primary-300 flex items-center justify-between">
         <h1 className="text-xl py-1.5 font-semibold">Al-Shahbaz Hospital</h1>
@@ -344,22 +346,20 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
               <Link
                 to={menu.links[0].href}
                 onClick={() => handleSubMenuClick(menu.links[0].label)}
-                className={`flex items-center px-4 py-3 transition-colors ${
-                  activeSubMenu === menu.links[0].label
+                className={`flex items-center px-4 py-3 transition-colors ${activeSubMenu === menu.links[0].label
                     ? "bg-primary-700"
                     : "hover:bg-primary-700"
-                }`}
+                  }`}
               >
                 <span className="mr-3">{menu.icon}</span>
                 <span className="font-medium">{menu.name}</span>
               </Link>
             ) : (
               <div
-                className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${
-                  activeMenu === menu.name
+                className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${activeMenu === menu.name
                     ? "bg-primary-700"
                     : "hover:bg-primary-700"
-                }`}
+                  }`}
                 onClick={() => toggleMenu(menu.name)}
               >
                 <div className="flex items-center">
@@ -368,9 +368,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                 </div>
                 {menu.links.length > 0 && (
                   <ChevronDown
-                    className={`w-5 h-5 transition-transform ${
-                      expandedMenus[menu.name] ? "rotate-180" : ""
-                    }`}
+                    className={`w-5 h-5 transition-transform ${expandedMenus[menu.name] ? "rotate-180" : ""
+                      }`}
                   />
                 )}
               </div>
@@ -382,11 +381,10 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                     key={linkIndex}
                     to={link.href}
                     onClick={() => handleSubMenuClick(link.label)}
-                    className={`block px-3 py-2 text-sm transition-colors rounded ${
-                      activeSubMenu === link.label
+                    className={`block px-3 py-2 text-sm transition-colors rounded ${activeSubMenu === link.label
                         ? "bg-primary-600 text-white"
                         : "hover:bg-primary-600 text-white"
-                    }`}
+                      }`}
                   >
                     {link.label}
                   </Link>

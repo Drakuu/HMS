@@ -32,6 +32,8 @@ import OTPatientDetails from './operationTheater/OTPatientDetails';
 
 // Refund
 import RefundManagement from './refund/AddRefund';
+import OpdRefundList from './refund/OpdRefundList';
+import OpdRefundDetail from './refund/RefundDeatil';
 
 export {
   ReceptionDashboard,
@@ -55,4 +57,6 @@ export {
   Calendar,
   BedDetails,
   RefundManagement,
+  OpdRefundList,
+  OpdRefundDetail,
 };
