@@ -11,8 +11,12 @@ const AdmissionInfoSection = ({ formData, handleChange }) => {
   const { departments, isLoading: deptLoading } = useSelector((state) => state.department);
   const { wardsByDepartment, isLoading: wardLoading } = useSelector((state) => state.ward);
   const selectedWard = wardsByDepartment.find(ward => ward._id === formData.wardId);
+  // Add this to your component
+  const { doctors, isLoading: doctorLoading } = useSelector((state) => state.doctor);
+// console.log(doctors)
      
   useEffect(() => {
+    dispatch(fetchAllDoctors());
     dispatch(getallDepartments());
   }, [dispatch]);
 
@@ -60,9 +64,15 @@ const AdmissionInfoSection = ({ formData, handleChange }) => {
     {
       name: "doctorId",
       label: "Doctor",
-      type: "text",
+      type: "select",
       icon: "userMd",
-      placeholder: "Enter Doctor Name",
+      options: doctors.map((doctor) => ({
+        value: doctor._id,
+        label: doctor.user?.user_Name,
+      })),
+      // required: true,
+      isLoading: doctorLoading,
+      placeholder: "Select Doctor",
     },
     {
       name: "departmentId",

@@ -6,14 +6,22 @@ import { format } from 'date-fns';
 
 const PatientDetails = () => {
     const { mrno } = useParams();
+    // console.log("the mr unmber is ",mrno)
     const dispatch = useDispatch();
     const { currentPatient, status, error } = useSelector(state => state.ipdPatient);
-// console.log("the paitent data is ", currentPatient)
+
     useEffect(() => {
         if (mrno) {
             dispatch(getIpdPatientByMrno(mrno));
         }
     }, [mrno, dispatch]);
+
+    // Extract patient data from nested structure
+    const patientData = currentPatient?.patient || {};
+    const admissionDetails = currentPatient?.admission_Details || {};
+    const wardInfo = currentPatient?.ward_Information || {};
+    const financials = currentPatient?.financials || {};
+    const guardianInfo = patientData?.patient_Guardian || {};
 
     const calculateAge = (dob) => {
         if (!dob) return 'N/A';
@@ -47,7 +55,7 @@ const PatientDetails = () => {
             </div>
         );
     }
-    
+
     if (status === 'failed') {
         return (
             <div className="bg-red-50 border-l-4 border-red-500 p-4">
@@ -58,13 +66,13 @@ const PatientDetails = () => {
                         </svg>
                     </div>
                     <div className="ml-3">
-                        <p className="text-sm text-red-700">{error}</p>
+                        <p className="text-sm text-red-700">{error?.message || error || 'Failed to load patient details'}</p>
                     </div>
                 </div>
             </div>
         );
     }
-    
+
     if (!currentPatient) {
         return <div className="text-center py-8 text-gray-500">No patient data found</div>;
     }
@@ -78,13 +86,12 @@ const PatientDetails = () => {
                         <h1 className="text-2xl font-bold">Patient Details</h1>
                         <div className="flex items-center mt-2">
                             <span className="bg-white text-primary-600 px-3 py-1 rounded-md text-sm font-bold">
-                                MR#: {currentPatient.patient_MRNo || 'N/A'}
+                                MR#: {patientData.patient_MRNo || 'N/A'}
                             </span>
-                            <span className={`ml-3 px-3 py-1 rounded-md text-sm font-bold ${
-                                currentPatient.status === 'Admitted' 
-                                    ? 'bg-green-100 text-green-800' 
+                            <span className={`ml-3 px-3 py-1 rounded-md text-sm font-bold ${currentPatient.status === 'Admitted'
+                                    ? 'bg-green-100 text-green-800'
                                     : 'bg-blue-100 text-blue-800'
-                            }`}>
+                                }`}>
                                 {currentPatient.status}
                             </span>
                         </div>
@@ -95,7 +102,7 @@ const PatientDetails = () => {
             {/* Main Content */}
             <div className="p-6">
                 {/* Patient Basic Info */}
-                <SectionCard 
+                <SectionCard
                     title="Personal Information"
                     icon={
                         <svg className="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,17 +111,17 @@ const PatientDetails = () => {
                     }
                 >
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <DetailItem label="Full Name" value={currentPatient.patient_Name} />
-                        <DetailItem label="Gender" value={currentPatient.patient_Gender} />
-                        <DetailItem label="Age" value={`${calculateAge(currentPatient.patient_DateOfBirth)} years`} />
-                        <DetailItem label="Date of Birth" value={formatDate(currentPatient.patient_DateOfBirth)} />
-                        <DetailItem label="CNIC" value={currentPatient.patient_CNIC || 'N/A'} />
-                        <DetailItem label="Address" value={currentPatient.patient_Address || 'N/A'} />
+                        <DetailItem label="Full Name" value={patientData.patient_Name} />
+                        <DetailItem label="Gender" value={patientData.patient_Gender} />
+                        <DetailItem label="Age" value={`${calculateAge(patientData.patient_DateOfBirth)} years`} />
+                        <DetailItem label="Date of Birth" value={formatDate(patientData.patient_DateOfBirth)} />
+                        <DetailItem label="CNIC" value={patientData.patient_CNIC || 'N/A'} />
+                        <DetailItem label="Address" value={patientData.patient_Address || 'N/A'} />
                     </div>
                 </SectionCard>
 
                 {/* Admission Details */}
-                <SectionCard 
+                <SectionCard
                     title="Admission Details"
                     icon={
                         <svg className="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,17 +130,17 @@ const PatientDetails = () => {
                     }
                 >
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <DetailItem label="Admission Date" value={formatDate(currentPatient.admission_Details?.admission_Date)} />
-                        <DetailItem label="Discharge Date" value={formatDate(currentPatient.admission_Details?.discharge_Date)} />
+                        <DetailItem label="Admission Date" value={formatDate(admissionDetails.admission_Date)} />
+                        <DetailItem label="Discharge Date" value={formatDate(admissionDetails.discharge_Date)} />
                         <DetailItem label="Days Admitted" value={currentPatient.daysAdmitted || 'N/A'} />
-                        <DetailItem label="Ward Type" value={currentPatient.ward_Information?.ward_Type || 'N/A'} />
-                        <DetailItem label="Ward Number" value={currentPatient.ward_Information?.ward_No || 'N/A'} />
-                        <DetailItem label="Bed Number" value={currentPatient.ward_Information?.bed_No || 'N/A'} />
+                        <DetailItem label="Ward Type" value={wardInfo.ward_Type || 'N/A'} />
+                        <DetailItem label="Ward Number" value={wardInfo.ward_No || 'N/A'} />
+                        <DetailItem label="Bed Number" value={wardInfo.bed_No || 'N/A'} />
                     </div>
                 </SectionCard>
 
                 {/* Medical Information */}
-                <SectionCard 
+                <SectionCard
                     title="Medical Information"
                     icon={
                         <svg className="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,13 +149,14 @@ const PatientDetails = () => {
                     }
                 >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <DetailItem label="Diagnosis" value={currentPatient.admission_Details?.diagnosis || 'N/A'} />
-                        <DetailItem label="Admitting Doctor" value={currentPatient.admission_Details?.admitting_Doctor || 'N/A'} />
+                        <DetailItem label="Diagnosis" value={admissionDetails.diagnosis || 'N/A'} />
+                        <DetailItem label="Admission Type" value={admissionDetails.admission_Type || 'N/A'} />
+                        <DetailItem label="Admitting Doctor" value={admissionDetails.admitting_Doctor || 'N/A'} />
                     </div>
                 </SectionCard>
 
                 {/* Financial Information */}
-                <SectionCard 
+                <SectionCard
                     title="Financial Information"
                     icon={
                         <svg className="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,29 +165,27 @@ const PatientDetails = () => {
                     }
                 >
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <DetailItem label="Admission Fee" value={formatCurrency(currentPatient.financials?.admission_Fee)} />
-                        <DetailItem label="Per Day Charges" value={formatCurrency(currentPatient.ward_Information?.pdCharges)} />
-                        <DetailItem label="Discount" value={formatCurrency(currentPatient.financials?.discount)} />
-                        <DetailItem label="Total Charges" value={formatCurrency(currentPatient.financials?.total_Charges)} />
-                        <DetailItem 
-                            label="Payment Status" 
+                        <DetailItem label="Admission Fee" value={formatCurrency(financials.admission_Fee)} />
+                        <DetailItem label="Discount" value={formatCurrency(financials.discount)} />
+                        <DetailItem label="Total Charges" value={formatCurrency(financials.total_Charges)} />
+                        <DetailItem
+                            label="Payment Status"
                             value={
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    currentPatient.financials?.payment_Status === 'Paid' 
-                                        ? 'bg-green-100 text-green-800' 
-                                        : currentPatient.financials?.payment_Status === 'Partial' 
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${financials.payment_Status === 'Paid'
+                                        ? 'bg-green-100 text-green-800'
+                                        : financials.payment_Status === 'Partial'
                                             ? 'bg-yellow-100 text-yellow-800'
                                             : 'bg-red-100 text-red-800'
-                                }`}>
-                                    {currentPatient.financials?.payment_Status || 'N/A'}
+                                    }`}>
+                                    {financials.payment_Status || 'N/A'}
                                 </span>
-                            } 
+                            }
                         />
                     </div>
                 </SectionCard>
 
                 {/* Guardian Information */}
-                <SectionCard 
+                <SectionCard
                     title="Guardian Information"
                     icon={
                         <svg className="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,9 +194,9 @@ const PatientDetails = () => {
                     }
                 >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <DetailItem label="Name" value={currentPatient.patient_Guardian?.guardian_Name || 'N/A'} />
-                        <DetailItem label="Relation" value={currentPatient.patient_Guardian?.guardian_Relation || 'N/A'} />
-                        <DetailItem label="Contact" value={currentPatient.patient_Guardian?.guardian_Contact || 'N/A'} />
+                        <DetailItem label="Name" value={guardianInfo.guardian_Name || 'N/A'} />
+                        <DetailItem label="Relation" value={guardianInfo.guardian_Relation || 'N/A'} />
+                        <DetailItem label="Contact" value={guardianInfo.guardian_Contact || 'N/A'} />
                     </div>
                 </SectionCard>
             </div>

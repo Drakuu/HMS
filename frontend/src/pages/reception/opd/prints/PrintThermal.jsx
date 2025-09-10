@@ -7,9 +7,9 @@ const PrintThermal = ({ formData }) => {
   // Extract data with proper fallbacks - check these paths match your formData structure
   const patientMRNo = formData?.patient_MRNo || formData?.patientMRNo || 'N/A';
   const patientName = formData?.patient_Name || formData?.patientName || 'N/A';
-  const doctorName = formData?.doctorDetails?.name || formData?.doctorName || 'N/A';
-  const doctorDepartment = formData?.doctorDetails?.department || formData?.doctorDepartment || 'N/A';
-  const doctorFee = formData?.doctorDetails?.fee || formData?.doctorFee || 0;
+  const doctorName = formData?.visitData?.doctor?.user?.user_Name || formData?.doctorName || 'N/A';
+  const doctorDepartment = formData?.visitData?.doctor?.doctor_Department || formData?.doctorDepartment || 'N/A';
+  const doctorFee = formData?.visitData?.doctor?.doctor_Fee || formData?.doctorFee || 0;
   const discount = formData?.visitData?.discount || formData?.discount || 0;
   const totalFee = doctorFee - discount;
   const amountPaid = formData?.visitData?.amountPaid || formData?.amountPaid || 0;

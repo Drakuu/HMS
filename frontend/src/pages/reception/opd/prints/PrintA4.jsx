@@ -18,10 +18,10 @@ const PrintA4 = ({ formData }) => {
   const patientAddress = formData?.patient_Address || formData?.address || '_______';
   const maritalStatus = formData?.patient_MaritalStatus || formData?.maritalStatus || '_______';
 
-  const doctorName = formData?.doctorDetails?.name || formData?.doctorName || '_______';
-  const doctorQualification = formData?.doctorDetails?.qualification || formData?.doctorQualification || '_______';
-  const doctorDepartment = formData?.doctorDetails?.department || formData?.doctorDepartment || '_______';
-  const doctorSpecialization = formData?.doctorDetails?.specialization || formData?.doctorSpecialization || '_______';
+  const doctorName = formData?.visitData?.doctor?.user?.user_Name || formData?.doctorName || '_______';
+  const doctorQualification = formData?.visitData?.doctor?.doctor_Qualifications || formData?.doctorQualification || '_______';
+  const doctorDepartment = formData?.visitData?.doctor?.doctor_Department || formData?.doctorDepartment || '_______';
+  const doctorSpecialization = formData?.visitData?.doctor?.doctor_Specialization || formData?.doctorSpecialization || '_______';
 
   // Visit data
   const purpose = formData?.visitData?.purpose || '_______';

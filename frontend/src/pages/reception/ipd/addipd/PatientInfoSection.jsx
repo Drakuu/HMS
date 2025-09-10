@@ -33,14 +33,14 @@ const PatientInfoSection = ({ formData, handleChange, bloodGroups }) => {
       name: "guardianContact", label: "Guardian Contact", type: "tel", icon: "number", placeholder: "03XX-XXXXXXX", readOnly: true
     },
     {
-      name: "address", label: "Address", type: "text", icon: "home", placeholder: "Enter Full Address", fullWidth: true
+      name: "address", label: "Address", type: "text", icon: "home", placeholder: "Enter Full Address", fullWidth: true , readOnly: false
     },
     {
       name: "gender", label: "Gender", type: "select", icon: "man", options: ["Male", "Female"],
     },
-    // {
-    //   name: "maritalStatus", label: "Marital Status", type: "select", icon: "ring", options: ["Single", "Married", "Divorced", "Widowed"]
-    // },
+    {
+      name: "maritalStatus", label: "Marital Status", type: "select", icon: "ring", options: ["Single", "Married", "Divorced", "Widowed"] , readOnly: false
+    },
     {
       name: "bloodGroup", label: "Blood Group", type: "select", icon: "heartbeat", options: bloodGroups
     },

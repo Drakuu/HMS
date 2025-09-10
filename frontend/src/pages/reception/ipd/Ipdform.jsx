@@ -24,6 +24,7 @@ const IpdForm = () => {
   const navigate = useNavigate();
 
   const { wardsByDepartment } = useSelector((state) => state.ward || {});
+  const { doctors } = useSelector((state) => state.doctor || {});
   const { departments } = useSelector((state) => state.department || {});
   const {
     isLoading = false,
@@ -34,7 +35,7 @@ const IpdForm = () => {
   const {
     isLoading: isAdmissionLoading,
     isError: isAdmissionError,
-    errorMessage: admissionErrorMessage,
+    error: admissionError, // Changed from errorMessage to error
     isSuccess: isAdmissionSuccess,
   } = useSelector((state) => state.ipdPatient || {});
 
@@ -70,13 +71,13 @@ const IpdForm = () => {
       setTimeout(() => navigate("/receptionist/ipd/Admitted"), 1000);
     }
     if (isAdmissionError) {
-      toast.error(`Admission failed: ${admissionErrorMessage}`);
+      toast.error(`Admission failed: ${admissionError}`);
       dispatch(resetAdmissionState());
     }
   }, [
     isAdmissionSuccess,
     isAdmissionError,
-    admissionErrorMessage,
+    admissionError,
     dispatch,
     initialFormState,
     navigate,
@@ -236,11 +237,10 @@ const IpdForm = () => {
       (dept) => dept._id === formData.departmentId
     );
 
-    return {
-      patientId: formData.patientId, // Changed from patient_MRNo to patientId
+    const payload = {
+      patientId: formData.patientId,
       admission_Details: {
         admission_Date: new Date(formData.admissionDate),
-        admitting_Doctor: formData.doctorId,
         diagnosis: formData.diagnosis,
         admission_Type: formData.admissionType,
       },
@@ -249,17 +249,22 @@ const IpdForm = () => {
         ward_Type: selectedDepartment?.name || "",
         ward_No: selectedWard?.wardNumber || "",
         bed_No: formData.bedNumber,
-        pdCharges: 0 // Add this field as per schema
+        pdCharges: formData.pdCharges || 0
       },
       financials: {
         admission_Fee: parseFloat(formData.admissionFee) || 0,
         discount: parseFloat(formData.discount) || 0,
         payment_Status: formData.paymentStatus || "Unpaid",
-        total_Charges:
-          (parseFloat(formData.admissionFee) || 0) -
-          (parseFloat(formData.discount) || 0),
+        total_Charges: (parseFloat(formData.admissionFee) || 0) - (parseFloat(formData.discount) || 0),
       }
     };
+
+    // Only add doctor if selected
+    if (formData.doctorId) {
+      payload.admission_Details.admitting_Doctor = formData.doctorId;
+    }
+
+    return payload;
   };
 
   const resetForm = () => {
@@ -277,32 +282,30 @@ const IpdForm = () => {
 
     // Patient Info Validation
     if (!formData.mrNumber.trim()) errors.mrNumber = "MR Number is required";
-    if (!formData.admissionDate)
-      errors.admissionDate = "Admission Date is required";
+    if (!formData.admissionDate) errors.admissionDate = "Admission Date is required";
     if (!formData.departmentId) errors.departmentId = "Department is required";
     if (!formData.wardId) errors.wardId = "Ward is required";
     if (!formData.bedNumber) errors.bedNumber = "Bed is required";
     if (!formData.admissionFee || parseFloat(formData.admissionFee) <= 0) {
       errors.admissionFee = "Valid Admission Fee is required";
     }
-    if (!formData.paymentStatus)
-      errors.paymentStatus = "Payment Status is required";
+    if (!formData.paymentStatus) errors.paymentStatus = "Payment Status is required";
     if (!formData.diagnosis.trim()) errors.diagnosis = "Diagnosis is required";
 
+    // REMOVED: Doctor validation since it's now optional
+    // if (!formData.doctorId) errors.doctorId = "Doctor is required";
+
     // Bed Availability Check
-    const selectedWard = wardsByDepartment.find(
-      (w) => w._id === formData.wardId
-    );
+    const selectedWard = wardsByDepartment.find((w) => w._id === formData.wardId);
     if (selectedWard) {
-      const selectedBed = selectedWard.beds.find(
-        (b) => b.bedNumber === formData.bedNumber
-      );
+      const selectedBed = selectedWard.beds.find((b) => b.bedNumber === formData.bedNumber);
       if (selectedBed?.occupied) {
         errors.bedNumber = "Selected bed is occupied";
       }
     } else if (formData.wardId) {
       errors.wardId = "Invalid ward selected";
     }
+
     return errors;
   };
 
@@ -362,6 +365,12 @@ const IpdForm = () => {
         (dept) => dept._id === formData.departmentId
       );
 
+      // Get doctors from Redux store or handle case where it's not available
+      const { doctors = [] } = useSelector((state) => state.doctor || {});
+      const selectedDoctor = doctors.find(
+        (doctor) => doctor._id === formData.doctorId
+      );
+
       const printData = {
         ...formData,
         mrNumber: formData.mrNumber || "N/A",
@@ -379,7 +388,7 @@ const IpdForm = () => {
         wardNumber: selectedWard?.wardNumber || "N/A",
         bedNumber: formData.bedNumber || "N/A",
         admissionDate: formData.admissionDate || "N/A",
-        doctor: formData.doctor || "N/A",
+        doctor: selectedDoctor?.user?.user_Name || "N/A", // Fixed this line
         diagnosis: formData.diagnosis || "N/A",
         admissionFee: formData.admissionFee || "0",
         discount: formData.discount || "0",
@@ -392,23 +401,23 @@ const IpdForm = () => {
 
       const printWindow = window.open("", "_blank");
       printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>IPD Admission</title>
-            <style>
-              body { font-family: Arial; font-size: 12px; padding: 10px; }
-              .header { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
-              .section { margin-bottom: 15px; }
-              .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-              .footer { margin-top: 20px; text-align: center; font-size: 10px; }
-            </style>
-          </head>
-          <body>
-            ${printContent}
-          </body>
-        </html>
-      `);
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>IPD Admission</title>
+          <style>
+            body { font-family: Arial; font-size: 12px; padding: 10px; }
+            .header { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 15px; }
+            .section { margin-bottom: 15px; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .footer { margin-top: 20px; text-align: center; font-size: 10px; }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+        </body>
+      </html>
+    `);
       printWindow.document.close();
 
       printWindow.onload = () => {

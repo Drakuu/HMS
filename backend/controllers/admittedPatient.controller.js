@@ -1,18 +1,19 @@
+const mongoose = require("mongoose"); // ADD THIS LINE
 const hospitalModel = require("../models/index.model");
 
 const admittedPatient = async (req, res) => {
   try {
     const { patientId, ward_Information, admission_Details, financials } = req.body;
 
-    // 1. Validate Patient ID
-    if (!patientId) {
+    // Validate required fields
+    if (!patientId || !ward_Information || !ward_Information.ward_Id || !ward_Information.bed_No) {
       return res.status(400).json({
         success: false,
-        message: "Patient ID required"
+        message: "Patient ID, ward ID, and bed number are required"
       });
     }
 
-    // 2. Check if patient exists
+    // Check if patient exists
     const patient = await hospitalModel.Patient.findById(patientId);
     if (!patient) {
       return res.status(404).json({
@@ -21,11 +22,13 @@ const admittedPatient = async (req, res) => {
       });
     }
 
-    // 3. Check if already admitted
+    // Check if already admitted
     const existingAdmission = await hospitalModel.AdmittedPatient.findOne({
       patient: patientId,
-      status: "Admitted"
+      status: "Admitted",
+      deleted: false
     });
+
     if (existingAdmission) {
       return res.status(400).json({
         success: false,
@@ -33,19 +36,17 @@ const admittedPatient = async (req, res) => {
       });
     }
 
-    // 4. Validate ward and bed
+    // Validate ward
     const ward = await hospitalModel.ward.findById(ward_Information.ward_Id);
-    if (!ward) {
+    if (!ward || ward.isDeleted) {
       return res.status(404).json({
         success: false,
-        message: "Ward not found"
+        message: "Ward not found or has been deleted"
       });
     }
 
-    const bed = ward.beds.find(b =>
-      b.bedNumber.toString().trim().toLowerCase() ===
-      ward_Information.bed_No.toString().trim().toLowerCase()
-    );
+    // Validate bed
+    const bed = ward.beds.find(b => b.bedNumber.toString() === ward_Information.bed_No.toString());
 
     if (!bed) {
       return res.status(400).json({
@@ -62,12 +63,11 @@ const admittedPatient = async (req, res) => {
       });
     }
 
-    // 5. Create admission record with patient reference
-    const admission = new hospitalModel.AdmittedPatient({
+    // Prepare admission data - handle optional doctor
+    const admissionData = {
       patient: patientId,
       admission_Details: {
         admission_Date: new Date(),
-        admitting_Doctor: admission_Details.admitting_Doctor,
         diagnosis: admission_Details.diagnosis,
         discharge_Date: null,
         admission_Type: admission_Details.admission_Type,
@@ -85,23 +85,40 @@ const admittedPatient = async (req, res) => {
         payment_Status: financials.payment_Status || "Unpaid",
         total_Charges: (financials.admission_Fee || 0) - (financials.discount || 0),
       },
-      status: "Admitted"
-    });
+      status: "Admitted",
+      deleted: false
+    };
 
-    // 6. Update bed status
+    // Only add admitting_Doctor if provided and valid
+    if (admission_Details.admitting_Doctor &&
+      mongoose.Types.ObjectId.isValid(admission_Details.admitting_Doctor)) {
+      admissionData.admission_Details.admitting_Doctor = admission_Details.admitting_Doctor;
+    }
+
+    // Create admission record
+    const admission = new hospitalModel.AdmittedPatient(admissionData);
+
+    // Update bed status - FIXED: Add patientMRNo to history
     bed.occupied = true;
     bed.currentPatient = patientId;
     bed.history.push({
       patientId: patientId,
+      patientMRNo: patient.patient_MRNo, // ADD THIS LINE
       admissionDate: new Date()
     });
 
     await Promise.all([ward.save(), admission.save()]);
 
     // Populate patient data in response
-    const populatedAdmission = await hospitalModel.AdmittedPatient
+    let populatedAdmission = await hospitalModel.AdmittedPatient
       .findById(admission._id)
       .populate('patient', 'patient_MRNo patient_Name patient_CNIC patient_Gender patient_DateOfBirth patient_Address patient_Guardian');
+
+    // Only populate doctor if it exists
+    if (admissionData.admission_Details.admitting_Doctor) {
+      populatedAdmission = await populatedAdmission
+        .populate('admission_Details.admitting_Doctor', 'name specialty');
+    }
 
     return res.status(201).json({
       success: true,
@@ -219,27 +236,43 @@ const getAllAdmittedPatients = async (req, res) => {
 const getByMRNumber = async (req, res) => {
   try {
     const { mrNo } = req.params;
+    // console.log("Searching for MR:", mrNo);
 
-    // Find admission record by populating patient with MR number
-    const admission = await hospitalModel.AdmittedPatient.findOne({
-      deleted: false,
-      status: "Admitted"
-    })
-      .populate({
-        path: 'patient',
-        match: { patient_MRNo: mrNo }
-      })
-      .lean();
+    // First find the patient by MR number
+    const patient = await hospitalModel.Patient.findOne({
+      patient_MRNo: mrNo,
+      deleted: false
+    }).lean();
 
-    if (!admission || !admission.patient) {
+    if (!patient) {
       return res.status(404).json({
         success: false,
-        message: "No admission record found for this MR number",
+        message: "Patient not found with this MR number",
         information: { patient: null },
       });
     }
 
-    // Get ward details
+    // Then find the admission record for this patient
+    const admission = await hospitalModel.AdmittedPatient.findOne({
+      patient: patient._id, // Use the patient's ID
+      deleted: false,
+      status: "Admitted"
+    })
+      .populate('patient')
+      .lean();
+
+    if (!admission) {
+      return res.status(404).json({
+        success: false,
+        message: "No admission record found for this patient",
+        information: { patient: null },
+      });
+    }
+
+    // console.log("Found admission:", admission._id);
+    // console.log("Ward ID:", admission.ward_Information?.ward_Id);
+
+    // Rest of your code for ward details, bed details, etc...
     let wardDetails = null;
     if (admission.ward_Information?.ward_Id) {
       wardDetails = await hospitalModel.ward.findOne({
@@ -248,11 +281,9 @@ const getByMRNumber = async (req, res) => {
       }).lean();
     }
 
-    // Calculate days admitted
     const admissionDate = admission.admission_Details.admission_Date;
     const daysAdmitted = Math.ceil((new Date() - admissionDate) / (1000 * 60 * 60 * 24));
 
-    // Find the specific bed assignment if ward information exists
     let bedDetails = null;
     if (wardDetails && admission.ward_Information.bed_No) {
       bedDetails = wardDetails.beds.find(bed =>
@@ -260,7 +291,6 @@ const getByMRNumber = async (req, res) => {
       );
     }
 
-    // Construct the final patient object
     const patientWithDetails = {
       ...admission,
       ward_Information: {
@@ -294,194 +324,66 @@ const getByMRNumber = async (req, res) => {
 const updateAdmission = async (req, res) => {
   try {
     const { id } = req.params;
-    const { ward_Type, ward_No, bed_No, status, ward_Id, financials, admission_Details } = req.body;
+    const updateData = req.body;
 
     // Get current admission record
     const currentAdmission = await hospitalModel.AdmittedPatient.findById(id);
-    if (!currentAdmission) {
+    if (!currentAdmission || currentAdmission.deleted) {
       return res.status(404).json({
         success: false,
         message: "Admission record not found"
       });
     }
 
-    // Handle different status updates
-    if (status === "Admitted") {
-      // Validate required fields for "Admitted" status
-      if (!ward_Type || !ward_No || !bed_No || !ward_Id) {
-        return res.status(400).json({
-          success: false,
-          message: "Ward type, ward number, bed number and ward ID are required for admission"
-        });
-      }
-
-      // 1. Validate new ward exists
-      const newWard = await hospitalModel.ward.findById(ward_Id);
-      if (!newWard) {
-        return res.status(404).json({
-          success: false,
-          message: "New ward not found"
-        });
-      }
-
-      // 2. Check if bed exists in new ward (case-insensitive match) - FIXED THE ERROR HERE
-      const newBed = newWard.beds.find(b => {
-        // Add proper null/undefined checks
-        if (!b.bedNumber || !bed_No) return false;
-
-        const bedNumber = b.bedNumber.toString().trim().toLowerCase();
-        const requestedBedNo = bed_No.toString().trim().toLowerCase();
-
-        return bedNumber === requestedBedNo;
-      });
-
-      if (!newBed) {
-        return res.status(400).json({
-          success: false,
-          message: `Bed ${bed_No} not found in ward ${newWard.name}`,
-          availableBeds: newWard.beds.map(b => b.bedNumber)
-        });
-      }
-
-      // 3. Check if bed is available (excluding current patient)
-      if (newBed.occupied && newBed.currentPatient?.toString() !== currentAdmission.patient.toString()) {
-        return res.status(400).json({
-          success: false,
-          message: `Bed ${bed_No} is already occupied by another patient`
-        });
-      }
-
-      // 4. Free up old bed if transferring to new ward/bed
-      if (currentAdmission.status === "Admitted") {
-        const oldWard = await hospitalModel.ward.findById(
-          currentAdmission.ward_Information.ward_Id
-        );
-
-        if (oldWard) {
-          const oldBed = oldWard.beds.find(b =>
-            b.bedNumber === currentAdmission.ward_Information.bed_No
-          );
-
-          if (oldBed) {
-            oldBed.occupied = false;
-            oldBed.currentPatient = null;
-
-            // Update discharge date in bed history
-            const currentStay = oldBed.history.find(
-              h => {
-                const patientId = h.patientId ? h.patientId.toString() : null;
-                const admissionPatient = currentAdmission.patient ? currentAdmission.patient.toString() : null;
-                return patientId === admissionPatient && !h.dischargeDate;
-              }
-            );
-
-            if (currentStay) {
-              currentStay.dischargeDate = new Date();
-            }
-
-            await oldWard.save();
-          }
-        }
-      }
-
-      // 5. Occupy new bed
-      newBed.occupied = true;
-      newBed.currentPatient = currentAdmission.patient;
-
-      // Add to bed history
-      newBed.history.push({
-        patientId: currentAdmission.patient,
-        admissionDate: new Date()
-      });
-
-      await newWard.save();
-
-    } else if (status === "Discharged") {
-      // DISCHARGE LOGIC
-
-      // 1. Free up the bed
-      const ward = await hospitalModel.ward.findById(
-        currentAdmission.ward_Information.ward_Id
-      );
+    // Handle status changes
+    if (updateData.status === "Discharged") {
+      // Free up the bed when discharging
+      const ward = await hospitalModel.ward.findById(currentAdmission.ward_Information.ward_Id);
 
       if (ward) {
-        const bed = ward.beds.find(b =>
-          b.bedNumber === currentAdmission.ward_Information.bed_No
-        );
+        const bed = ward.beds.find(b => b.bedNumber.toString() === currentAdmission.ward_Information.bed_No.toString());
 
         if (bed) {
           bed.occupied = false;
           bed.currentPatient = null;
 
-          // Update discharge date in bed history - FIXED VARIABLE NAME HERE
-          const currentStay = bed.history.find( // Changed from oldBed to bed
-            h => {
-              const patientId = h.patientId ? h.patientId.toString() : null;
-              const admissionPatient = currentAdmission.patient ? currentAdmission.patient.toString() : null;
-              return patientId === admissionPatient && !h.dischargeDate;
-            }
+          // Update discharge date in bed history
+          const currentStay = bed.history.find(
+            h => h.patientId.toString() === currentAdmission.patient.toString() && !h.dischargeDate
           );
 
           if (currentStay) {
             currentStay.dischargeDate = new Date();
+            if (!currentStay.patientMRNo && admission.patient) {
+              const patient = await hospitalModel.Patient.findById(admission.patient);
+              if (patient) {
+                currentStay.patientMRNo = patient.patient_MRNo;
+              }
+            }
           }
 
           await ward.save();
         }
       }
-    }
 
-    // Prepare update data for admission record
-    const updateData = {
-      status,
-      "admission_Details.discharge_Date": status === "Discharged" ? new Date() : null
-    };
-
-    // Update financials if provided
-    if (financials) {
-      updateData.financials = {
-        admission_Fee: financials.admission_Fee || currentAdmission.financials.admission_Fee,
-        discount: financials.discount || currentAdmission.financials.discount,
-        payment_Status: financials.payment_Status || currentAdmission.financials.payment_Status,
-        total_Charges: (financials.admission_Fee || currentAdmission.financials.admission_Fee) -
-          (financials.discount || currentAdmission.financials.discount)
-      };
-    }
-
-    if (admission_Details) {
-      if (admission_Details.admission_Type) {
-        updateData["admission_Details.admission_Type"] = admission_Details.admission_Type;
-      }
-      if (admission_Details.admitting_Doctor) {
-        updateData["admission_Details.admitting_Doctor"] = admission_Details.admitting_Doctor;
-      }
-      if (admission_Details.diagnosis) {
-        updateData["admission_Details.diagnosis"] = admission_Details.diagnosis;
-      }
-    }
-
-    // Update ward information if admitting/transferring
-    if (status === "Admitted") {
-      updateData.ward_Information = {
-        ward_Type,
-        ward_No,
-        bed_No,
-        ward_Id,
-        pdCharges: req.body.ward_Information?.pdCharges || currentAdmission.ward_Information.pdCharges
-      };
+      // Set discharge date
+      updateData.admission_Details = updateData.admission_Details || {};
+      updateData.admission_Details.discharge_Date = new Date();
     }
 
     // Update the admission record
-    const updatedPatient = await hospitalModel.AdmittedPatient.findByIdAndUpdate(
+    const updatedAdmission = await hospitalModel.AdmittedPatient.findByIdAndUpdate(
       id,
       { $set: updateData },
       { new: true, runValidators: true }
-    ).populate('patient', 'patient_MRNo patient_Name patient_CNIC patient_Gender patient_DateOfBirth patient_Address patient_Guardian');
+    )
+      .populate('patient', 'patient_MRNo patient_Name patient_CNIC patient_Gender patient_DateOfBirth patient_Address patient_Guardian')
+      .populate('admission_Details.admitting_Doctor', 'name specialty');
 
     return res.status(200).json({
       success: true,
-      message: `Patient ${status.toLowerCase()} successfully`,
-      data: updatedPatient
+      message: "Admission updated successfully",
+      data: updatedAdmission
     });
 
   } catch (error) {
@@ -540,6 +442,13 @@ const deleteAdmission = async (req, res) => {
 
           if (currentStay) {
             currentStay.dischargeDate = new Date();
+            // Also update patientMRNo if needed
+            if (!currentStay.patientMRNo && admission.patient) {
+              const patient = await hospitalModel.Patient.findById(admission.patient);
+              if (patient) {
+                currentStay.patientMRNo = patient.patient_MRNo;
+              }
+            }
           }
 
           await ward.save();
@@ -638,6 +547,12 @@ const dischargePatient = async (req, res) => {
 
         if (currentStay) {
           currentStay.dischargeDate = new Date();
+          if (!currentStay.patientMRNo && admission.patient) {
+            const patient = await hospitalModel.Patient.findById(admission.patient);
+            if (patient) {
+              currentStay.patientMRNo = patient.patient_MRNo;
+            }
+          }
         }
 
         await ward.save();

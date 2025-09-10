@@ -23,10 +23,27 @@ export const admitPatient = createAsyncThunk(
       );
       return response.data.data;
     } catch (error) {
-      const message = error.response?.data?.message || error.message || 'Failed to admit patient';
+      let message = 'Failed to admit patient';
+
+      if (error.response) {
+        // The server responded with a status code outside 2xx
+        const status = error.response.status;
+
+        if (status === 400) {
+          message = error.response.data.message || 'Invalid request data';
+        } else if (status === 404) {
+          message = error.response.data.message || 'Patient or ward not found';
+        } else if (status === 409) {
+          message = error.response.data.message || 'Patient already admitted';
+        }
+      } else if (error.request) {
+        // The request was made but no response received
+        message = 'No response from server. Please check your connection.';
+      }
+
       return rejectWithValue({
         message,
-        statusCode: error.response?.status || 500,
+        statusCode: error.response?.status,
         validationErrors: error.response?.data?.errors
       });
     }
@@ -95,6 +112,7 @@ export const dischargePatient = createAsyncThunk(
   async (dischargeData, { rejectWithValue }) => {
     try {
       const { id, ...rest } = dischargeData;
+      // Use the correct endpoint
       const url = id
         ? `${API_URL}/admittedPatient/discharge-patient/${id}`
         : `${API_URL}/admittedPatient/discharge-patient`;
@@ -210,6 +228,7 @@ const ipdPatientSlice = createSlice({
         state.admissionData = action.payload;
         state.patientsList.unshift(action.payload);
       })
+      // In extraReducers, add proper state cleaning for each rejection
       .addCase(admitPatient.rejected, (state, action) => {
         state.status.admit = 'failed';
         state.isLoading = false;
@@ -219,6 +238,8 @@ const ipdPatientSlice = createSlice({
           statusCode: action.payload?.statusCode,
           validationErrors: action.payload?.validationErrors
         };
+        // Clear previous admission data on failure
+        state.admissionData = null;
       })
 
       // Get All Admitted Patients
