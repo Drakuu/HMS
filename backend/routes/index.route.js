@@ -20,6 +20,8 @@ const google_Drive = require("./google_Drive.router");
 const radiology = require("./radiologyRoutes");
 const criticalResult = require("./criticalResult.route");
 const Refund = require("./refundOpd.route");  
+const expenses = require("./expenses.route");
+const summary = require("./summary.route")
 
 
 router.use("/user", user);
@@ -42,6 +44,8 @@ router.use("/api/drive",google_Drive)
 router.use("/radiology",radiology);
 router.use("/criticalResult",criticalResult);
 router.use("/refund",Refund);
+router.use("/expense", expenses);
+router.use("/summary", summary);
 
 
 module.exports = router;

@@ -18,6 +18,7 @@ const labBills = require("./labbills.controller")
 const google_Drive = require("./google_Drive.controller")
 const RadiologyReport = require("./radiologyReportController");
 const Refund = require("./refundOpd.controller")
+const Summary = require("./summary.controller")
 
 const controller = {
   user,
@@ -39,7 +40,7 @@ const controller = {
   google_Drive,
   RadiologyReport,
   Refund,
-  
+  Summary,
 };
 
 module.exports = controller;

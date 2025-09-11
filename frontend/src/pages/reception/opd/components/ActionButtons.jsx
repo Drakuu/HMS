@@ -34,14 +34,14 @@ const ActionButtons = ({
             >
                {isSubmitting ? 'Saving...' : mode === "create" ? 'Save Only' : 'Update Only'}
             </Button>
-            <Button
+            {/* <Button
                type="submit"
                onClick={onSubmit}
                disabled={isSubmitting}
                icon={AiOutlinePrinter}
             >
                {isSubmitting ? 'Processing...' : mode === "create" ? 'Save & Print' : 'Update & Print'}
-            </Button>
+            </Button> */}
          </ButtonGroup>
       </div>
    );

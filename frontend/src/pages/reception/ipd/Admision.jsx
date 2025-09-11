@@ -33,7 +33,7 @@ const AdmittedPatients = () => {
     errorMessage,
     pagination
   } = useSelector(state => state.ipdPatient);
-
+console.log({patientsList})
   const { departments } = useSelector(state => state.department);
   const { wardsByDepartment } = useSelector(state => state.ward);
   const fetchStatus = useSelector(selectFetchStatus);

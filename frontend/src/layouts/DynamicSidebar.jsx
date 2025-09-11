@@ -234,6 +234,13 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         ],
       },
       {
+        name: "Summary",
+        icon: <NotesIcon className="text-lg" />,
+        links: [
+          { href: "summary", label: "Summary" },
+        ],
+      },
+      {
         name: "Inventory",
         icon: <InventoryIcon className="text-lg" />,
         links: [{ href: "inventory", label: "Inventory" }],
@@ -242,6 +249,11 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         name: "Calendar",
         icon: <CalendarIcon className="text-lg" />,
         links: [{ href: "calendar", label: "Calendar" }],
+      },
+      {
+        name: "Expenses",
+        icon: <CalendarIcon className="text-lg" />,
+        links: [{ href: "expenses", label: "Expenses" }],
       },
     ],
     lab: [

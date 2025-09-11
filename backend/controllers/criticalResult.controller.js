@@ -1,7 +1,7 @@
 const CriticalResult = require("../models/criticalResult.model")
 
 // ✅ Create a new Critical Result
- const createCriticalResult = async (req, res) => {
+const createCriticalResult = async (req, res) => {
   try {
     const newResult = new CriticalResult(req.body);
     await newResult.save();
@@ -12,7 +12,7 @@ const CriticalResult = require("../models/criticalResult.model")
 };
 
 // ✅ Get all Critical Results
- const getAllCriticalResults = async (req, res) => {
+const getAllCriticalResults = async (req, res) => {
   try {
     const results = await CriticalResult.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: results });
@@ -22,7 +22,7 @@ const CriticalResult = require("../models/criticalResult.model")
 };
 
 // ✅ Get Critical Result by ID
- const getCriticalResultById = async (req, res) => {
+const getCriticalResultById = async (req, res) => {
   try {
     const result = await CriticalResult.findById(req.params.id);
     if (!result) {
@@ -35,7 +35,7 @@ const CriticalResult = require("../models/criticalResult.model")
 };
 
 // ✅ Update Critical Result
- const updateCriticalResult = async (req, res) => {
+const updateCriticalResult = async (req, res) => {
   try {
     const updated = await CriticalResult.findByIdAndUpdate(
       req.params.id,
@@ -52,7 +52,7 @@ const CriticalResult = require("../models/criticalResult.model")
 };
 
 // ✅ Delete Critical Result
- const deleteCriticalResult = async (req, res) => {
+const deleteCriticalResult = async (req, res) => {
   try {
     const deleted = await CriticalResult.findByIdAndDelete(req.params.id);
     if (!deleted) {

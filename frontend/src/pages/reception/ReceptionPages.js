@@ -7,25 +7,33 @@ import AdminDashboard from './dashboards/AdminDashboard';
 // room manahment imports
 import Ward from './ward/WardManagment';
 import BedDetails from "./ward/BedDetails"
+
 // opd imports
 import NewOpd from './opd/NewOpd';
 import ManageOpd from './opd/ManageOpd';
+
 // ipd imports
 import IPDForm from './ipd/Ipdform';
 import IPDAdmission from './ipd/Admision';
 import AdmittedPatientDetails from './ipd/AdmittedPatientDetails';
+
 // appointment import
 import PatientAppointment from './appointment/PatientAppointment';
+
 //inventory imports
 import Inventory from './inventory/Inventory';
+
 //accounts imports
 import BillList from './accounts/BillList';
+
 //pharamacy import
 import MedicineList from './pharmacy/MedicalList';
 import PrescriptionManagement from './pharmacy/PrescriptionManagement';
 import StockManagement from './pharmacy/StockManagement';
+
 // calendar import
 import Calendar from './calendar/Calendar';
+
 // import operation therater
 import OTMain from './operationTheater/OTMain';
 import OTPatientDetails from './operationTheater/OTPatientDetails';
@@ -34,6 +42,10 @@ import OTPatientDetails from './operationTheater/OTPatientDetails';
 import RefundManagement from './refund/AddRefund';
 import OpdRefundList from './refund/OpdRefundList';
 import OpdRefundDetail from './refund/RefundDeatil';
+import Summary from "./summary/Summary"
+
+// Expenses 
+import Expenses from "./Expenses/expenses"
 
 export {
   ReceptionDashboard,
@@ -59,4 +71,6 @@ export {
   RefundManagement,
   OpdRefundList,
   OpdRefundDetail,
+  Expenses,
+  Summary,
 };

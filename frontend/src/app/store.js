@@ -17,7 +17,8 @@ import testResultReducer from "../features/testResult/TestResultSlice";
 import labBillReducer from "../features/labBill/LabBillSlice"
 import RadiologySlice from "../features/Radiology/RadiologySlice"
 import criticalResultReducer from '../features/critcalResult/criticalSlice';
-import refundOpdReducer from "../features/refund/refundopdSlice"
+import refundOpdReducer from "../features/refund/refundopdSlice";
+import expensesReducer from "../features/expenses/expensesSlice"
 
 
 const store = configureStore({
@@ -41,7 +42,7 @@ const store = configureStore({
     radiology: RadiologySlice,
     criticalResult: criticalResultReducer,
     refund: refundOpdReducer,
-
+    expenses: expensesReducer,
 
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware(),

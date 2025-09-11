@@ -249,10 +249,10 @@ const NewOpd = ({ mode = "create" }) => {
               />
             </div>
 
-            <PrintOptions
+            {/* <PrintOptions
               formData={formData}
               handleChange={handleChange}
-            />
+            /> */}
 
             <ActionButtons
               mode={formMode}

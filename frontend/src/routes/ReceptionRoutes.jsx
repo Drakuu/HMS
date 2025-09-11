@@ -23,6 +23,8 @@ import {
   RefundManagement,
   OpdRefundList,
   OpdRefundDetail,
+  Expenses,
+  Summary,
 } from '../pages/reception/ReceptionPages';
 import AdminDashboard from "../pages/admin/dashboard/AdminDashboard";
 import DynamicLayout from '../layouts/DynamicLayout';
@@ -83,6 +85,9 @@ const ReceptionRoutes = () => {
           <Route path="manage-refunds" element={<OpdRefundList />} />
           <Route path="refund/details/:id" element={<OpdRefundDetail />} />
 
+        {/* Expense */}
+          <Route path="expenses" element={<Expenses />} />
+          <Route path="summary" element={<Summary />} />
         </Route>
       </Route>
     </Routes>
