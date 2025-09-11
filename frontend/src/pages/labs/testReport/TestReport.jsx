@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import TestDetail from "./TestDetail";
-import { fetchPatientTestAll } from "../../../features/patientTest/patientTestSlice";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import PrintTestReport from "./PrintTestReport";
-import ReactDOMServer from "react-dom/server";
+import React, { useEffect, useState, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import TestDetail from './TestDetail';
+import { fetchPatientTestAll } from '../../../features/patientTest/patientTestSlice';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import PrintTestReport from './PrintTestReport';
+import ReactDOMServer from 'react-dom/server';
 import {
   FiSearch,
   FiFilter,
@@ -15,43 +15,45 @@ import {
   FiChevronDown,
   FiChevronUp,
   FiMoreVertical,
-} from "react-icons/fi";
-import { format } from "date-fns";
+} from 'react-icons/fi';
+import { format } from 'date-fns';
 
 const statusColors = {
-  completed: "bg-green-100 text-green-800",
-  pending: "bg-gray-100 text-gray-800",
-  processing: "bg-yellow-100 text-yellow-800",
-  registered: "bg-blue-100 text-blue-800",
-  not_started: "bg-gray-200 text-gray-800",
+  completed: 'bg-green-100 text-green-800',
+  pending: 'bg-gray-100 text-gray-800',
+  processing: 'bg-yellow-100 text-yellow-800',
+  registered: 'bg-blue-100 text-blue-800',
+  not_started: 'bg-gray-200 text-gray-800',
 };
 
 const paymentStatusColors = {
-  paid: "bg-green-100 text-green-800",
-  pending: "bg-red-100 text-red-800",
-  partial: "bg-yellow-100 text-yellow-800",
+  paid: 'bg-green-100 text-green-800',
+  pending: 'bg-red-100 text-red-800',
+  partial: 'bg-yellow-100 text-yellow-800',
+  refunded: 'bg-red-100 text-red-800',
 };
 
 const statusMap = {
-  completed: "Completed",
-  pending: "Pending",
-  processing: "Processing",
-  registered: "Registered",
-  not_started: "Not Started",
+  completed: 'Completed',
+  pending: 'Pending',
+  processing: 'Processing',
+  registered: 'Registered',
+  not_started: 'Not Started',
 };
 
 const paymentStatusMap = {
-  paid: "Paid",
-  pending: "Unpaid",
-  partial: "Partial",
+  paid: 'Paid',
+  pending: 'Unpaid',
+  partial: 'Partial',
+  refunded: 'Refunded',
 };
 
 const TestReport = () => {
   const [showFilterPopup, setShowFilterPopup] = useState(false);
   const [filters, setFilters] = useState({
-    search: "",
-    paymentStatus: "all",
-    testStatus: "all",
+    search: '',
+    paymentStatus: 'all',
+    testStatus: 'all',
     startDate: null,
     endDate: null,
   });
@@ -59,7 +61,7 @@ const TestReport = () => {
   const [showPrintOptionsModal, setShowPrintOptionsModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedTestIds, setSelectedTestIds] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const allPatientTests = useSelector(
@@ -86,22 +88,22 @@ const TestReport = () => {
       const dropdowns = document.querySelectorAll('[id^="dropdown-"]');
       dropdowns.forEach((dropdown) => {
         if (!dropdown.contains(event.target)) {
-          dropdown.classList.add("hidden");
+          dropdown.classList.add('hidden');
         }
       });
     };
 
-    document.addEventListener("mousedown", handleFilterClickOutside);
-    document.addEventListener("click", handleDropdownClickOutside);
+    document.addEventListener('mousedown', handleFilterClickOutside);
+    document.addEventListener('click', handleDropdownClickOutside);
 
     return () => {
-      document.removeEventListener("mousedown", handleFilterClickOutside);
-      document.removeEventListener("click", handleDropdownClickOutside);
+      document.removeEventListener('mousedown', handleFilterClickOutside);
+      document.removeEventListener('click', handleDropdownClickOutside);
     };
   }, [dispatch]);
 
   const getCurrentStatus = (statusHistory) => {
-    if (!statusHistory || statusHistory.length === 0) return "registered";
+    if (!statusHistory || statusHistory.length === 0) return 'registered';
     const sortedHistory = [...statusHistory].sort(
       (a, b) => new Date(b.changedAt) - new Date(a.changedAt)
     );
@@ -115,41 +117,41 @@ const TestReport = () => {
       getCurrentStatus(test.statusHistory)
     );
 
-    const overallStatus = currentStatuses.includes("pending")
-      ? "pending"
-      : currentStatuses.includes("processing")
-      ? "processing"
-      : currentStatuses.every((s) => s === "completed")
-      ? "completed"
-      : "registered";
+    const overallStatus = currentStatuses.includes('pending')
+      ? 'pending'
+      : currentStatuses.includes('processing')
+      ? 'processing'
+      : currentStatuses.every((s) => s === 'completed')
+      ? 'completed'
+      : 'registered';
 
     return {
       id: tests._id,
       token: tests.tokenNumber,
-      patientName: tests.patient_Detail?.patient_Name || "N/A",
-      patientMRNo: tests.patient_Detail?.patient_MRNo || "N/A",
-      patientCNIC: tests.patient_Detail?.patient_CNIC || "N/A",
-      patientContact: tests.patient_Detail?.patient_ContactNo || "N/A",
-      patientAge: tests.patient_Detail?.patient_Age || "N/A",
-      patientGender: tests.patient_Detail?.patient_Gender || "N/A",
+      patientName: tests.patient_Detail?.patient_Name || 'N/A',
+      patientMRNo: tests.patient_Detail?.patient_MRNo || 'N/A',
+      patientCNIC: tests.patient_Detail?.patient_CNIC || 'N/A',
+      patientContact: tests.patient_Detail?.patient_ContactNo || 'N/A',
+      patientAge: tests.patient_Detail?.patient_Age || 'N/A',
+      patientGender: tests.patient_Detail?.patient_Gender || 'N/A',
       testCount: tests.selectedTests.length,
       tests: tests.selectedTests.map((test) => ({
-        testName: test.testDetails?.testName || "N/A",
-        testCode: test.testDetails?.testCode || "N/A",
+        testName: test.testDetails?.testName || 'N/A',
+        testCode: test.testDetails?.testCode || 'N/A',
         status: getCurrentStatus(test.statusHistory),
         amount: test.testDetails?.testPrice || 0,
         testId: test.test, // Added for test selection
       })),
       date: tests.createdAt,
       status: overallStatus,
-      paymentStatus: tests.paymentStatus || "pending",
+      paymentStatus: tests.paymentStatus || 'pending',
       totalAmount: tests.totalAmount || 0,
       discount: tests.discountAmount || 0,
       finalAmount: tests.finalAmount || 0,
       advancePayment: tests.advanceAmount || 0,
       remainingAmount: tests.remainingAmount || 0,
-      referredBy: tests.referredBy || "N/A",
-      labNotes: tests.labNotes || "N/A",
+      referredBy: tests.referredBy || 'N/A',
+      labNotes: tests.labNotes || 'N/A',
       fullData: tests,
     };
   };
@@ -163,18 +165,18 @@ const TestReport = () => {
     return allPatientReports.filter((report) => {
       const searchLower = filters.search.toLowerCase();
       const matchesSearch =
-        filters.search === "" ||
+        filters.search === '' ||
         report.patientName.toLowerCase().includes(searchLower) ||
         report.patientMRNo.toLowerCase().includes(searchLower) ||
         report.patientCNIC.toLowerCase().includes(searchLower) ||
         report.patientContact.toLowerCase().includes(searchLower);
 
       const matchesPaymentStatus =
-        filters.paymentStatus === "all" ||
+        filters.paymentStatus === 'all' ||
         report.paymentStatus === filters.paymentStatus;
 
       const matchesTestStatus =
-        filters.testStatus === "all" || report.status === filters.testStatus;
+        filters.testStatus === 'all' || report.status === filters.testStatus;
 
       const reportDate = new Date(report.date);
       let matchesDateRange = true;
@@ -217,9 +219,9 @@ const TestReport = () => {
 
   const clearFilters = () => {
     setFilters({
-      search: "",
-      paymentStatus: "all",
-      testStatus: "all",
+      search: '',
+      paymentStatus: 'all',
+      testStatus: 'all',
       startDate: null,
       endDate: null,
     });
@@ -235,9 +237,12 @@ const TestReport = () => {
     const patientTest = report.fullData;
     const testDefinitions = report.fullData.testDefinitions;
 
-    const selectedTests = testIds.length > 0
-      ? patientTest.selectedTests.filter((test) => testIds.includes(test.test))
-      : patientTest.selectedTests;
+    const selectedTests =
+      testIds.length > 0
+        ? patientTest.selectedTests.filter((test) =>
+            testIds.includes(test.test)
+          )
+        : patientTest.selectedTests;
 
     const testResults = selectedTests.map((test) => {
       const definition = testDefinitions.find(
@@ -245,15 +250,15 @@ const TestReport = () => {
       );
 
       return {
-        testName: test.testDetails?.testName || "Unknown Test",
+        testName: test.testDetails?.testName || 'Unknown Test',
         fields: (definition?.fields || []).map((field) => ({
-          fieldName: field.name || "Unknown Field",
-          value: field.value || "",
-          unit: field.unit || "",
+          fieldName: field.name || 'Unknown Field',
+          value: field.value || '',
+          unit: field.unit || '',
           normalRange: field.normalRange || null,
-          notes: field.notes || "",
+          notes: field.notes || '',
         })),
-        notes: test.notes || "",
+        notes: test.notes || '',
       };
     });
     return {
@@ -264,8 +269,10 @@ const TestReport = () => {
 
   const handlePrint = (report) => {
     setSelectedReport(report);
-    setSelectedTestIds(report.tests.map((test) => test.testId));
-    setSearchQuery("");
+    setSelectedTestIds(
+      report.tests.filter((t) => t.status === 'completed').map((t) => t.testId)
+    );
+    setSearchQuery('');
     setShowPrintOptionsModal(true);
   };
 
@@ -275,6 +282,12 @@ const TestReport = () => {
         ? prev.filter((id) => id !== testId)
         : [...prev, testId]
     );
+  };
+  const handleCompletedAll = () => {
+    const completedTestIds = selectedReport.tests
+      .filter((test) => test.status === 'completed')
+      .map((test) => test.testId);
+    setSelectedTestIds(completedTestIds);
   };
 
   const handleSelectAll = () => {
@@ -287,7 +300,7 @@ const TestReport = () => {
 
   const handleSelectRegistered = () => {
     const registeredTestIds = selectedReport.tests
-      .filter((test) => test.status === "registered")
+      .filter((test) => test.status === 'registered')
       .map((test) => test.testId);
     setSelectedTestIds(registeredTestIds);
   };
@@ -295,10 +308,10 @@ const TestReport = () => {
   const handlePrintOption = () => {
     setShowPrintOptionsModal(false);
     if (selectedTestIds.length === 0) {
-      alert("Please select at least one test to print.");
+      alert('Please select at least one test to print.');
       return;
     }
-    if (selectedReport?.paymentStatus !== "paid") {
+    if (selectedReport?.paymentStatus !== 'paid') {
       setShowConfirmModal(true);
       return;
     }
@@ -309,9 +322,9 @@ const TestReport = () => {
     const printData = preparePrintData(report, testIds);
     if (!printData) return;
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert("Please allow popups for printing");
+      alert('Please allow popups for printing');
       return;
     }
 
@@ -482,7 +495,9 @@ const TestReport = () => {
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
         <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform transition-transform duration-300 ease-in-out scale-95 animate-scale-up">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Payment Pending</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Payment Pending
+            </h3>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
@@ -491,7 +506,8 @@ const TestReport = () => {
             </button>
           </div>
           <p className="text-sm text-gray-600 mb-6">
-            The payment is pending. Are you sure you want to print before payment?
+            The payment is pending. Are you sure you want to print before
+            payment?
           </p>
           <div className="flex justify-end space-x-3">
             <button
@@ -523,7 +539,9 @@ const TestReport = () => {
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
         <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg transform transition-transform duration-300 ease-in-out scale-95 animate-scale-up">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">Select Tests to Print</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              Select Tests to Print
+            </h3>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -532,7 +550,10 @@ const TestReport = () => {
             </button>
           </div>
           <div className="relative mb-4">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <FiSearch
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               value={searchQuery}
@@ -543,8 +564,14 @@ const TestReport = () => {
           </div>
           <div className="flex flex-wrap gap-2 mb-4">
             <button
-              onClick={handleSelectAll}
+              onClick={handleCompletedAll}
               className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm font-medium transition-colors"
+            >
+              Completed
+            </button>
+            <button
+              onClick={handleSelectAll}
+              className="px-3 py-1.5 bg-amber-100 text-amber-700 rounded-md hover:bg-amber-200 text-sm font-medium transition-colors"
             >
               Select All
             </button>
@@ -584,7 +611,9 @@ const TestReport = () => {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500 text-center">No tests match your search.</p>
+              <p className="text-sm text-gray-500 text-center">
+                No tests match your search.
+              </p>
             )}
           </div>
           <div className="flex justify-end space-x-3">
@@ -774,7 +803,7 @@ const TestReport = () => {
                 <button
                   onClick={() => {
                     const { startDate, endDate } = summaryDates;
-                    const formatDate = (date) => format(date, "yyyy-MM-dd");
+                    const formatDate = (date) => format(date, 'yyyy-MM-dd');
 
                     if (startDate && endDate) {
                       navigate(
@@ -787,7 +816,7 @@ const TestReport = () => {
                         `/lab/test-report-Summery/${formatDate(startDate)}`
                       );
                     } else {
-                      alert("Please select at least one date.");
+                      alert('Please select at least one date.');
                     }
 
                     setShowSummaryDatePicker(false);
@@ -809,19 +838,19 @@ const TestReport = () => {
         <div className="bg-green-50 p-4 rounded-lg border border-green-100">
           <p className="text-sm text-green-600 font-medium">Completed</p>
           <p className="text-2xl font-bold text-green-800">
-            {reports.filter((r) => r.status === "completed").length}
+            {reports.filter((r) => r.status === 'completed').length}
           </p>
         </div>
         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
           <p className="text-sm text-yellow-600 font-medium">Processing</p>
           <p className="text-2xl font-bold text-yellow-800">
-            {reports.filter((r) => r.status === "processing").length}
+            {reports.filter((r) => r.status === 'processing').length}
           </p>
         </div>
         <div className="bg-red-50 p-4 rounded-lg border border-red-100">
           <p className="text-sm text-red-600 font-medium">Pending Payment</p>
           <p className="text-2xl font-bold text-red-800">
-            {reports.filter((r) => r.paymentStatus === "pending").length}
+            {reports.filter((r) => r.paymentStatus === 'pending').length}
           </p>
         </div>
       </div>
@@ -906,8 +935,8 @@ const TestReport = () => {
                       {report.patientMRNo}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                      {report.testCount}{" "}
-                      {report.testCount === 1 ? "test" : "tests"}
+                      {report.testCount}{' '}
+                      {report.testCount === 1 ? 'test' : 'tests'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -923,22 +952,38 @@ const TestReport = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {format(new Date(report.date), "MMM dd, yyyy HH:mm")}
+                    {format(new Date(report.date), 'MMM dd, yyyy HH:mm')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        statusColors[report.status]
-                      }`}
-                    >
-                      {statusMap[report.status]}
-                    </span>
+                    {(() => {
+                      const total = report.tests.length || 0;
+                      const completed = report.tests.filter(
+                        (t) => t.status === 'completed'
+                      ).length;
+
+                      // pick a color: green when all done, amber when partial, gray when none
+                      const chipColor =
+                        completed === total
+                          ? 'bg-green-100 text-green-800'
+                          : completed > 0
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800';
+
+                      return (
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${chipColor}`}
+                        >
+                          {completed}/{total} Completed
+                        </span>
+                      );
+                    })()}
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {report.advancePayment.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {report.advancePayment}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {report.remainingAmount}
+                    {report.remainingAmount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -965,7 +1010,7 @@ const TestReport = () => {
                             e.stopPropagation();
                             document
                               .getElementById(`dropdown-${report.id}`)
-                              .classList.toggle("hidden");
+                              .classList.toggle('hidden');
                           }}
                         >
                           <span className="sr-only">Open options</span>

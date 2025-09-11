@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   FaFileInvoiceDollar,
   FaUser,
@@ -10,73 +10,96 @@ import {
   FaChartBar,
   FaSearch,
   FaCalendarAlt,
-} from "react-icons/fa";
-import RefundForm from "./RefundForm";
-import PaymentFinalizationForm from "./PaymentFinalizationForm";
+} from 'react-icons/fa';
+import RefundForm from './RefundForm';
+import PaymentFinalizationForm from './PaymentFinalizationForm';
 import {
   processPaymentAfterReport,
   processRadiologyPayment,
   getAllTestBills,
   fetchRadiologyBills,
-} from "../../../features/labBill/LabBillSlice";
-import { Dialog, DialogActions, DialogContent, Button } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
-import { format } from "date-fns";
+} from '../../../features/labBill/LabBillSlice';
+import { Dialog, DialogActions, DialogContent, Button } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DateRangePicker } from '@mui/x-date-pickers-pro/DateRangePicker';
+import { format } from 'date-fns';
 
-const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyBills }) => {
+const BillsTable = ({
+  labBills,
+  radiologyBills,
+  getAllTestBills,
+  fetchRadiologyBills,
+}) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showRefundForm, setShowRefundForm] = useState(false);
   const [currentBill, setCurrentBill] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [billType, setBillType] = useState("All Bills");
+  const [billType, setBillType] = useState('All Bills');
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [dateRange, setDateRange] = useState([null, null]);
   const [isModalOpen, setIsModalOpen] = useState(false); // New state for modal
   const [selectedBillTests, setSelectedBillTests] = useState(null); // New state for selected bill tests
 
   const { user } = useSelector((state) => state.auth);
-  const isAdmin = user?.user_Access === "Admin";
+  const isAdmin = user?.user_Access === 'Admin';
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Combine bills based on billType
-  const displayedBills = billType === "All Bills"
-    ? [...(labBills || []), ...(radiologyBills || [])]
-    : billType === "Radiology"
+  const displayedBills =
+    billType === 'All Bills'
+      ? [...(labBills || []), ...(radiologyBills || [])]
+      : billType === 'Radiology'
       ? radiologyBills
       : labBills;
 
   // Helper function to determine bill type
   const getBillType = (bill) => {
-    if (!bill) return "Unknown";
-    if (bill.templateName || bill.patientMRNO) return "Radiology";
-    if (bill.billingInfo || bill.patientDetails) return "Lab";
-    return "Unknown";
+    if (!bill) return 'Unknown';
+    if (bill.templateName || bill.patientMRNO) return 'Radiology';
+    if (bill.billingInfo || bill.patientDetails) return 'Lab';
+    return 'Unknown';
   };
 
-  const handleFinalizePayment = async ({ billId, isRadiology, customAmount, refundReason }) => {
+  const handleFinalizePayment = async ({
+    billId,
+    isRadiology,
+    customAmount,
+    refundReason,
+  }) => {
     setPaymentProcessing(true);
     setErrorMessage(null);
 
     try {
       if (isRadiology) {
-        await dispatch(processRadiologyPayment({ patientId: billId, customAmount, refundReason })).unwrap();
+        await dispatch(
+          processRadiologyPayment({
+            patientId: billId,
+            customAmount,
+            refundReason,
+          })
+        ).unwrap();
         await dispatch(fetchRadiologyBills()).unwrap();
       } else {
-        await dispatch(processPaymentAfterReport({ patientId: billId, customAmount, refundReason })).unwrap();
+        await dispatch(
+          processPaymentAfterReport({
+            patientId: billId,
+            customAmount,
+            refundReason,
+          })
+        ).unwrap();
         await dispatch(getAllTestBills()).unwrap();
       }
       setShowPaymentForm(false);
       setCurrentBill(null);
       setActiveDropdown(null);
     } catch (error) {
-      setErrorMessage(error.message || "Failed to process payment");
+      setErrorMessage(error.message || 'Failed to process payment');
     } finally {
       setPaymentProcessing(false);
     }
@@ -84,45 +107,47 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
 
   // Helper function to get patient name
   const getPatientName = (bill) => {
-    if (!bill) return "Unknown";
+    if (!bill) return 'Unknown';
     const type = getBillType(bill);
-    return type === "Radiology"
-      ? bill.patientName || "Unknown"
-      : bill.patientDetails?.patient_Name || bill.patientId?.name || "Unknown";
+    return type === 'Radiology'
+      ? bill.patientName || 'Unknown'
+      : bill.patientDetails?.patient_Name || bill.patientId?.name || 'Unknown';
   };
 
   // Helper function to get patient MR number
   const getPatientMRNo = (bill) => {
-    if (!bill) return "N/A";
+    if (!bill) return 'N/A';
     const type = getBillType(bill);
-    return type === "Radiology"
-      ? bill.patientMRNO || "N/A"
-      : bill.patientDetails?.patient_MRNo || bill.patientId?.mrNo || "N/A";
+    return type === 'Radiology'
+      ? bill.patientMRNO || 'N/A'
+      : bill.patientDetails?.patient_MRNo || bill.patientId?.mrNo || 'N/A';
   };
 
   // Helper function to get patient contact info
   const getPatientContact = (bill) => {
-    if (!bill) return "N/A";
+    if (!bill) return 'N/A';
     const type = getBillType(bill);
-    return type === "Radiology"
-      ? "N/A"
-      : bill.patientDetails?.patient_ContactNo || bill.patientId?.contactNo || "N/A";
+    return type === 'Radiology'
+      ? 'N/A'
+      : bill.patientDetails?.patient_ContactNo ||
+          bill.patientId?.contactNo ||
+          'N/A';
   };
 
   // Helper function to get patient gender
   const getPatientGender = (bill) => {
-    if (!bill) return "N/A";
+    if (!bill) return 'N/A';
     const type = getBillType(bill);
-    return type === "Radiology"
-      ? bill.sex || "N/A"
-      : bill.patientDetails?.patient_Gender || bill.patientId?.gender || "N/A";
+    return type === 'Radiology'
+      ? bill.sex || 'N/A'
+      : bill.patientDetails?.patient_Gender || bill.patientId?.gender || 'N/A';
   };
 
   // Helper function to get total amount
   const getTotalAmount = (bill) => {
     if (!bill) return 0;
     const type = getBillType(bill);
-    return type === "Radiology"
+    return type === 'Radiology'
       ? bill.totalAmount || 0
       : bill.billingInfo?.totalAmount || 0;
   };
@@ -131,7 +156,7 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
   const getTotalPaid = (bill) => {
     if (!bill) return 0;
     const type = getBillType(bill);
-    return type === "Radiology"
+    return type === 'Radiology'
       ? bill.totalPaid || 0
       : bill.billingInfo?.totalPaid || 0;
   };
@@ -140,34 +165,63 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
   const getRemainingAmount = (bill) => {
     if (!bill) return 0;
     const type = getBillType(bill);
-    return type === "Radiology"
+    return type === 'Radiology'
       ? bill.remainingAmount || 0
       : bill.billingInfo?.remainingAmount || 0;
   };
 
   // Helper function to get payment status
   const getPaymentStatus = (bill) => {
-    if (!bill) return "N/A";
+    if (!bill) return 'N/A';
     const type = getBillType(bill);
-    return type === "Radiology"
-      ? bill.paymentStatus || "N/A"
-      : bill.billingInfo?.paymentStatus || "N/A";
+    return type === 'Radiology'
+      ? bill.paymentStatus || 'N/A'
+      : bill.billingInfo?.paymentStatus || 'N/A';
   };
 
   // Helper function to get tests/procedures
   const getTestsOrProcedures = (bill) => {
     if (!bill) return [];
     const type = getBillType(bill);
-    if (type === "Radiology") {
-      return [{
-        testId: bill._id,
-        name: bill.templateName?.replace(".html", "") || "Radiology Procedure",
-        price: bill.totalAmount || 0,
-        advanceAmount: bill.advanceAmount || 0,
-        discountAmount: bill.discount || 0,
-        status: bill.paymentStatus || "pending",
-      }];
+
+    if (type === 'Radiology') {
+      // Handle both string and array formats for templateName
+      let templateNames = [];
+
+      if (Array.isArray(bill.templateName)) {
+        // If templateName is an array, use all items
+        templateNames = bill.templateName;
+      } else if (typeof bill.templateName === 'string') {
+        // If templateName is a string, use it as a single item
+        templateNames = [bill.templateName];
+      }
+
+      // If we have template names, create an array of procedures
+      if (templateNames.length > 0) {
+        return templateNames.map((templateName, index) => ({
+          testId: `${bill._id}-${index}`,
+          name: templateName?.replace('.html', '') || 'Radiology Procedure',
+          price: bill.totalAmount || 0,
+          advanceAmount: bill.advanceAmount || 0,
+          discountAmount: bill.discount || 0,
+          status: bill.paymentStatus || 'pending',
+        }));
+      }
+
+      // Fallback if no template names are available
+      return [
+        {
+          testId: bill._id,
+          name: 'Radiology Procedure',
+          price: bill.totalAmount || 0,
+          advanceAmount: bill.advanceAmount || 0,
+          discountAmount: bill.discount || 0,
+          status: bill.paymentStatus || 'pending',
+        },
+      ];
     }
+
+    // For Lab bills, return the tests array
     return bill.tests || [];
   };
 
@@ -176,12 +230,12 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
     (bill) =>
       bill &&
       (getPatientName(bill).toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getPatientMRNo(bill).toLowerCase().includes(searchTerm.toLowerCase()))
+        getPatientMRNo(bill).toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Sort bills by createdAt in descending order (latest first)
-  const sortedBills = filteredBills.sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  const sortedBills = filteredBills.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   // Calculate statistics
@@ -195,10 +249,10 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
     0
   );
   const pendingBills = sortedBills.filter(
-    (bill) => getPaymentStatus(bill) === "pending"
+    (bill) => getPaymentStatus(bill) === 'pending'
   ).length;
   const paidBills = sortedBills.filter(
-    (bill) => getPaymentStatus(bill) === "paid"
+    (bill) => getPaymentStatus(bill) === 'paid'
   ).length;
 
   const toggleDropdown = (id) => {
@@ -206,7 +260,7 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
   };
 
   const openRefundForm = (bill) => {
-    const isRadiology = getBillType(bill) === "Radiology";
+    const isRadiology = getBillType(bill) === 'Radiology';
     setCurrentBill({ ...bill, isRadiology });
     setShowRefundForm(true);
     setActiveDropdown(null);
@@ -232,10 +286,22 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
 
   const handleDateSubmit = () => {
     if (!dateRange[0]) return;
-    const startDate = format(dateRange[0], "yyyy-MM-dd");
-    const endDate = dateRange[1] ? format(dateRange[1], "yyyy-MM-dd") : startDate;
+    const startDate = format(dateRange[0], 'yyyy-MM-dd');
+    const endDate = dateRange[1]
+      ? format(dateRange[1], 'yyyy-MM-dd')
+      : startDate;
     navigate(`/lab/bill-summery?startDate=${startDate}&endDate=${endDate}`);
     setShowCalendarModal(false);
+  };
+
+  // Total refunded across the bill (supports bill.refunded or billingInfo.refunded)
+  const getTotalRefunded = (bill) => {
+    const list =
+      (Array.isArray(bill?.refunded) && bill.refunded) ||
+      (Array.isArray(bill?.billingInfo?.refunded) &&
+        bill.billingInfo.refunded) ||
+      [];
+    return list.reduce((sum, r) => sum + (Number(r?.refundAmount) || 0), 0);
   };
 
   return (
@@ -339,13 +405,27 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
         <table className="w-full">
           <thead className="bg-teal-50">
             <tr>
-              <th className="p-4 text-left text-teal-700 font-medium">MR Number</th>
-              <th className="p-4 text-left text-teal-700 font-medium">Patient</th>
-              <th className="p-4 text-left text-teal-700 font-medium">Date/Time</th>
-              <th className="p-4 text-left text-teal-700 font-medium">Tests/Procedures</th>
-              <th className="p-4 text-left text-teal-700 font-medium">Amount</th>
-              <th className="p-4 text-left text-teal-700 font-medium">Status</th>
-              <th className="p-4 text-left text-teal-700 font-medium">Actions</th>
+              <th className="p-4 text-left text-teal-700 font-medium">
+                MR Number
+              </th>
+              <th className="p-4 text-left text-teal-700 font-medium">
+                Patient
+              </th>
+              <th className="p-4 text-left text-teal-700 font-medium">
+                Date/Time
+              </th>
+              <th className="p-4 text-left text-teal-700 font-medium">
+                Tests/Procedures
+              </th>
+              <th className="p-4 text-left text-teal-700 font-medium">
+                Amount
+              </th>
+              <th className="p-4 text-left text-teal-700 font-medium">
+                Status
+              </th>
+              <th className="p-4 text-left text-teal-700 font-medium">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -368,7 +448,10 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
                 const billType = getBillType(bill);
                 const testsOrProcedures = getTestsOrProcedures(bill);
                 return (
-                  <tr key={bill._id} className="hover:bg-teal-50 transition-colors">
+                  <tr
+                    key={bill._id}
+                    className="hover:bg-teal-50 transition-colors"
+                  >
                     {/* MR Number */}
                     <td className="p-4 font-medium text-teal-900">
                       <span className="inline-block px-3 py-1 bg-teal-100 rounded-lg text-sm">
@@ -383,51 +466,69 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
                           <FaUser className="text-teal-500" />
                           {getPatientName(bill)}
                         </p>
-                        <p className="text-sm text-gray-500">{getPatientContact(bill)}</p>
-                        <p className="text-xs text-gray-400">{getPatientGender(bill)}</p>
+                        <p className="text-sm text-gray-500">
+                          {getPatientContact(bill)}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {getPatientGender(bill)}
+                        </p>
                       </div>
                     </td>
 
                     {/* Date/Time */}
-                    <td className="p-4">
-                      <span className="font-medium">
-                        {new Date(bill.createdAt).getTime() === new Date(bill.updatedAt).getTime()
-                          ? new Date(bill.createdAt).toLocaleString()
-                          : new Date(bill.updatedAt).toLocaleString()}
-                      </span>
+                    <td className="p-4 align-top">
+                      {(() => {
+                        const created = new Date(bill.createdAt);
+                        const updated = new Date(bill.updatedAt);
+                        const ts =
+                          created.getTime() === updated.getTime()
+                            ? created
+                            : updated;
+
+                        const dateStr = ts.toLocaleDateString('en-PK', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: '2-digit',
+                        });
+                        const timeStr = ts.toLocaleTimeString('en-PK', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true, // set to false if you want 24-hour
+                        });
+
+                        return (
+                          <td className="p-4">
+                            <div className="flex items-center justify-center h-full leading-tight text-center">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {dateStr}
+                                </div>
+                                <div className="text-[11px] text-gray-500 mt-0.5">
+                                  {timeStr}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        );
+                      })()}
                     </td>
 
                     {/* Tests or Procedures */}
                     <td className="p-4">
                       {testsOrProcedures.slice(0, 2).map((item, index) => (
-                        <div key={item.testId || index} className="mb-1 last:mb-0">
+                        <div
+                          key={item.testId || index}
+                          className="mb-1 last:mb-0"
+                        >
                           <span className="font-medium flex items-center gap-2">
                             <FaFlask className="text-teal-500 text-sm" />
-                            {item.name || "Unknown"}
+                            {item.name
+                              ? item.name.charAt(0).toUpperCase() +
+                                item.name.slice(1)
+                              : 'Unknown'}
                           </span>
-                          <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
-                            <span>Price: Rs. {(item.price || 0).toLocaleString()}</span>
-                            {(item.advanceAmount || 0) > 0 && (
-                              <span>Advance: Rs. {item.advanceAmount.toLocaleString()}</span>
-                            )}
-                            {(item.discountAmount || 0) > 0 && (
-                              <span>Discount: Rs. {item.discountAmount.toLocaleString()}</span>
-                            )}
-                            <span className="col-span-2">
-                              Status:{" "}
-                              <span
-                                className={`font-medium ${
-                                  item.status === "completed"
-                                    ? "text-green-600"
-                                    : item.status === "cancelled" || item.status === "refunded"
-                                    ? "text-red-600"
-                                    : "text-yellow-600"
-                                }`}
-                              >
-                                {item.status || "N/A"}
-                              </span>
-                            </span>
-                          </div>
+
+                          <div className="grid grid-cols-2 gap-1 text-xs text-gray-500"></div>
                         </div>
                       ))}
                       {testsOrProcedures.length > 2 && (
@@ -443,18 +544,18 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
                     {/* Amount */}
                     <td className="p-4">
                       <div className="space-y-1">
-                        <p className="font-medium">Rs. {getTotalAmount(bill).toLocaleString()}</p>
+                        <p className="font-medium">
+                          Rs. {getTotalAmount(bill).toLocaleString()}
+                        </p>
                         <div className="text-xs text-gray-500 space-y-1">
                           <div className="flex justify-between">
-                            <span>Paid:</span>
-                            <span>Rs. {getTotalPaid(bill).toLocaleString()}</span>
+                          
                           </div>
                           <div className="flex justify-between">
-                            <span>Remaining:</span>
-                            <span className="font-medium">
-                              Rs. {getRemainingAmount(bill).toLocaleString()}
-                            </span>
+                          
                           </div>
+                          {/* Refund line (after Remaining) */}
+                         
                         </div>
                       </div>
                     </td>
@@ -463,13 +564,13 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
                     <td className="p-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          getPaymentStatus(bill) === "paid"
-                            ? "bg-green-100 text-green-800"
-                            : getPaymentStatus(bill) === "partial"
-                            ? "bg-blue-100 text-blue-800"
-                            : getPaymentStatus(bill) === "refunded"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
+                          getPaymentStatus(bill) === 'paid'
+                            ? 'bg-green-100 text-green-800'
+                            : getPaymentStatus(bill) === 'partial'
+                            ? 'bg-blue-100 text-blue-800'
+                            : getPaymentStatus(bill) === 'refunded'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
                         }`}
                       >
                         {getPaymentStatus(bill)}
@@ -491,13 +592,18 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
                             <div className="absolute top-0 right-8 z-10 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                               <div className="py-1">
                                 <Link
-                                  to={isAdmin ? `/admin/bills/${bill._id}` : `/lab/bills/${bill._id}`}
+                                  to={
+                                    isAdmin
+                                      ? `/admin/bills/${bill._id}`
+                                      : `/lab/bills/${bill._id}`
+                                  }
                                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-900 transition-colors"
                                   onClick={() => setActiveDropdown(null)}
                                 >
                                   View Details
                                 </Link>
-                                {((bill?.totalPaid ?? 0) > 0 || (bill?.billingInfo?.totalPaid ?? 0) > 0) && (
+                                {((bill?.totalPaid ?? 0) > 0 ||
+                                  (bill?.billingInfo?.totalPaid ?? 0) > 0) && (
                                   <button
                                     onClick={() => openRefundForm(bill)}
                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-900 transition-colors"
@@ -508,7 +614,8 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
                                 {getRemainingAmount(bill) > 0 && (
                                   <button
                                     onClick={() => {
-                                      const isRadiology = billType === "Radiology";
+                                      const isRadiology =
+                                        billType === 'Radiology';
                                       setCurrentBill({ ...bill, isRadiology });
                                       setShowPaymentForm(true);
                                       setActiveDropdown(null);
@@ -536,34 +643,41 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
       {isModalOpen && selectedBillTests && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full h-[80vh] overflow-y-auto">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">All Tests/Procedures</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              All Tests/Procedures
+            </h3>
             <div className="mt-2 space-y-2">
               {selectedBillTests.map((item, index) => (
                 <div key={item.testId || index} className="mb-1 last:mb-0">
                   <span className="font-medium flex items-center gap-2 break-words">
                     <FaFlask className="text-teal-500 text-sm" />
-                    {item.name || "Unknown"}
+                    {item.name || 'Unknown'}
                   </span>
                   <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
                     <span>Price: Rs. {(item.price || 0).toLocaleString()}</span>
                     {(item.advanceAmount || 0) > 0 && (
-                      <span>Advance: Rs. {item.advanceAmount.toLocaleString()}</span>
+                      <span>
+                        Advance: Rs. {item.advanceAmount.toLocaleString()}
+                      </span>
                     )}
                     {(item.discountAmount || 0) > 0 && (
-                      <span>Discount: Rs. {item.discountAmount.toLocaleString()}</span>
+                      <span>
+                        Discount: Rs. {item.discountAmount.toLocaleString()}
+                      </span>
                     )}
                     <span className="col-span-2">
-                      Status:{" "}
+                      Status:{' '}
                       <span
                         className={`font-medium ${
-                          item.status === "completed"
-                            ? "text-green-600"
-                            : item.status === "cancelled" || item.status === "refunded"
-                            ? "text-red-600"
-                            : "text-yellow-600"
+                          item.status === 'completed'
+                            ? 'text-green-600'
+                            : item.status === 'cancelled' ||
+                              item.status === 'refunded'
+                            ? 'text-red-600'
+                            : 'text-yellow-600'
                         }`}
                       >
-                        {item.status || "N/A"}
+                        {item.status || 'N/A'}
                       </span>
                     </span>
                   </div>
@@ -581,7 +695,10 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
       )}
 
       {/* Calendar Dialog */}
-      <Dialog open={showCalendarModal} onClose={() => setShowCalendarModal(false)}>
+      <Dialog
+        open={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+      >
         <DialogContent>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DateRangePicker
@@ -595,7 +712,11 @@ const BillsTable = ({ labBills, radiologyBills, getAllTestBills, fetchRadiologyB
           <Button onClick={() => setShowCalendarModal(false)} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleDateSubmit} variant="contained" color="primary">
+          <Button
+            onClick={handleDateSubmit}
+            variant="contained"
+            color="primary"
+          >
             Apply
           </Button>
         </DialogActions>

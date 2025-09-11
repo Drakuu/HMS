@@ -1,28 +1,28 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchRadiologyReportById,
   updateRadiologyReport,
-} from "../../features/Radiology/RadiologySlice";
-import { useParams } from "react-router-dom";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Bold from "@tiptap/extension-bold";
-import Italic from "@tiptap/extension-italic";
-import Heading from "@tiptap/extension-heading";
-import Paragraph from "@tiptap/extension-paragraph";
-import Text from "@tiptap/extension-text";
-import ListItem from "@tiptap/extension-list-item";
-import BulletList from "@tiptap/extension-bullet-list";
-import OrderedList from "@tiptap/extension-ordered-list";
-import TextAlign from "@tiptap/extension-text-align";
-import Underline from "@tiptap/extension-underline";
-import Highlight from "@tiptap/extension-highlight";
-import { FontSize } from "@tiptap/extension-font-size";
-import { Color } from "@tiptap/extension-color";
-import { TextStyle } from "@tiptap/extension-text-style";
-import PrintRadiologyReport from "./PrintRadiologyReport";
-import ReactDOMServer from "react-dom/server";
+} from '../../features/Radiology/RadiologySlice';
+import { useParams } from 'react-router-dom';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Bold from '@tiptap/extension-bold';
+import Italic from '@tiptap/extension-italic';
+import Heading from '@tiptap/extension-heading';
+import Paragraph from '@tiptap/extension-paragraph';
+import Text from '@tiptap/extension-text';
+import ListItem from '@tiptap/extension-list-item';
+import BulletList from '@tiptap/extension-bullet-list';
+import OrderedList from '@tiptap/extension-ordered-list';
+import TextAlign from '@tiptap/extension-text-align';
+import Underline from '@tiptap/extension-underline';
+import Highlight from '@tiptap/extension-highlight';
+import { FontSize } from '@tiptap/extension-font-size';
+import { Color } from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import PrintRadiologyReport from './PrintRadiologyReport';
+import ReactDOMServer from 'react-dom/server';
 
 const RadiologyPatientDetail = () => {
   const dispatch = useDispatch();
@@ -32,12 +32,33 @@ const RadiologyPatientDetail = () => {
   const error = useSelector((state) => state.radiology.error);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState("");
+  const [editedContent, setEditedContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [activeFontSize, setActiveFontSize] = useState("16px");
-  const [activeColor, setActiveColor] = useState("#000000");
+  const [activeFontSize, setActiveFontSize] = useState('16px');
+  const [activeColor, setActiveColor] = useState('#000000');
+  const [selectedReportIndex, setSelectedReportIndex] = useState(0);
   const { user } = useSelector((state) => state.auth);
-  const isRadiology = user.user_Access === "Radiology";
+  const isRadiology = user.user_Access === 'Radiology';
+
+  // Get the currently selected report from the array
+  const getSelectedReport = () => {
+    if (!currentReport) return null;
+
+    // If templateName is an array, use the selected index
+    if (Array.isArray(currentReport.templateName)) {
+      return {
+        ...currentReport,
+        templateName: currentReport.templateName[selectedReportIndex],
+        finalContent: currentReport.finalContent[selectedReportIndex],
+      };
+    }
+
+    // Fallback for legacy data structure
+    return currentReport;
+  };
+
+  const selectedReport = getSelectedReport();
+
   // Tiptap Editor Configuration
   const editor = useEditor({
     extensions: [
@@ -54,28 +75,28 @@ const RadiologyPatientDetail = () => {
       BulletList,
       OrderedList,
       ListItem,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
       FontSize,
     ],
     content: editedContent,
     onUpdate: ({ editor }) => {
       setEditedContent(editor.getHTML());
-      const fontSize = editor.getAttributes("textStyle").fontSize;
+      const fontSize = editor.getAttributes('textStyle').fontSize;
       if (fontSize) setActiveFontSize(fontSize);
-      const color = editor.getAttributes("textStyle").color;
+      const color = editor.getAttributes('textStyle').color;
       if (color) setActiveColor(color);
     },
   });
 
   // Initialize content when report loads
   useEffect(() => {
-    if (currentReport) {
-      setEditedContent(currentReport.finalContent);
+    if (selectedReport) {
+      setEditedContent(selectedReport.finalContent);
       if (editor && !editor.isDestroyed) {
-        editor.commands.setContent(currentReport.finalContent);
+        editor.commands.setContent(selectedReport.finalContent);
       }
     }
-  }, [currentReport, editor]);
+  }, [selectedReport, editor]);
 
   useEffect(() => {
     if (id) {
@@ -92,10 +113,10 @@ const RadiologyPatientDetail = () => {
 
   const handleCancelClick = () => {
     setIsEditing(false);
-    setEditedContent(currentReport.finalContent);
-    if (editor) editor.commands.setContent(currentReport.finalContent);
-    setActiveFontSize("16px");
-    setActiveColor("#000000");
+    setEditedContent(selectedReport.finalContent);
+    if (editor) editor.commands.setContent(selectedReport.finalContent);
+    setActiveFontSize('16px');
+    setActiveColor('#000000');
   };
 
   const handleSaveClick = async () => {
@@ -103,16 +124,31 @@ const RadiologyPatientDetail = () => {
 
     setIsSaving(true);
     try {
-      await dispatch(
-        updateRadiologyReport({
-          id: currentReport._id,
-          reportData: { finalContent: editedContent },
-        })
-      ).unwrap();
+      // For array format, we need to update the specific item in the array
+      if (Array.isArray(currentReport.finalContent)) {
+        const updatedFinalContent = [...currentReport.finalContent];
+        updatedFinalContent[selectedReportIndex] = editedContent;
+
+        await dispatch(
+          updateRadiologyReport({
+            id: currentReport._id,
+            reportData: { finalContent: updatedFinalContent },
+          })
+        ).unwrap();
+      } else {
+        // Fallback for legacy data
+        await dispatch(
+          updateRadiologyReport({
+            id: currentReport._id,
+            reportData: { finalContent: editedContent },
+          })
+        ).unwrap();
+      }
+
       dispatch(fetchRadiologyReportById(id));
       setIsEditing(false);
     } catch (error) {
-      console.error("Failed to save report:", error);
+      console.error('Failed to save report:', error);
     } finally {
       setIsSaving(false);
     }
@@ -128,13 +164,13 @@ const RadiologyPatientDetail = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return "N/A";
+    if (amount === undefined || amount === null) return 'N/A';
     return `Rs. ${amount.toLocaleString()}`;
   };
 
   // Calculate age from date of birth
   const calculateAge = (birthDate) => {
-    if (!birthDate) return "N/A";
+    if (!birthDate) return 'N/A';
     const birth = new Date(birthDate);
     const now = new Date();
     let years = now.getFullYear() - birth.getFullYear();
@@ -147,13 +183,13 @@ const RadiologyPatientDetail = () => {
 
   // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "N/A";
+      if (isNaN(date.getTime())) return 'N/A';
       return date.toLocaleDateString();
     } catch (e) {
-      return "N/A";
+      return 'N/A';
     }
   };
 
@@ -164,9 +200,9 @@ const RadiologyPatientDetail = () => {
       age: calculateAge(report.age),
     };
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert("Please allow popups for printing");
+      alert('Please allow popups for printing');
       return;
     }
 
@@ -339,10 +375,16 @@ const RadiologyPatientDetail = () => {
     }
   };
 
-  const toggleHighlight = (color = "#fffbeb") => {
+  const toggleHighlight = (color = '#fffbeb') => {
     if (editor) {
       editor.chain().focus().toggleHighlight({ color }).run();
     }
+  };
+
+  // Handle report selection change
+  const handleReportChange = (index) => {
+    setSelectedReportIndex(index);
+    setIsEditing(false);
   };
 
   if (loading) {
@@ -374,6 +416,7 @@ const RadiologyPatientDetail = () => {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-gray-100 ">
       <div className=" mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-3xl">
@@ -389,9 +432,34 @@ const RadiologyPatientDetail = () => {
           </div>
           <h1 className="text-3xl font-bold text-center">Radiology Report</h1>
           <p className="text-center text-sm mt-2 opacity-80">
-            {currentReport.templateName?.replace(".html", "")}
+            {selectedReport?.templateName?.replace('.html', '')}
           </p>
         </div>
+
+        {/* Report Selection (if multiple reports) */}
+        {Array.isArray(currentReport.templateName) &&
+          currentReport.templateName.length > 1 && (
+            <div className="p-4 bg-teal-50 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-teal-700 mb-2">
+                Select Report:
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {currentReport.templateName.map((template, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleReportChange(index)}
+                    className={`px-4 py-2 rounded-full text-sm ${
+                      selectedReportIndex === index
+                        ? 'bg-teal-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {template.replace('.html', '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
         {/* Patient Info */}
         <div className="p-8 border-b border-gray-200">
@@ -413,7 +481,7 @@ const RadiologyPatientDetail = () => {
               Patient Information
             </h2>
             <button
-              onClick={() => handlePrint(currentReport)}
+              onClick={() => handlePrint(selectedReport)}
               className="flex items-center bg-teal-700 text-white  px-5 py-2 rounded-full hover:bg-teal-600 cursor-pointer"
             >
               <svg
@@ -425,7 +493,7 @@ const RadiologyPatientDetail = () => {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidthq={2}
+                  strokeWidth={2}
                   d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
                 />
               </svg>
@@ -435,75 +503,73 @@ const RadiologyPatientDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">MRN:</span>{" "}
+                <span className="font-medium text-teal-600">MRN:</span>{' '}
                 {currentReport.patientMRNO}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Name:</span>{" "}
+                <span className="font-medium text-teal-600">Name:</span>{' '}
                 {currentReport.patientName}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Contact:</span>{" "}
+                <span className="font-medium text-teal-600">Contact:</span>{' '}
                 {currentReport.patient_ContactNo}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Test Name:</span>{" "}
-                {currentReport.templateName?.replace(".html", "")}
+                <span className="font-medium text-teal-600">Test Name:</span>{' '}
+                {selectedReport?.templateName?.replace('.html', '')}
               </p>
             </div>
             <div className="space-y-2">
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Age:</span>{" "}
+                <span className="font-medium text-teal-600">Age:</span>{' '}
                 {calculateAge(currentReport.age)}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Sex:</span>{" "}
+                <span className="font-medium text-teal-600">Sex:</span>{' '}
                 {currentReport.sex}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Performed By:</span>{" "}
-                {currentReport.performedBy?.name || "N/A"}
+                <span className="font-medium text-teal-600">Performed By:</span>{' '}
+                {currentReport.performedBy?.name || 'N/A'}
               </p>
             </div>
             <div className="space-y-2">
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Date:</span>{" "}
+                <span className="font-medium text-teal-600">Date:</span>{' '}
                 {formatDate(currentReport.date)}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Referred By:</span>{" "}
-                {currentReport.referBy || "N/A"}
+                <span className="font-medium text-teal-600">Referred By:</span>{' '}
+                {currentReport.referBy || 'N/A'}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Status:</span>{" "}
-                {currentReport.deleted ? "Deleted" : "Active"}
+                <span className="font-medium text-teal-600">Status:</span>{' '}
+                {currentReport.deleted ? 'Deleted' : 'Active'}
               </p>
             </div>
             <div className="space-y-2">
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Total Amount:</span>{" "}
+                <span className="font-medium text-teal-600">Total Amount:</span>{' '}
                 {formatCurrency(currentReport.totalAmount)}
               </p>
-              {/* {console.log("The ")} */}
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Paid Amount:</span>{" "}
+                <span className="font-medium text-teal-600">Paid Amount:</span>{' '}
                 {formatCurrency(currentReport.totalPaid)}
               </p>
               <p className="text-gray-700">
                 <span className="font-medium text-teal-600">
                   Advance Payment:
-                </span>{" "}
+                </span>{' '}
                 {formatCurrency(currentReport.advanceAmount)}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Discount:</span>{" "}
+                <span className="font-medium text-teal-600">Discount:</span>{' '}
                 {formatCurrency(currentReport.discount)}
               </p>
               <p className="text-gray-700">
                 <span className="font-medium text-teal-600">
                   Refund Amount:
-                </span>{" "}
-                {console.log("currentReport: ", currentReport)}
+                </span>{' '}
                 {currentReport?.refunded?.map((refund) => (
                   <div key={refund._id} className="flex items-center gap-2">
                     <span>{formatCurrency(refund.refundAmount)}</span>
@@ -514,7 +580,7 @@ const RadiologyPatientDetail = () => {
                 ))}
               </p>
               <p className="text-gray-700">
-                <span className="font-medium text-teal-600">Final Amount:</span>{" "}
+                <span className="font-medium text-teal-600">Final Amount:</span>{' '}
                 {formatCurrency(currentReport.remainingAmount)}
               </p>
             </div>
@@ -645,9 +711,9 @@ const RadiologyPatientDetail = () => {
                   <button
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     className={`p-2 rounded-md ${
-                      editor?.isActive("bold")
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('bold')
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Bold"
                   >
@@ -662,9 +728,9 @@ const RadiologyPatientDetail = () => {
                   <button
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                     className={`p-2 rounded-md ${
-                      editor?.isActive("italic")
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('italic')
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Italic"
                   >
@@ -681,9 +747,9 @@ const RadiologyPatientDetail = () => {
                       editor.chain().focus().toggleUnderline().run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("underline")
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('underline')
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Underline"
                   >
@@ -704,9 +770,9 @@ const RadiologyPatientDetail = () => {
                       editor.chain().focus().toggleHeading({ level: 1 }).run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("heading", { level: 1 })
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('heading', { level: 1 })
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Heading 1"
                   >
@@ -717,9 +783,9 @@ const RadiologyPatientDetail = () => {
                       editor.chain().focus().toggleHeading({ level: 2 }).run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("heading", { level: 2 })
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('heading', { level: 2 })
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Heading 2"
                   >
@@ -728,9 +794,9 @@ const RadiologyPatientDetail = () => {
                   <button
                     onClick={() => editor.chain().focus().setParagraph().run()}
                     className={`p-2 rounded-md ${
-                      editor?.isActive("paragraph")
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('paragraph')
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Paragraph"
                   >
@@ -791,7 +857,7 @@ const RadiologyPatientDetail = () => {
                     title="Text Color"
                   />
                   <button
-                    onClick={() => handleColorChange("#000000")}
+                    onClick={() => handleColorChange('#000000')}
                     className="p-2 rounded-md hover:bg-gray-300"
                     title="Reset Color"
                   >
@@ -814,11 +880,11 @@ const RadiologyPatientDetail = () => {
                 {/* Highlight */}
                 <div className="flex items-center space-x-1 bg-gray-200 rounded-lg p-1">
                   <button
-                    onClick={() => toggleHighlight("#fffbeb")}
+                    onClick={() => toggleHighlight('#fffbeb')}
                     className={`p-2 rounded-md ${
-                      editor?.isActive("highlight")
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('highlight')
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Highlight"
                   >
@@ -842,12 +908,12 @@ const RadiologyPatientDetail = () => {
                 <div className="flex items-center space-x-1 bg-gray-200 rounded-lg p-1">
                   <button
                     onClick={() =>
-                      editor.chain().focus().setTextAlign("left").run()
+                      editor.chain().focus().setTextAlign('left').run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("textAlign", { align: "left" })
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('textAlign', { align: 'left' })
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Align Left"
                   >
@@ -861,12 +927,12 @@ const RadiologyPatientDetail = () => {
                   </button>
                   <button
                     onClick={() =>
-                      editor.chain().focus().setTextAlign("center").run()
+                      editor.chain().focus().setTextAlign('center').run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("textAlign", { align: "center" })
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('textAlign', { align: 'center' })
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Align Center"
                   >
@@ -880,12 +946,12 @@ const RadiologyPatientDetail = () => {
                   </button>
                   <button
                     onClick={() =>
-                      editor.chain().focus().setTextAlign("right").run()
+                      editor.chain().focus().setTextAlign('right').run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("textAlign", { align: "right" })
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('textAlign', { align: 'right' })
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Align Right"
                   >
@@ -906,9 +972,9 @@ const RadiologyPatientDetail = () => {
                       editor.chain().focus().toggleBulletList().run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("bulletList")
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('bulletList')
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Bullet List"
                   >
@@ -925,9 +991,9 @@ const RadiologyPatientDetail = () => {
                       editor.chain().focus().toggleOrderedList().run()
                     }
                     className={`p-2 rounded-md ${
-                      editor?.isActive("orderedList")
-                        ? "bg-teal-100 text-teal-700"
-                        : "hover:bg-gray-300"
+                      editor?.isActive('orderedList')
+                        ? 'bg-teal-100 text-teal-700'
+                        : 'hover:bg-gray-300'
                     }`}
                     title="Numbered List"
                   >
@@ -951,7 +1017,9 @@ const RadiologyPatientDetail = () => {
           ) : (
             <div
               className="prose max-w-none text-gray-800 p-6 bg-gray-50 rounded-2xl shadow-inner"
-              dangerouslySetInnerHTML={{ __html: currentReport.finalContent }}
+              dangerouslySetInnerHTML={{
+                __html: selectedReport?.finalContent || '',
+              }}
             />
           )}
         </div>
@@ -961,9 +1029,9 @@ const RadiologyPatientDetail = () => {
           <div className="flex justify-between items-center">
             <div className="text-left">
               <p className="text-gray-600 text-sm">
-                Report Status:{" "}
+                Report Status:{' '}
                 <span className="font-medium text-teal-700">
-                  {currentReport.deleted ? "Deleted" : "Finalized"}
+                  {currentReport.deleted ? 'Deleted' : 'Finalized'}
                 </span>
               </p>
               <p className="text-gray-600 text-sm">
@@ -972,12 +1040,12 @@ const RadiologyPatientDetail = () => {
             </div>
             <div>
               <p className="text-teal-700 font-semibold text-lg">
-                {currentReport.performedBy?.name || "Dr. Mansoor Ghani"}
+                {currentReport.performedBy?.name || 'Dr. Mansoor Ghani'}
               </p>
               <p className="text-gray-600 text-sm">
                 {currentReport.performedBy?.name
-                  ? "Radiology Technician"
-                  : "Consultant Radiologist"}
+                  ? 'Radiology Technician'
+                  : 'Consultant Radiologist'}
               </p>
             </div>
           </div>

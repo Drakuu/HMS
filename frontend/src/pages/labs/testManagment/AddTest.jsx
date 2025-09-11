@@ -2,17 +2,33 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import { FaVial, FaClipboardList, FaListUl, FaPlus, FaTimes } from 'react-icons/fa';
+import {
+  FaVial,
+  FaClipboardList,
+  FaListUl,
+  FaPlus,
+  FaTimes,
+} from 'react-icons/fa';
 import { AiOutlineClockCircle } from 'react-icons/ai';
 
 // Import your Redux actions and selectors
-import { createTest, getTestById, updateTest, selectSelectedTest, selectGetByIdLoading, selectUpdateLoading, selectUpdateError } from '../../../features/testManagment/testSlice';
+import {
+  createTest,
+  getTestById,
+  updateTest,
+  selectSelectedTest,
+  selectGetByIdLoading,
+  selectUpdateLoading,
+  selectUpdateError,
+} from '../../../features/testManagment/testSlice';
 import { InputField, RadioGroup } from '../../../components/common/FormFields';
 import { FormSection, FormGrid } from '../../../components/common/FormSection';
 import { Button, ButtonGroup } from '../../../components/common/Buttons';
+import { useRef } from 'react';
 
 // Supported range types
 const rangeTypes = [
+  { id: 'all', label: 'All' },
   { id: 'male', label: 'Male' },
   { id: 'female', label: 'Female' },
   { id: 'child', label: 'Child' },
@@ -41,9 +57,25 @@ const initialField = () => ({
 });
 
 const unitsList = [
-  'mg/dL', 'g/dL', 'mmol/L', 'IU/L', 'U/L', 'pg/mL', 'ng/mL', 'mEq/L', 
-  'cells/mcL', 'mL/min', 'mm/hr', 'g/L', 'µIU/mL', 'μg/dL', 'μmol/L', 
-  'mU/L', 'fL', 'pH', 'other'
+  'mg/dL',
+  'g/dL',
+  'mmol/L',
+  'IU/L',
+  'U/L',
+  'pg/mL',
+  'ng/mL',
+  'mEq/L',
+  'cells/mcL',
+  'mL/min',
+  'mm/hr',
+  'g/L',
+  'µIU/mL',
+  'μg/dL',
+  'μmol/L',
+  'mU/L',
+  'fL',
+  'pH',
+  'other',
 ];
 
 const reportTimeOptions = [
@@ -52,7 +84,7 @@ const reportTimeOptions = [
   { label: '', options: ['Other'] },
 ];
 
-const LabTestForm = ({ mode = "create" }) => {
+const LabTestForm = ({ mode = 'create' }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -99,35 +131,37 @@ const LabTestForm = ({ mode = "create" }) => {
       });
 
       // Convert the test fields to our new format
-      setFields(Array.isArray(selectedTest.fields) && selectedTest.fields.length > 0 
-        ? selectedTest.fields.map(f => {
-            const ranges = {};
-            // Convert normalRange (Map or Object) to our ranges format
-            const normalRanges = f.normalRange instanceof Map 
-              ? Object.fromEntries(f.normalRange) 
-              : f.normalRange || {};
-            
-            // Populate ranges with existing data
-            Object.entries(normalRanges).forEach(([type, values]) => {
-              ranges[type] = {
-                min: values?.min || '',
-                max: values?.max || '',
-                unit: values?.unit || f.unit || '',
-              };
-            });
+      setFields(
+        Array.isArray(selectedTest.fields) && selectedTest.fields.length > 0
+          ? selectedTest.fields.map((f) => {
+              const ranges = {};
+              // Convert normalRange (Map or Object) to our ranges format
+              const normalRanges =
+                f.normalRange instanceof Map
+                  ? Object.fromEntries(f.normalRange)
+                  : f.normalRange || {};
 
-            return {
-              name: f.name || '',
-              unit: f.unit || '',
-              ranges: ranges
-            };
-          })
-        : [initialField()]
+              // Populate ranges with existing data
+              Object.entries(normalRanges).forEach(([type, values]) => {
+                ranges[type] = {
+                  min: values?.min || '',
+                  max: values?.max || '',
+                  unit: values?.unit || f.unit || '',
+                };
+              });
+
+              return {
+                name: f.name || '',
+                unit: f.unit || '',
+                ranges: ranges,
+              };
+            })
+          : [initialField()]
       );
 
       // Set report time select
       if (selectedTest.reportDeliveryTime) {
-        const found = reportTimeOptions.some(group => 
+        const found = reportTimeOptions.some((group) =>
           group.options.includes(selectedTest.reportDeliveryTime)
         );
         if (found) {
@@ -144,14 +178,19 @@ const LabTestForm = ({ mode = "create" }) => {
   // Validation function
   const validate = (data = formData, testFields = fields) => {
     const errs = {};
-    
+
     if (!data.testName) errs.testName = 'Test Name is required';
     if (!data.testCode) errs.testCode = 'Test Code is required';
-    if (!data.testPrice || isNaN(data.testPrice) || Number(data.testPrice) < 0) {
+    if (
+      !data.testPrice ||
+      isNaN(data.testPrice) ||
+      Number(data.testPrice) < 0
+    ) {
       errs.testPrice = 'Valid Test Price is required';
     }
-    
-    const reportTime = selectedReportTime === 'Other' ? customReportTime : selectedReportTime;
+
+    const reportTime =
+      selectedReportTime === 'Other' ? customReportTime : selectedReportTime;
     if (!reportTime) {
       errs.reportDeliveryTime = 'Report Delivery Time is required';
     }
@@ -159,13 +198,17 @@ const LabTestForm = ({ mode = "create" }) => {
     testFields.forEach((f, i) => {
       if (!f.name) errs[`field-name-${i}`] = 'Field name required';
       if (!f.unit) errs[`field-unit-${i}`] = 'Unit is required';
-      
-      Object.entries(f.ranges).forEach(([type, range]) => {
-        if (range.min && isNaN(range.min)) errs[`field-${i}-${type}-min`] = 'Must be a number';
-        if (range.max && isNaN(range.max)) errs[`field-${i}-${type}-max`] = 'Must be a number';
-        if (range.min && Number(range.min) < 0) errs[`field-${i}-${type}-min`] = 'Cannot be negative';
-        if (range.max && Number(range.max) < 0) errs[`field-${i}-${type}-max`] = 'Cannot be negative';
-      });
+
+      // Object.entries(f.ranges).forEach(([type, range]) => {
+      //   if (range.min && isNaN(range.min))
+      //     errs[`field-${i}-${type}-min`] = 'Must be a number';
+      //   if (range.max && isNaN(range.max))
+      //     errs[`field-${i}-${type}-max`] = 'Must be a number';
+      //   if (range.min && Number(range.min) < 0)
+      //     errs[`field-${i}-${type}-min`] = 'Cannot be negative';
+      //   if (range.max && Number(range.max) < 0)
+      //     errs[`field-${i}-${type}-max`] = 'Cannot be negative';
+      // });
     });
 
     return errs;
@@ -177,79 +220,92 @@ const LabTestForm = ({ mode = "create" }) => {
   }, [formData, fields, selectedReportTime, customReportTime]);
 
   // Field change handlers
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    setTouched(prev => ({ ...prev, [name]: true }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+    setTouched((prev) => ({ ...prev, [name]: true }));
   };
 
   const handleFieldChange = (fieldIdx, key, value, rangeType, rangeKey) => {
-    setFields(prev => prev.map((f, i) => {
-      if (i !== fieldIdx) return f;
-      
-      if (key === 'name' || key === 'unit') {
-        return { ...f, [key]: value };
-      }
-      
-      if (key === 'ranges') {
-        return {
-          ...f,
-          ranges: {
-            ...f.ranges,
-            [rangeType]: {
-              ...f.ranges[rangeType],
-              [rangeKey]: value
-            }
-          }
-        };
-      }
-      
-      return f;
-    }));
+    setFields((prev) =>
+      prev.map((f, i) => {
+        if (i !== fieldIdx) return f;
+
+        if (key === 'name' || key === 'unit') {
+          return { ...f, [key]: value };
+        }
+
+        if (key === 'ranges') {
+          return {
+            ...f,
+            ranges: {
+              ...f.ranges,
+              [rangeType]: {
+                ...f.ranges[rangeType],
+                [rangeKey]: value,
+              },
+            },
+          };
+        }
+
+        return f;
+      })
+    );
   };
 
   // Add/remove range types
   const addRangeType = (fieldIdx, rangeType) => {
-    setFields(prev => prev.map((f, i) => {
-      if (i !== fieldIdx) return f;
-      return {
-        ...f,
-        ranges: {
-          ...f.ranges,
-          [rangeType]: initialRange()
-        }
-      };
-    }));
+    setFields((prev) =>
+      prev.map((f, i) => {
+        if (i !== fieldIdx) return f;
+        return {
+          ...f,
+          ranges: {
+            ...f.ranges,
+            [rangeType]: initialRange(),
+          },
+        };
+      })
+    );
   };
 
   const removeRangeType = (fieldIdx, rangeType) => {
-    setFields(prev => prev.map((f, i) => {
-      if (i !== fieldIdx) return f;
-      const newRanges = { ...f.ranges };
-      delete newRanges[rangeType];
-      return {
-        ...f,
-        ranges: newRanges
-      };
-    }));
+    setFields((prev) =>
+      prev.map((f, i) => {
+        if (i !== fieldIdx) return f;
+        const newRanges = { ...f.ranges };
+        delete newRanges[rangeType];
+        return {
+          ...f,
+          ranges: newRanges,
+        };
+      })
+    );
   };
 
-  const addField = () => setFields(prev => [...prev, initialField()]);
-  const removeField = idx => setFields(prev => prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev);
+  const addField = () => setFields((prev) => [...prev, initialField()]);
+  const removeField = (idx) =>
+    setFields((prev) =>
+      prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev
+    );
 
   const handleReportTimeChange = (e) => {
     setSelectedReportTime(e.target.value);
     if (e.target.value !== 'Other') {
       setCustomReportTime('');
-      setFormData(prev => ({ ...prev, reportDeliveryTime: e.target.value }));
+      setFormData((prev) => ({ ...prev, reportDeliveryTime: e.target.value }));
     }
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     const currentErrors = validate();
+    console.log(currentErrors);
     setErrors(currentErrors);
-    
+
     if (Object.keys(currentErrors).length > 0) {
       toast.error('Please fix form errors');
       return;
@@ -259,19 +315,19 @@ const LabTestForm = ({ mode = "create" }) => {
     const payload = {
       ...formData,
       testPrice: Number(formData.testPrice),
-      fields: fields.map(f => ({
+      fields: fields.map((f) => ({
         name: f.name,
         unit: f.unit,
         normalRange: Object.fromEntries(
           Object.entries(f.ranges).map(([type, range]) => [
             type,
             {
-              min: range.min ? Number(range.min) : undefined,
-              max: range.max ? Number(range.max) : undefined,
+              min: range.min || 'Nil',
+              max: range.max || 'Nil',
               unit: range.unit || f.unit || undefined,
-            }
+            },
           ])
-        )
+        ),
       })),
     };
 
@@ -292,6 +348,34 @@ const LabTestForm = ({ mode = "create" }) => {
     }
   };
 
+  const formRef = useRef(null);
+
+  const handleKeyDown = (e) => {
+    const form = formRef.current;
+    if (!form) return;
+
+    const inputs = Array.from(
+      form.querySelectorAll('input, select, textarea')
+    ).filter((el) => el.type !== 'hidden' && !el.disabled);
+
+    const index = inputs.indexOf(e.target);
+    if (index === -1) return;
+
+    if (['Enter', 'ArrowDown', 'ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      if (index < inputs.length - 1) {
+        inputs[index + 1].focus();
+      }
+    }
+
+    if (['ArrowUp', 'ArrowLeft'].includes(e.key)) {
+      e.preventDefault();
+      if (index > 0) {
+        inputs[index - 1].focus();
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-teal-50 to-white p-0">
       <div className="w-full">
@@ -301,53 +385,60 @@ const LabTestForm = ({ mode = "create" }) => {
               <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
               <div>
                 <h1 className="text-3xl font-bold flex items-center gap-2">
-                  <FaVial className="text-white" /> 
+                  <FaVial className="text-white" />
                   {mode === 'create' ? 'New Lab Test' : 'Edit Lab Test'}
                 </h1>
-                <p className="text-primary-100 mt-1">Please fill in the lab test details below</p>
+                <p className="text-primary-100 mt-1">
+                  Please fill in the lab test details belows
+                </p>
               </div>
             </div>
           </div>
-          
-          <form onSubmit={handleSave} className="p-6">
+
+          <form
+            onSubmit={handleSave}
+            ref={formRef}
+            onKeyDown={handleKeyDown}
+            className="p-6"
+          >
             <FormSection title="Test Information">
               <FormGrid>
                 <div>
-                  <InputField 
-                    name="testName" 
-                    label="Test Name" 
-                    value={formData.testName} 
+                  <InputField
+                    name="testName"
+                    label="Test Name"
+                    value={formData.testName}
                     onChange={handleChange}
                     error={errors.testName}
                     required
                   />
                 </div>
                 <div>
-                  <InputField 
-                    name="testDept" 
-                    label="Test Department" 
-                    value={formData.testDept} 
+                  <InputField
+                    name="testDept"
+                    label="Test Department"
+                    value={formData.testDept}
                     onChange={handleChange}
                     error={errors.testDept}
                   />
                 </div>
                 <div>
-                  <InputField 
-                    name="testCode" 
-                    label="Test Code" 
-                    value={formData.testCode} 
+                  <InputField
+                    name="testCode"
+                    label="Test Code"
+                    value={formData.testCode}
                     onChange={handleChange}
                     error={errors.testCode}
                     required
                   />
                 </div>
                 <div>
-                  <InputField 
-                    name="testPrice" 
-                    label="Test Price" 
+                  <InputField
+                    name="testPrice"
+                    label="Test Price"
                     type="number"
                     min="0"
-                    value={formData.testPrice} 
+                    value={formData.testPrice}
                     onChange={handleChange}
                     error={errors.testPrice}
                     required
@@ -358,15 +449,21 @@ const LabTestForm = ({ mode = "create" }) => {
                     Report Delivery Time
                   </label>
                   <select
-                    className={`block w-full border ${errors.reportDeliveryTime ? 'border-red-500' : 'border-gray-300'} rounded-md p-2`}
+                    className={`block w-full border ${
+                      errors.reportDeliveryTime
+                        ? 'border-red-500'
+                        : 'border-gray-300'
+                    } rounded-md p-2`}
                     value={selectedReportTime}
                     onChange={handleReportTimeChange}
                   >
                     <option value="">Select time</option>
                     {reportTimeOptions.map((group, idx) => (
                       <optgroup key={idx} label={group.label}>
-                        {group.options.map(opt => (
-                          <option key={opt} value={opt}>{opt}</option>
+                        {group.options.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
                         ))}
                       </optgroup>
                     ))}
@@ -381,7 +478,9 @@ const LabTestForm = ({ mode = "create" }) => {
                     />
                   )}
                   {errors.reportDeliveryTime && (
-                    <span className="text-red-500 text-sm">{errors.reportDeliveryTime}</span>
+                    <span className="text-red-500 text-sm">
+                      {errors.reportDeliveryTime}
+                    </span>
                   )}
                 </div>
                 <div>
@@ -389,10 +488,12 @@ const LabTestForm = ({ mode = "create" }) => {
                     name="requiresFasting"
                     label="Requires Fasting?"
                     value={formData.requiresFasting}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      requiresFasting: e.target.value === 'true' 
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        requiresFasting: e.target.value === 'true',
+                      }))
+                    }
                     options={[
                       { value: true, label: 'Yes' },
                       { value: false, label: 'No' },
@@ -411,15 +512,18 @@ const LabTestForm = ({ mode = "create" }) => {
                   <FaPlus className="mr-1" /> Add Field
                 </Button>
               </div>
-              
+
               <div className="space-y-8">
                 {fields.map((field, fieldIdx) => (
-                  <div key={fieldIdx} className="border border-gray-200 rounded-lg p-6">
+                  <div
+                    key={fieldIdx}
+                    className="border border-gray-200 rounded-lg p-6"
+                  >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="font-medium">Field #{fieldIdx + 1}</h3>
-                      <Button 
-                        type="button" 
-                        variant="danger" 
+                      <Button
+                        type="button"
+                        variant="danger"
                         onClick={() => removeField(fieldIdx)}
                       >
                         <FaTimes />
@@ -430,7 +534,9 @@ const LabTestForm = ({ mode = "create" }) => {
                       <InputField
                         label="Field Name"
                         value={field.name}
-                        onChange={(e) => handleFieldChange(fieldIdx, 'name', e.target.value)}
+                        onChange={(e) =>
+                          handleFieldChange(fieldIdx, 'name', e.target.value)
+                        }
                         error={errors[`field-name-${fieldIdx}`]}
                         required
                       />
@@ -438,7 +544,9 @@ const LabTestForm = ({ mode = "create" }) => {
                         label="Unit"
                         type="select"
                         value={field.unit}
-                        onChange={(e) => handleFieldChange(fieldIdx, 'unit', e.target.value)}
+                        onChange={(e) =>
+                          handleFieldChange(fieldIdx, 'unit', e.target.value)
+                        }
                         options={unitsList}
                         error={errors[`field-unit-${fieldIdx}`]}
                         required
@@ -451,28 +559,37 @@ const LabTestForm = ({ mode = "create" }) => {
                         <select
                           className="border border-gray-300 rounded p-2"
                           onChange={(e) => {
-                            if (e.target.value && !field.ranges[e.target.value]) {
+                            if (
+                              e.target.value &&
+                              !field.ranges[e.target.value]
+                            ) {
                               addRangeType(fieldIdx, e.target.value);
                             }
                             e.target.value = '';
                           }}
                         >
                           <option value="">Add Range Type</option>
-                          {rangeTypes.map(type => (
-                            !field.ranges[type.id] && (
-                              <option key={type.id} value={type.id}>
-                                {type.label}
-                              </option>
-                            )
-                          ))}
+                          {rangeTypes.map(
+                            (type) =>
+                              !field.ranges[type.id] && (
+                                <option key={type.id} value={type.id}>
+                                  {type.label}
+                                </option>
+                              )
+                          )}
                         </select>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {Object.entries(field.ranges).map(([type, range]) => {
-                          const rangeConfig = rangeTypes.find(t => t.id === type) || { label: type };
+                          const rangeConfig = rangeTypes.find(
+                            (t) => t.id === type
+                          ) || { label: type };
                           return (
-                            <div key={type} className="border border-gray-200 rounded p-4 relative">
+                            <div
+                              key={type}
+                              className="border border-gray-200 rounded p-4 relative"
+                            >
                               <button
                                 type="button"
                                 className="absolute top-2 right-2 text-gray-400 hover:text-red-500"
@@ -480,29 +597,46 @@ const LabTestForm = ({ mode = "create" }) => {
                               >
                                 <FaTimes />
                               </button>
-                              <h5 className="font-medium mb-3">{rangeConfig.label}</h5>
+                              <h5 className="font-medium mb-3">
+                                {rangeConfig.label}
+                              </h5>
                               <div className="space-y-3">
                                 <InputField
                                   label="Min Value"
                                   type="number"
                                   min="0"
                                   value={range.min}
-                                  onChange={(e) => handleFieldChange(
-                                    fieldIdx, 'ranges', e.target.value, type, 'min'
-                                  )}
-                                  error={errors[`field-${fieldIdx}-${type}-min`]}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      fieldIdx,
+                                      'ranges',
+                                      e.target.value,
+                                      type,
+                                      'min'
+                                    )
+                                  }
+                                  error={
+                                    errors[`field-${fieldIdx}-${type}-min`]
+                                  }
                                 />
                                 <InputField
                                   label="Max Value"
-                                  type="number"
+                                  type="text"
                                   min="0"
                                   value={range.max}
-                                  onChange={(e) => handleFieldChange(
-                                    fieldIdx, 'ranges', e.target.value, type, 'max'
-                                  )}
-                                  error={errors[`field-${fieldIdx}-${type}-max`]}
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      fieldIdx,
+                                      'ranges',
+                                      e.target.value,
+                                      type,
+                                      'max'
+                                    )
+                                  }
+                                  error={
+                                    errors[`field-${fieldIdx}-${type}-max`]
+                                  }
                                 />
-                                
                               </div>
                             </div>
                           );
@@ -522,10 +656,7 @@ const LabTestForm = ({ mode = "create" }) => {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Save'}
               </Button>
             </div>

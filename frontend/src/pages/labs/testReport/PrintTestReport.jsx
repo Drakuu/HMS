@@ -2,7 +2,7 @@ import {
   getNormalRange,
   formatNormalRange,
   getRangeLabel,
-} from "../../../utils/rangeUtils";
+} from '../../../utils/rangeUtils';
 
 const PrintTestReport = ({ patientTest, testDefinitions }) => {
   // Helper function to handle empty values
@@ -13,7 +13,7 @@ const PrintTestReport = ({ patientTest, testDefinitions }) => {
     ...patientTest.patient_Detail,
     gender: patientTest.patient_Detail?.patient_Gender,
     age: patientTest.patient_Detail?.patient_Age,
-    isPregnant: patientTest.patient_Detail?.isPregnant
+    isPregnant: patientTest.patient_Detail?.isPregnant,
   };
 
   // Format date to "DD-MM-YYYY" format
@@ -58,45 +58,53 @@ const PrintTestReport = ({ patientTest, testDefinitions }) => {
     if (!range) return false;
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return false;
-    const min = typeof range.min === 'string' ? parseFloat(range.min) : range.min;
-    const max = typeof range.max === 'string' ? parseFloat(range.max) : range.max;
+    const min =
+      typeof range.min === 'string' ? parseFloat(range.min) : range.min;
+    const max =
+      typeof range.max === 'string' ? parseFloat(range.max) : range.max;
     if (isNaN(min) || isNaN(max)) return false;
     return numValue < min || numValue > max;
   };
 
   return (
     <div style={styles.container}>
-      <button style={styles.printButton} onClick={() => window.print()}>
-        Print Report
-      </button>
-      <div style={styles.header}>
-        <div style={styles.hospitalName}>Laboratory Department</div>
-        <div style={styles.hospitalSubtitle}>Test Report</div>
-      </div>
-
       <table style={styles.patientInfoTable}>
         <tbody>
           <tr>
             <td style={styles.labelCell}>Lab #</td>
-            <td style={styles.valueCell}>{safeData(patientData.patient_MRNo)}</td>
+            <td style={styles.valueCell}>
+              {safeData(patientData.patient_MRNo)}
+            </td>
             <td style={styles.labelCell}>Date</td>
-            <td style={styles.valueCell}>{formatDate(patientTest.createdAt)}</td>
+            <td style={styles.valueCell}>
+              {formatDate(patientTest.createdAt)}
+            </td>
           </tr>
           <tr>
             <td style={styles.labelCell}>Patient Name</td>
-            <td style={styles.valueCell}>{safeData(patientData.patient_Name)}</td>
+            <td style={styles.valueCell}>
+              {safeData(patientData.patient_Name)}
+            </td>
             <td style={styles.labelCell}>Referred By</td>
-            <td style={styles.valueCell}>{safeData(patientTest.patient_Detail.referredBy)}</td>
+            <td style={styles.valueCell}>
+              {safeData(patientTest.patient_Detail.referredBy)}
+            </td>
           </tr>
           <tr>
             <td style={styles.labelCell}>Gender</td>
-            <td style={styles.valueCell}>{safeData(patientData.patient_Gender)}</td>
+            <td style={styles.valueCell}>
+              {safeData(patientData.patient_Gender)}
+            </td>
             <td style={styles.labelCell}>Patient Age</td>
-            <td style={styles.valueCell}>{formatAge(patientData.patient_Age)}</td>
+            <td style={styles.valueCell}>
+              {formatAge(patientData.patient_Age)}
+            </td>
           </tr>
           <tr>
             <td style={styles.labelCell}>Contact #</td>
-            <td style={styles.valueCell}>{safeData(patientData.patient_ContactNo)}</td>
+            <td style={styles.valueCell}>
+              {safeData(patientData.patient_ContactNo)}
+            </td>
             <td style={styles.labelCell}></td>
             <td style={styles.valueCell}></td>
           </tr>
@@ -120,12 +128,22 @@ const PrintTestReport = ({ patientTest, testDefinitions }) => {
             <tbody>
               {testDef.fields.map((field, idx) => (
                 <tr key={idx}>
-                  <td style={styles.tableCell}>{field.fieldName || field.name}</td>
-                  <td style={isAbnormal(field, field.value, patientData) ? { ...styles.tableCell, ...styles.abnormal } : styles.tableCell}>
+                  <td style={styles.tableCell}>
+                    {field.fieldName || field.name}
+                  </td>
+                  <td
+                    style={
+                      isAbnormal(field, field.value, patientData)
+                        ? { ...styles.tableCell, ...styles.abnormal }
+                        : styles.tableCell
+                    }
+                  >
                     {field.value || '/-'}
                   </td>
                   <td style={styles.tableCell}>{safeData(field.unit, '')}</td>
-                  <td style={styles.tableCell}>{getFormattedRange(field, patientData)}</td>
+                  <td style={styles.tableCell}>
+                    {getFormattedRange(field, patientData)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -136,7 +154,9 @@ const PrintTestReport = ({ patientTest, testDefinitions }) => {
       <div style={styles.divider}></div>
 
       <div style={styles.footerNote}>
-        Laboratory results are intended for clinical guidance only and must be interpreted in conjunction with the patient's clinical history and physician's evaluation.
+        Laboratory results are intended for clinical guidance only and must be
+        interpreted in conjunction with the patient's clinical history and
+        physician's evaluation.
       </div>
     </div>
   );

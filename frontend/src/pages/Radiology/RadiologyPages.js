@@ -2,12 +2,14 @@
 import RadiologyPennal from './RadiologyPennal';
 import RediologyPatientDetail from './RediologyPatientDetail';
 import RadiologySummer from './RadiologySummer';
+import RadiologyForm from './RadiologyForm';
 
-import Dashboard from './dashboard/RDashboard'
+import Dashboard from './dashboard/RDashboard';
 export {
-    // CreateRadiologyReport,
-    RadiologyPennal,
-    RediologyPatientDetail,
-    RadiologySummer,
-    Dashboard,
-}
+  // CreateRadiologyReport,
+  RadiologyPennal,
+  RediologyPatientDetail,
+  RadiologySummer,
+  Dashboard,
+  RadiologyForm,
+};

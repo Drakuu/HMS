@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { getSummaryByDate } from "../../../features/testResult/TestResultSlice";
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getSummaryByDate } from '../../../features/testResult/TestResultSlice';
 import {
   FiChevronDown,
   FiChevronUp,
@@ -10,24 +10,24 @@ import {
   FiDollarSign,
   FiUser,
   FiHash,
-} from "react-icons/fi";
-import ReactDOMServer from "react-dom/server";
-import PrintReportSummary from "./PrintReportSummary";
+} from 'react-icons/fi';
+import ReactDOMServer from 'react-dom/server';
+import PrintReportSummary from './PrintReportSummary';
 const ReportSummary = () => {
   const { date } = useParams();
   const { summaryByDate } = useSelector((state) => state.testResult);
   const dispatch = useDispatch();
   const [expandedRow, setExpandedRow] = useState(null);
   const [sortConfig, setSortConfig] = useState({
-    key: "tokenNumber",
-    direction: "asc",
+    key: 'tokenNumber',
+    direction: 'asc',
   });
 
   let startDate = null;
   let endDate = null;
 
   if (date) {
-    const parts = date.split("_");
+    const parts = date.split('_');
     if (parts.length === 2) {
       startDate = parts[0];
       endDate = parts[1];
@@ -42,44 +42,44 @@ const ReportSummary = () => {
   }, [dispatch, startDate, endDate]);
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleString('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
     });
   };
 
   const formatTimeOnly = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const formatDateOnly = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
     });
   };
 
   const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
     }
     setSortConfig({ key, direction });
   };
 
   const sortedReports = [...(summaryByDate || [])].sort((a, b) => {
     if (a[sortConfig.key] < b[sortConfig.key]) {
-      return sortConfig.direction === "asc" ? -1 : 1;
+      return sortConfig.direction === 'asc' ? -1 : 1;
     }
     if (a[sortConfig.key] > b[sortConfig.key]) {
-      return sortConfig.direction === "asc" ? 1 : -1;
+      return sortConfig.direction === 'asc' ? 1 : -1;
     }
     return 0;
   });
@@ -94,14 +94,14 @@ const ReportSummary = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "completed":
-        return "bg-emerald-100 text-emerald-800";
-      case "pending":
-        return "bg-amber-100 text-amber-800";
-      case "registered":
-        return "bg-blue-100 text-blue-800";
+      case 'completed':
+        return 'bg-emerald-100 text-emerald-800';
+      case 'pending':
+        return 'bg-amber-100 text-amber-800';
+      case 'registered':
+        return 'bg-blue-100 text-blue-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -118,28 +118,28 @@ const ReportSummary = () => {
   const handlePrint = () => {
     const printData = preparePrintData(summaryByDate, { startDate, endDate });
     if (!printData || printData.reports.length === 0) {
-      alert("No data to print");
+      alert('No data to print');
       return;
     }
 
-    const printWindow = window.open("", "_blank");
+    const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert("Please allow popups for printing");
+      alert('Please allow popups for printing');
       return;
     }
-const now = new Date();
+    const now = new Date();
 
-// Format date parts
-const day = String(now.getDate()).padStart(2, '0');
-const month = String(now.getMonth() + 1).padStart(2, '0');
-const year = String(now.getFullYear()).slice(-2);
+    // Format date parts
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
 
-// Format time parts
-const hours = String(now.getHours()).padStart(2, '0');
-const minutes = String(now.getMinutes()).padStart(2, '0');
+    // Format time parts
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
 
-// Combine all parts
-const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
+    // Combine all parts
+    const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
 
     const printContent = ReactDOMServer.renderToStaticMarkup(
       <PrintReportSummary
@@ -187,24 +187,24 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
               {summaryByDate?.length || 0}
             </span>
           </div>
-        <button
-          onClick={handlePrint}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-2"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+          <button
+            onClick={handlePrint}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-2"
           >
-            <path
-              fillRule="evenodd"
-              d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Print Summary
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Print Summary
+          </button>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -213,14 +213,14 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                 <tr>
                   <th
                     className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort("tokenNumber")}
+                    onClick={() => handleSort('tokenNumber')}
                   >
                     <div className="flex items-center gap-1">
                       <FiHash className="text-gray-400" />
                       <span>Token</span>
-                      {sortConfig.key === "tokenNumber" && (
+                      {sortConfig.key === 'tokenNumber' && (
                         <span>
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
                         </span>
                       )}
                     </div>
@@ -228,14 +228,14 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                   <th className="px-6 py-4">MR No.</th>
                   <th
                     className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort("patient_Detail.patient_Name")}
+                    onClick={() => handleSort('patient_Detail.patient_Name')}
                   >
                     <div className="flex items-center gap-1">
                       <FiUser className="text-gray-400" />
                       <span>Patient</span>
-                      {sortConfig.key === "patient_Detail.patient_Name" && (
+                      {sortConfig.key === 'patient_Detail.patient_Name' && (
                         <span>
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
                         </span>
                       )}
                     </div>
@@ -244,28 +244,28 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                   <th className="px-6 py-4">Status</th>
                   <th
                     className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort("createdAt")}
+                    onClick={() => handleSort('createdAt')}
                   >
                     <div className="flex items-center gap-1">
                       <FiClock className="text-gray-400" />
                       <span>Date/Time</span>
-                      {sortConfig.key === "createdAt" && (
+                      {sortConfig.key === 'createdAt' && (
                         <span>
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
                         </span>
                       )}
                     </div>
                   </th>
                   <th
                     className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort("totalAmount")}
+                    onClick={() => handleSort('totalAmount')}
                   >
                     <div className="flex items-center gap-1">
                       <FiDollarSign className="text-gray-400" />
                       <span>Amount</span>
-                      {sortConfig.key === "totalAmount" && (
+                      {sortConfig.key === 'totalAmount' && (
                         <span>
-                          {sortConfig.direction === "asc" ? "↑" : "↓"}
+                          {sortConfig.direction === 'asc' ? '↑' : '↓'}
                         </span>
                       )}
                     </div>
@@ -289,7 +289,7 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                             {report.patient_Detail.patient_Name}
                           </span>
                           <span className="text-xs text-gray-500">
-                            {report.patient_Detail.patient_Gender},{" "}
+                            {report.patient_Detail.patient_Gender},{' '}
                             {report.patient_Detail.patient_Age}
                           </span>
                         </div>
@@ -298,7 +298,7 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                         <div className="flex items-center gap-1">
                           <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">
                             {report.selectedTests.length} test
-                            {report.selectedTests.length !== 1 ? "s" : ""}
+                            {report.selectedTests.length !== 1 ? 's' : ''}
                           </span>
                         </div>
                       </td>
@@ -315,7 +315,7 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                         <div className="flex flex-col">
                           <span>{formatDateOnly(report.createdAt)}</span>
                           <span className="text-xs text-gray-500">
-                            {formatTimeOnly(report.createdAt)} -{" "}
+                            {formatTimeOnly(report.createdAt)} -{' '}
                             {formatTimeOnly(report.updatedAt)}
                           </span>
                         </div>
@@ -363,20 +363,20 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                                   </span>
                                   <span>
                                     {report.patient_Detail.patient_ContactNo ||
-                                      "-"}
+                                      '-'}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500">CNIC:</span>
                                   <span>
-                                    {report.patient_Detail.patient_CNIC || "-"}
+                                    {report.patient_Detail.patient_CNIC || '-'}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500">
                                     Referred By:
                                   </span>
-                                  <span>{report.referredBy || "-"}</span>
+                                  <span>{report.referredBy || '-'}</span>
                                 </div>
                               </div>
                             </div>
@@ -416,9 +416,10 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                                   <span className="text-gray-500">
                                     Subtotal:
                                   </span>
-                                  {console.log("The : ", report)}
+                                  {/* {console.log('The : ', report)} */}
                                   <span>
-                                    PKR {report.totalAmount + report.discountAmount}
+                                    PKR{' '}
+                                    {report.totalAmount + report.discountAmount}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
@@ -448,7 +449,7 @@ const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}`;
                                     Balance:
                                   </span>
                                   <span className="font-medium">
-                                    PKR{" "}
+                                    PKR{' '}
                                     {report.totalAmount - report.advanceAmount}
                                   </span>
                                 </div>

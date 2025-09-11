@@ -3,7 +3,8 @@ import Logo from '../../../assets/images/logo1.png';
 import { QRCodeSVG } from 'qrcode.react';
 
 const PrintA4 = ({ formData }) => {
-  const safe = (v, fallback = '_________') => v !== undefined && v !== null && v !== '' ? v : fallback;
+  const safe = (v, fallback = '_________') =>
+    v !== undefined && v !== null && v !== '' ? v : fallback;
   const formatCurrency = (amount) =>
     amount?.toLocaleString('en-PK', {
       style: 'currency',
@@ -12,7 +13,10 @@ const PrintA4 = ({ formData }) => {
     }) || '_________';
 
   const currentDate = new Date().toLocaleDateString();
-  const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const currentTime = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   return (
     <html>
@@ -113,7 +117,10 @@ const PrintA4 = ({ formData }) => {
             }
           }
         `}</style>
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
         {/* Header Section */}
@@ -125,6 +132,7 @@ const PrintA4 = ({ formData }) => {
             <div className="hospital-name">AL-SHAHBAZ HOSPITAL</div>
             <div className="hospital-info">
               <p>THANA ROAD KAHUTA.</p>
+
               <p>Tel: 051-3311342</p>
             </div>
           </div>
@@ -133,15 +141,34 @@ const PrintA4 = ({ formData }) => {
         {/* Patient & Lab Info */}
         <div className="details-row">
           <div className="details-block">
-            <p><strong>MR-NO:</strong> {safe(formData.patient?.MRNo)}</p>
-            <p><strong>Patient Name:</strong> {safe(formData.patient?.Name)}</p>
-            <p><strong>Gender:</strong> {safe(formData.patient?.Gender)}</p>
-            <p><strong>Age:</strong> {safe(formData.patient?.Age)}</p>
-            <p><strong>Phone Number:</strong> {safe(formData.patient?.ContactNo)}</p>
+            <p>
+              <strong>MR-NO:</strong> {safe(formData.patient?.MRNo)}
+            </p>
+            <p>
+              <strong>Patient Name:</strong> {safe(formData.patient?.Name)}
+            </p>
+            <p>
+              <strong>Gender:</strong> {safe(formData.patient?.Gender)}
+            </p>
+            <p>
+              <strong>Age:</strong> {safe(formData.patient?.Age)}
+            </p>
+            <p>
+              <strong>Phone Number:</strong> {safe(formData.patient?.ContactNo)}
+            </p>
           </div>
           <div>
-            <p style={{ fontSize: '16px', marginLeft: '10px' }}>Lab Test Slip</p>
-            <div style={{ display: 'flex', flexDirection: 'column', marginRight: '60px', marginTop: '10px' }}>
+            <p style={{ fontSize: '16px', marginLeft: '10px' }}>
+              Lab Test Slip
+            </p>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                marginRight: '60px',
+                marginTop: '10px',
+              }}
+            >
               <QRCodeSVG
                 value={`${formData.patient?.MRNo}_${formData.sampleDate}_${formData.tokenNumber}`}
                 size={100}
@@ -151,10 +178,19 @@ const PrintA4 = ({ formData }) => {
             </div>
           </div>
           <div className="details-block">
-            <p><strong>Sample Date:</strong> {safe(formData.sampleDate)}</p>
-            <p><strong>Report Date:</strong> {safe(formData.reportDate || currentDate)}</p>
-            <p><strong>Print Time:</strong> {currentTime}</p>
-            <p><strong>Referred By:</strong> {safe(formData.referredBy)}</p>
+            <p>
+              <strong>Sample Date:</strong> {safe(formData.sampleDate)}
+            </p>
+            <p>
+              <strong>Report Date:</strong>{' '}
+              {safe(formData.reportDate || currentDate)}
+            </p>
+            <p>
+              <strong>Print Time:</strong> {currentTime}
+            </p>
+            <p>
+              <strong>Referred By:</strong> {safe(formData.patient?.ReferredBy)}
+            </p>
           </div>
         </div>
 
@@ -190,19 +226,27 @@ const PrintA4 = ({ formData }) => {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan="5" style={{ textAlign: 'right' }}>Total</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>
+                Total
+              </td>
               <td>{formatCurrency(formData.totalAmount)}</td>
             </tr>
             <tr>
-              <td colSpan="5" style={{ textAlign: 'right' }}>Paid</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>
+                Paid
+              </td>
               <td>{formatCurrency(formData.totalPaid)}</td>
             </tr>
             <tr>
-              <td colSpan="5" style={{ textAlign: 'right' }}>Discount</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>
+                Discount
+              </td>
               <td>{formatCurrency(formData.totalDiscount)}</td>
             </tr>
             <tr>
-              <td colSpan="5" style={{ textAlign: 'right' }}>Remaining Balance</td>
+              <td colSpan="5" style={{ textAlign: 'right' }}>
+                Remaining Balance
+              </td>
               <td>{formatCurrency(formData.remaining)}</td>
             </tr>
           </tfoot>
@@ -214,15 +258,35 @@ const PrintA4 = ({ formData }) => {
         <div className="duplicate-section">
           <div className="details-row">
             <div className="details-block">
-              <p><strong>MR-NO:</strong> {safe(formData.patient?.MRNo)}</p>
-              <p><strong>Patient Name:</strong> {safe(formData.patient?.Name)}</p>
-              <p><strong>Gender:</strong> {safe(formData.patient?.Gender)}</p>
-              <p><strong>Age:</strong> {safe(formData.patient?.Age)}</p>
-              <p><strong>Phone Number:</strong> {safe(formData.patient?.ContactNo)}</p>
+              <p>
+                <strong>MR-NO:</strong> {safe(formData.patient?.MRNo)}
+              </p>
+              <p>
+                <strong>Patient Name:</strong> {safe(formData.patient?.Name)}
+              </p>
+              <p>
+                <strong>Gender:</strong> {safe(formData.patient?.Gender)}
+              </p>
+              <p>
+                <strong>Age:</strong> {safe(formData.patient?.Age)}
+              </p>
+              <p>
+                <strong>Phone Number:</strong>{' '}
+                {safe(formData.patient?.ContactNo)}
+              </p>
             </div>
             <div>
-              <p style={{ fontSize: '16px', marginLeft: '10px' }}>Lab Test Slip</p>
-              <div style={{ display: 'flex', flexDirection: 'column', marginRight: '60px', marginTop: '10px' }}>
+              <p style={{ fontSize: '16px', marginLeft: '10px' }}>
+                Lab Test Slip
+              </p>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  marginRight: '60px',
+                  marginTop: '10px',
+                }}
+              >
                 <QRCodeSVG
                   value="https://www.youtube.com/watch?v=eGpS1VFqBZk"
                   size={100}
@@ -232,10 +296,19 @@ const PrintA4 = ({ formData }) => {
               </div>
             </div>
             <div className="details-block">
-              <p><strong>Sample Date:</strong> {safe(formData.sampleDate)}</p>
-              <p><strong>Report Date:</strong> {safe(formData.reportDate || currentDate)}</p>
-              <p><strong>Print Time:</strong> {currentTime}</p>
-              <p><strong>Referred By:</strong> {safe(formData.referredBy)}</p>
+              <p>
+                <strong>Sample Date:</strong> {safe(formData.sampleDate)}
+              </p>
+              <p>
+                <strong>Report Date:</strong>{' '}
+                {safe(formData.reportDate || currentDate)}
+              </p>
+              <p>
+                <strong>Print Time:</strong> {currentTime}
+              </p>
+              <p>
+                <strong>Referred By:</strong> {safe(formData.referredBy)}
+              </p>
             </div>
           </div>
 
@@ -271,19 +344,27 @@ const PrintA4 = ({ formData }) => {
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan="5" style={{ textAlign: 'right' }}>Total</td>
+                <td colSpan="5" style={{ textAlign: 'right' }}>
+                  Total
+                </td>
                 <td>{formatCurrency(formData.totalAmount)}</td>
               </tr>
               <tr>
-                <td colSpan="5" style={{ textAlign: 'right' }}>Paid</td>
+                <td colSpan="5" style={{ textAlign: 'right' }}>
+                  Paid
+                </td>
                 <td>{formatCurrency(formData.totalPaid)}</td>
               </tr>
               <tr>
-                <td colSpan="5" style={{ textAlign: 'right' }}>Discount</td>
+                <td colSpan="5" style={{ textAlign: 'right' }}>
+                  Discount
+                </td>
                 <td>{formatCurrency(formData.totalDiscount)}</td>
               </tr>
               <tr>
-                <td colSpan="5" style={{ textAlign: 'right' }}>Remaining Balance</td>
+                <td colSpan="5" style={{ textAlign: 'right' }}>
+                  Remaining Balance
+                </td>
                 <td>{formatCurrency(formData.remaining)}</td>
               </tr>
             </tfoot>

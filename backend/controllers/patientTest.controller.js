@@ -1,9 +1,12 @@
-const hospitalModel = require("../models/index.model");
-const mongoose = require("mongoose");
-const utils = require("../utils/utilsIndex");
+const hospitalModel = require('../models/index.model');
+const mongoose = require('mongoose');
+const utils = require('../utils/utilsIndex');
+
 
 const createPatientTest = async (req, res) => {
   try {
+    const b = req.body;
+
     const {
       patient_MRNo,
       patient_CNIC,
@@ -17,79 +20,106 @@ const createPatientTest = async (req, res) => {
       labNotes,
       performedBy,
       isExternalPatient = false,
-      totalAmount,
-      advanceAmount,
-    } = req.body;
+      advanceAmount, // optional overall paid passed from UI
+    } = b;
 
-    if (
-      (!patient_MRNo && !isExternalPatient) ||
-      !selectedTests ||
-      !selectedTests.length
-    ) {
+    // Basic validation
+    if (!Array.isArray(selectedTests) || selectedTests.length === 0) {
       return res.status(400).json({
         success: false,
-        message: isExternalPatient
-          ? "Complete details for external patients and at least one test are required"
-          : "Patient MRNo and at least one test are required",
+        message: "At least one test is required",
         requiredFields: ["selectedTests"],
       });
     }
 
-    let patient = {};
-    let generatedMRNo;
+    // --- Build patient_Detail ---
+    let patient_Detail;
     let tokenNumber;
+    let generatedMRNo;
+
+    const currentDate = new Date().toISOString().split("T")[0];
+    tokenNumber = await utils.generateUniqueToken(currentDate);
 
     if (isExternalPatient) {
-      if (
-        !patient_Name ||
-        !patient_ContactNo ||
-        !patient_Gender ||
-        !patient_Age
-      ) {
+      // External patients must provide minimal info
+      if (!patient_Name || !patient_ContactNo || !patient_Gender || !patient_Age) {
         return res.status(400).json({
           success: false,
           message:
             "For external patients, name, contact number, gender, and age are required",
         });
       }
-
-      const currentDate = new Date().toISOString().split("T")[0];
       generatedMRNo = await utils.generateUniqueMrNo(currentDate);
-      tokenNumber = await utils.generateUniqueToken(currentDate);
-      patient = {
+      patient_Detail = {
         patient_MRNo: generatedMRNo,
         patient_CNIC: patient_CNIC || "",
         patient_Name,
-        patient_Guardian,
+        patient_Guardian: patient_Guardian || "",
         patient_ContactNo,
         patient_Gender,
         patient_Age,
+        referredBy: referredBy || "Self",
         isExternal: true,
       };
     } else {
-      const fPatient = await hospitalModel.Patient.findOne({
-        $or: [{ patient_MRNo }, { patient_CNIC }],
-      }).select(
-        "patient_MRNo patient_CNIC patient_Name patient_Guardian patient_ContactNo patient_Gender patient_Age"
-      );
-      const dPatient = await hospitalModel.PatientTest.findOne({
-        $or: [{ "patient_Detail.patient_MRNo": patient_MRNo }, { "patient_Detail.patient_CNIC": patient_CNIC }],
-      }).select(
-        "patient_MRNo patient_CNIC patient_Name patient_Guardian patient_ContactNo patient_Gender patient_Age"
-      );
-      let foundPatient = fPatient || dPatient;
-      if (!foundPatient) {
-        return res.status(404).json({
-          success: false,
-          message: "Patient not found",
-        });
+      // Non-external:
+      // Prefer fields you already sent from the Add form (flat shape).
+      // If MRNo/CNIC are provided but you didn't send other fields,
+      // try to load them from Patient collection.
+      let base = {
+        patient_MRNo: patient_MRNo || "",
+        patient_CNIC: patient_CNIC || "",
+        patient_Name: patient_Name || "",
+        patient_Guardian: patient_Guardian || "",
+        patient_ContactNo: patient_ContactNo || "",
+        patient_Gender: patient_Gender || "",
+        patient_Age: patient_Age || "",
+        referredBy: referredBy || "Self",
+        isExternal: false,
+      };
+
+      const hasEnoughInBody =
+        base.patient_MRNo || (base.patient_Name && base.patient_ContactNo);
+
+      if (!hasEnoughInBody) {
+        // Try to fetch from Patient collection by MRNo or CNIC
+        if (!patient_MRNo && !patient_CNIC) {
+          return res.status(400).json({
+            success: false,
+            message: "Provide patient_MRNo or patient_CNIC (non-external).",
+          });
+        }
+
+        const found = await hospitalModel.Patient.findOne({
+          $or: [{ patient_MRNo }, { patient_CNIC }],
+        }).select(
+          "patient_MRNo patient_CNIC patient_Name patient_Guardian patient_ContactNo patient_Gender patient_Age referredBy"
+        );
+
+        if (!found) {
+          return res.status(404).json({
+            success: false,
+            message: "Patient not found",
+          });
+        }
+
+        base = {
+          patient_MRNo: found.patient_MRNo || "",
+          patient_CNIC: found.patient_CNIC || "",
+          patient_Name: found.patient_Name || "",
+          patient_Guardian: found.patient_Guardian || "",
+          patient_ContactNo: found.patient_ContactNo || "",
+          patient_Gender: found.patient_Gender || "",
+          patient_Age: found.patient_Age || "",
+          referredBy: found.referredBy || referredBy || "Self",
+          isExternal: false,
+        };
       }
 
-      patient = foundPatient;
-      const currentDate = new Date().toISOString().split("T")[0];
-      tokenNumber = await utils.generateUniqueToken(currentDate);
+      patient_Detail = base;
     }
 
+    // --- Validate tests exist and enrich names/codes if needed ---
     const testIds = selectedTests.map((t) => {
       if (!mongoose.Types.ObjectId.isValid(t.test)) {
         throw new Error(`Invalid test ID format: ${t.test}`);
@@ -114,65 +144,33 @@ const createPatientTest = async (req, res) => {
       });
     }
 
-    const calculatedTotalAmount = selectedTests.reduce(
-      (sum, test) =>
-        sum +
-        (test.testPrice ||
-          tests.find((t) =>
-            t._id.equals(new mongoose.Types.ObjectId(test.test))
-          )?.testPrice ||
-          0),
-      0
-    );
-
-    const calculatedDiscountAmount = selectedTests.reduce(
-      (sum, test) => sum + (test.discountAmount || 0),
-      0
-    );
-
-    const calculatedAdvanceAmount =
-      advanceAmount !== undefined
-        ? advanceAmount
-        : selectedTests.reduce(
-            (sum, test) => sum + (test.advanceAmount || 0),
-            0
-          );
-
-    const remainingAmount =
-      calculatedTotalAmount -
-      calculatedDiscountAmount -
-      calculatedAdvanceAmount;
-
-    let paymentStatus;
-    if (remainingAmount <= 0) {
-      paymentStatus = "paid";
-    } else if (calculatedAdvanceAmount > 0) {
-      paymentStatus = "partial";
-    } else {
-      paymentStatus = "pending";
-    }
-
-    const mappedTests = selectedTests.map((testInput) => {
-      const testDoc = tests.find((t) =>
-        t._id.equals(new mongoose.Types.ObjectId(testInput.test))
+    // --- Normalize tests + compute per-row financials ---
+    const mappedTests = selectedTests.map((row) => {
+      const doc = tests.find((t) => t._id.equals(row.test));
+      const price = Number(
+        row.testPrice ??
+          (doc ? doc.testPrice : 0) ??
+          0
       );
-
-      const testPrice = testInput.testPrice || testDoc.testPrice;
-      const discountAmount = testInput.discountAmount || 0;
-      const advanceAmount = testInput.advanceAmount || 0;
-      const remainingAmount = testPrice - discountAmount - advanceAmount;
+      const discount = Math.max(0, Number(row.discountAmount ?? 0));
+      const paid = Math.max(0, Number(row.advanceAmount ?? 0));
+      const final = Math.max(0, price - discount);
+      const remaining = Math.max(0, final - paid);
 
       return {
-        test: testInput.test,
+        test: row.test,
         testDetails: {
-          testName: testDoc.testName,
-          testCode: testDoc.testCode,
-          testPrice,
-          advanceAmount,
-          discountAmount,
-          remainingAmount,
-          sampleStatus: "pending",
-          reportStatus: "not_started",
+          testName: doc?.testName || row.testName || "",
+          testCode: doc?.testCode || row.testCode || "",
+          testPrice: price,
+          discountAmount: discount,
+          advanceAmount: paid,
+          remainingAmount: remaining,
+          sampleStatus: row.sampleStatus || "pending",
+          reportStatus: row.reportStatus || "not_started",
+          testDate: row.sampleDate
+            ? new Date(row.sampleDate).toISOString()
+            : new Date().toISOString(),
         },
         testDate: new Date(),
         statusHistory: [
@@ -182,57 +180,67 @@ const createPatientTest = async (req, res) => {
             changedBy: performedBy || "system",
           },
         ],
+        notes: row.notes || "",
       };
     });
 
-    const patientTest = new hospitalModel.PatientTest({
-      patient_Detail: {
-        patient_MRNo: patient.patient_MRNo || generatedMRNo,
-        patient_CNIC: patient.patient_CNIC,
-        patient_Name: patient.patient_Name,
-        patient_Guardian: patient.patient_Guardian,
-        patient_ContactNo: patient.patient_ContactNo,
-        patient_Gender: patient.patient_Gender,
-        patient_Age: patient.patient_Age,
-        referredBy: referredBy || "Self",
-        isExternal: isExternalPatient,
-      },
-      selectedTests: mappedTests,
-      totalAmount: calculatedTotalAmount,
-      advanceAmount: calculatedAdvanceAmount,
-      discountAmount: calculatedDiscountAmount,
-      remainingAmount: remainingAmount,
-      totalPaid: calculatedAdvanceAmount,
-      paidAfterReport: 0,
-      paymentStatus: paymentStatus,
-      refunded: [],
-      labNotes,
-      performedBy,
+    // --- Totals (server-of-record) ---
+    const sumPrice = mappedTests.reduce((s, t) => s + (t.testDetails.testPrice || 0), 0);
+    const sumDiscount = mappedTests.reduce((s, t) => s + (t.testDetails.discountAmount || 0), 0);
+    const sumPaidFromRows = mappedTests.reduce((s, t) => s + (t.testDetails.advanceAmount || 0), 0);
+
+    // If client sent an overall advanceAmount, prefer that; else sum row-level
+    const totalPaid = Number.isFinite(Number(advanceAmount))
+      ? Number(advanceAmount)
+      : sumPaidFromRows;
+
+    const computedFinal = Math.max(0, sumPrice - sumDiscount);
+    const remainingAmount = Math.max(0, computedFinal - totalPaid);
+
+    // --- Payment status ---
+    let paymentStatus = "pending";
+    if (remainingAmount === 0 && totalPaid > 0) paymentStatus = "paid";
+    else if (totalPaid > 0) paymentStatus = "partial";
+
+    // --- Create document ---
+    const doc = {
+      isExternalPatient: !!isExternalPatient,
       tokenNumber,
-      isExternalPatient,
+      patient_Detail,
+      selectedTests: mappedTests,
+      totalAmount: sumPrice,          // raw sum
+      discountAmount: sumDiscount,
+      advanceAmount: totalPaid,
+      totalPaid: totalPaid,           // keep both if your schema expects both
+      remainingAmount: remainingAmount,
+      paidAfterReport: 0,
+      paymentStatus,
+      refunded: [],
+      labNotes: labNotes || "",
+      performedBy: performedBy || (req.user && req.user.user_Name) || "",
       history: [
         {
           action: "create",
-          performedBy: performedBy || req.user.user_Name || "system",
+          performedBy: (req.user && req.user.user_Name) || performedBy || "system",
         },
       ],
-    });
+    };
 
-    await patientTest.save();
+    const created = await hospitalModel.PatientTest.create(doc);
 
     return res.status(201).json({
       success: true,
       message: "Lab test order created successfully",
       data: {
-        patientTestId: patientTest._id,
-        tokenNumber,
+        patientTestId: created._id,
+        tokenNumber: created.tokenNumber,
         patient: {
-          mrNo: patientTest.patient_Detail.patient_MRNo,
-          name: patientTest.patient_Detail.patient_Name,
-          patient_Guardian: patientTest.patient_Detail.patient_Guardian,
-          contact: patientTest.patient_Detail.patient_ContactNo,
+          mrNo: created.patient_Detail.patient_MRNo,
+          name: created.patient_Detail.patient_Name,
+          patient_Guardian: created.patient_Detail.patient_Guardian,
+          contact: created.patient_Detail.patient_ContactNo,
         },
-        tests: patientTest.selectedTests.map((t) => ({
+        tests: created.selectedTests.map((t) => ({
           testId: t.test,
           testName: t.testDetails.testName,
           price: t.testDetails.testPrice,
@@ -242,14 +250,14 @@ const createPatientTest = async (req, res) => {
           status: t.testDetails.sampleStatus,
         })),
         financialSummary: {
-          totalAmount: calculatedTotalAmount,
-          totalDiscount: calculatedDiscountAmount,
-          totalPaid: calculatedAdvanceAmount,
-          totalRemaining: remainingAmount,
-          paymentStatus: paymentStatus,
+          totalAmount: created.totalAmount,
+          totalDiscount: created.discountAmount,
+          totalPaid: created.totalPaid,
+          totalRemaining: created.remainingAmount,
+          paymentStatus: created.paymentStatus,
         },
-        createdAt: patientTest.createdAt,
-        totalTests: patientTest.selectedTests.length,
+        createdAt: created.createdAt,
+        totalTests: created.selectedTests.length,
         status: "created",
       },
     });
@@ -262,7 +270,6 @@ const createPatientTest = async (req, res) => {
         error: error.message,
       });
     }
-
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -270,6 +277,8 @@ const createPatientTest = async (req, res) => {
     });
   }
 };
+
+
 
 const getAllPatientTests = async (req, res) => {
   try {
@@ -280,9 +289,9 @@ const getAllPatientTests = async (req, res) => {
 
     if (search) {
       query.$or = [
-        { "patient_Detail.patient_MRNo": { $regex: search, $options: "i" } },
-        { "patient_Detail.patient_Name": { $regex: search, $options: "i" } },
-        { "patient_Detail.patient_CNIC": { $regex: search, $options: "i" } },
+        { 'patient_Detail.patient_MRNo': { $regex: search, $options: 'i' } },
+        { 'patient_Detail.patient_Name': { $regex: search, $options: 'i' } },
+        { 'patient_Detail.patient_CNIC': { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -368,10 +377,10 @@ const getAllPatientTests = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching patient tests:", error);
+    console.error('Error fetching patient tests:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
       error: error.message,
     });
   }
@@ -383,7 +392,7 @@ const getPatientTestById = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid patient test ID format",
+        message: 'Invalid patient test ID format',
       });
     }
 
@@ -395,7 +404,7 @@ const getPatientTestById = async (req, res) => {
     if (!patientTest) {
       return res.status(404).json({
         success: false,
-        message: "Patient test not found",
+        message: 'Patient test not found',
       });
     }
     const testIds = patientTest.selectedTests?.map((t) => t.test);
@@ -456,10 +465,10 @@ const getPatientTestById = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching patient test:", error);
+    console.error('Error fetching patient test:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
       error: error.message,
     });
   }
@@ -472,8 +481,8 @@ const getPatientTestByMRNo = async (req, res) => {
     // Try fetching from PatientTest
     const patienttest = await hospitalModel.PatientTest.findOne({
       $or: [
-        { "patient_Detail.patient_MRNo": String(mrNo).trim() },
-        { "patient_Detail.patient_CNIC": String(mrNo).trim() },
+        { 'patient_Detail.patient_MRNo': String(mrNo).trim() },
+        { 'patient_Detail.patient_CNIC': String(mrNo).trim() },
       ],
     }).lean();
 
@@ -488,7 +497,7 @@ const getPatientTestByMRNo = async (req, res) => {
     if (!patienttest && !patient) {
       return res.status(404).json({
         success: false,
-        message: "No patient test or patient found.",
+        message: 'No patient test or patient found.',
       });
     }
 
@@ -531,12 +540,11 @@ const getPatientTestByMRNo = async (req, res) => {
         },
       });
     }
-
   } catch (error) {
-    console.error("Error fetching patient info:", error);
+    console.error('Error fetching patient info:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
       error: error.message,
     });
   }
@@ -549,7 +557,7 @@ const softDeletePatientTest = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid patient test ID format",
+        message: 'Invalid patient test ID format',
       });
     }
 
@@ -559,8 +567,8 @@ const softDeletePatientTest = async (req, res) => {
         $set: { isDeleted: true },
         $push: {
           history: {
-            action: "soft_delete",
-            performedBy: req.user.user_Name || "system",
+            action: 'soft_delete',
+            performedBy: req.user.user_Name || 'system',
           },
         },
       },
@@ -570,23 +578,23 @@ const softDeletePatientTest = async (req, res) => {
     if (!patientTest) {
       return res.status(404).json({
         success: false,
-        message: "Patient test not found or already deleted",
+        message: 'Patient test not found or already deleted',
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Patient test soft deleted successfully",
+      message: 'Patient test soft deleted successfully',
       data: {
         patientTestId: patientTest._id,
         deletedAt: new Date(),
       },
     });
   } catch (error) {
-    console.error("Error soft deleting patient test:", error);
+    console.error('Error soft deleting patient test:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
       error: error.message,
     });
   }
@@ -605,19 +613,19 @@ const restorePatientTest = async (req, res) => {
     if (!patientTest) {
       return res.status(404).json({
         success: false,
-        message: "Patient test not found or not deleted",
+        message: 'Patient test not found or not deleted',
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Patient test restored successfully",
+      message: 'Patient test restored successfully',
     });
   } catch (error) {
-    console.error("Error restoring patient test:", error);
+    console.error('Error restoring patient test:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
       error: error.message,
     });
   }
@@ -633,10 +641,10 @@ const PatientTestStates = async (req, res) => {
       { $match: { isDeleted: false } },
       {
         $facet: {
-          totalTests: [{ $count: "count" }],
+          totalTests: [{ $count: 'count' }],
           testStatus: [
             {
-              $unwind: "$selectedTests",
+              $unwind: '$selectedTests',
             },
             {
               $group: {
@@ -646,8 +654,8 @@ const PatientTestStates = async (req, res) => {
                     $cond: [
                       {
                         $eq: [
-                          "$selectedTests.testDetails.reportStatus",
-                          "completed",
+                          '$selectedTests.testDetails.reportStatus',
+                          'completed',
                         ],
                       },
                       1,
@@ -660,8 +668,8 @@ const PatientTestStates = async (req, res) => {
                     $cond: [
                       {
                         $eq: [
-                          "$selectedTests.testDetails.sampleStatus",
-                          "pending",
+                          '$selectedTests.testDetails.sampleStatus',
+                          'pending',
                         ],
                       },
                       1,
@@ -672,7 +680,7 @@ const PatientTestStates = async (req, res) => {
                 urgent: {
                   $sum: {
                     $cond: [
-                      { $eq: ["$selectedTests.testDetails.testCode", "cns"] },
+                      { $eq: ['$selectedTests.testDetails.testCode', 'cns'] },
                       1,
                       0,
                     ],
@@ -685,18 +693,18 @@ const PatientTestStates = async (req, res) => {
             {
               $group: {
                 _id: null,
-                totalRevenue: { $sum: "$totalAmount" },
-                totalDiscount: { $sum: "$advanceAmount" },
-                totalRemainingAmount: { $sum: "$remainingAmount" },
-                totalAdvancePayment: { $sum: "$advancePayment" },
+                totalRevenue: { $sum: '$totalAmount' },
+                totalDiscount: { $sum: '$advanceAmount' },
+                totalRemainingAmount: { $sum: '$remainingAmount' },
+                totalAdvancePayment: { $sum: '$advancePayment' },
                 totalPaidAfterReport: {
-                  $sum: { $ifNull: ["$paidAfterReport", 0] },
+                  $sum: { $ifNull: ['$paidAfterReport', 0] },
                 },
                 pendingRevenue: {
                   $sum: {
                     $cond: [
-                      { $eq: ["$paymentStatus", "pending"] },
-                      "$remainingAmount",
+                      { $eq: ['$paymentStatus', 'pending'] },
+                      '$remainingAmount',
                       0,
                     ],
                   },
@@ -704,11 +712,11 @@ const PatientTestStates = async (req, res) => {
                 paidRevenue: {
                   $sum: {
                     $cond: [
-                      { $eq: ["$paymentStatus", "paid"] },
+                      { $eq: ['$paymentStatus', 'paid'] },
                       {
                         $add: [
-                          "$advancePayment",
-                          { $ifNull: ["$paidAfterReport", 0] },
+                          '$advancePayment',
+                          { $ifNull: ['$paidAfterReport', 0] },
                         ],
                       },
                       0,
@@ -718,9 +726,9 @@ const PatientTestStates = async (req, res) => {
                 refundedRevenue: {
                   $sum: {
                     $reduce: {
-                      input: "$refunded",
+                      input: '$refunded',
                       initialValue: 0,
-                      in: { $add: ["$$value", "$$this.refundAmount"] },
+                      in: { $add: ['$$value', '$$this.refundAmount'] },
                     },
                   },
                 },
@@ -731,32 +739,32 @@ const PatientTestStates = async (req, res) => {
       },
       {
         $project: {
-          totalTests: { $arrayElemAt: ["$totalTests.count", 0] },
-          completedTests: { $arrayElemAt: ["$testStatus.completed", 0] },
-          pendingTests: { $arrayElemAt: ["$testStatus.pending", 0] },
-          urgentTests: { $arrayElemAt: ["$testStatus.urgent", 0] },
+          totalTests: { $arrayElemAt: ['$totalTests.count', 0] },
+          completedTests: { $arrayElemAt: ['$testStatus.completed', 0] },
+          pendingTests: { $arrayElemAt: ['$testStatus.pending', 0] },
+          urgentTests: { $arrayElemAt: ['$testStatus.urgent', 0] },
 
           // Revenue metrics
-          totalRevenue: { $arrayElemAt: ["$revenue.totalRevenue", 0] },
-          totalDiscount: { $arrayElemAt: ["$revenue.totalDiscount", 0] },
+          totalRevenue: { $arrayElemAt: ['$revenue.totalRevenue', 0] },
+          totalDiscount: { $arrayElemAt: ['$revenue.totalDiscount', 0] },
           totalRemainingAmount: {
-            $arrayElemAt: ["$revenue.totalRemainingAmount", 0],
+            $arrayElemAt: ['$revenue.totalRemainingAmount', 0],
           },
           totalAdvancePayment: {
-            $arrayElemAt: ["$revenue.totalAdvancePayment", 0],
+            $arrayElemAt: ['$revenue.totalAdvancePayment', 0],
           },
           totalPaidAfterReport: {
-            $arrayElemAt: ["$revenue.totalPaidAfterReport", 0],
+            $arrayElemAt: ['$revenue.totalPaidAfterReport', 0],
           },
-          pendingRevenue: { $arrayElemAt: ["$revenue.pendingRevenue", 0] },
-          paidRevenue: { $arrayElemAt: ["$revenue.paidRevenue", 0] },
-          refundedRevenue: { $arrayElemAt: ["$revenue.refundedRevenue", 0] },
+          pendingRevenue: { $arrayElemAt: ['$revenue.pendingRevenue', 0] },
+          paidRevenue: { $arrayElemAt: ['$revenue.paidRevenue', 0] },
+          refundedRevenue: { $arrayElemAt: ['$revenue.refundedRevenue', 0] },
 
           // Calculated fields
           remainingRevenue: {
             $subtract: [
-              { $arrayElemAt: ["$revenue.totalRemainingAmount", 0] },
-              { $arrayElemAt: ["$revenue.paidRevenue", 0] },
+              { $arrayElemAt: ['$revenue.totalRemainingAmount', 0] },
+              { $arrayElemAt: ['$revenue.paidRevenue', 0] },
             ],
           },
         },
@@ -766,25 +774,25 @@ const PatientTestStates = async (req, res) => {
     // Fetch alerts based on test status and payment issues
     const alerts = await PatientTest.aggregate([
       { $match: { isDeleted: false } },
-      { $unwind: "$selectedTests" },
+      { $unwind: '$selectedTests' },
       {
         $lookup: {
-          from: "testresults",
-          localField: "_id",
-          foreignField: "patientTestId",
-          as: "testResults",
+          from: 'testresults',
+          localField: '_id',
+          foreignField: 'patientTestId',
+          as: 'testResults',
         },
       },
       {
         $project: {
           _id: 1,
-          testId: "$selectedTests._id",
-          testName: "$selectedTests.testDetails.testName",
-          testCode: "$selectedTests.testDetails.testCode",
-          sampleStatus: "$selectedTests.testDetails.sampleStatus",
-          reportStatus: "$selectedTests.testDetails.reportStatus",
-          testDate: "$selectedTests.testDate",
-          patientName: "$patient_Detail.patient_Name",
+          testId: '$selectedTests._id',
+          testName: '$selectedTests.testDetails.testName',
+          testCode: '$selectedTests.testDetails.testCode',
+          sampleStatus: '$selectedTests.testDetails.sampleStatus',
+          reportStatus: '$selectedTests.testDetails.reportStatus',
+          testDate: '$selectedTests.testDate',
+          patientName: '$patient_Detail.patient_Name',
           paymentStatus: 1,
           remainingAmount: 1,
           advancePayment: 1,
@@ -794,17 +802,17 @@ const PatientTestStates = async (req, res) => {
       {
         $match: {
           $or: [
-            { sampleStatus: "pending" },
-            { reportStatus: { $ne: "completed" } },
+            { sampleStatus: 'pending' },
+            { reportStatus: { $ne: 'completed' } },
             {
               $expr: {
                 $and: [
-                  { $eq: ["$paymentStatus", "pending"] },
-                  { $gt: ["$remainingAmount", 0] },
+                  { $eq: ['$paymentStatus', 'pending'] },
+                  { $gt: ['$remainingAmount', 0] },
                 ],
               },
             },
-            { testCode: "cns" },
+            { testCode: 'cns' },
           ],
         },
       },
@@ -816,31 +824,31 @@ const PatientTestStates = async (req, res) => {
       .map((alert) => {
         const testDate = new Date(alert.testDate);
         const hoursDiff = Math.abs(now - testDate) / 36e5;
-        let alertType = "";
-        let priority = "medium";
+        let alertType = '';
+        let priority = 'medium';
 
-        if (hoursDiff > 24 && alert.sampleStatus !== "collected") {
+        if (hoursDiff > 24 && alert.sampleStatus !== 'collected') {
           alertType = `Sample for ${alert.testName} expired`;
-          priority = "high";
-        } else if (alert.testCode === "cns") {
+          priority = 'high';
+        } else if (alert.testCode === 'cns') {
           alertType = `Critical test pending: ${alert.testName}`;
-          priority = "critical";
+          priority = 'critical';
         } else if (
-          alert.paymentStatus === "pending" &&
+          alert.paymentStatus === 'pending' &&
           alert.remainingAmount > 0
         ) {
           const paidAmount =
             (alert.advancePayment || 0) + (alert.paidAfterReport || 0);
           const remainingAmount = alert.remainingAmount - paidAmount;
           alertType = `Unpaid amount ${remainingAmount} for ${alert.patientName}`;
-          priority = remainingAmount > 500 ? "high" : "medium";
+          priority = remainingAmount > 500 ? 'high' : 'medium';
         }
 
         return {
           id: `${alert._id}-${alert.testId}`,
           message: alertType,
           timeStatus:
-            hoursDiff > 24 ? `${Math.floor(hoursDiff)} hours ago` : "Pending",
+            hoursDiff > 24 ? `${Math.floor(hoursDiff)} hours ago` : 'Pending',
           priority,
           testType: alert.testName,
           patient: alert.patientName,
@@ -872,14 +880,14 @@ const PatientTestStates = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Dashboard data fetched successfully",
+      message: 'Dashboard data fetched successfully',
       data: result,
     });
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
+    console.error('Error fetching dashboard data:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch dashboard data",
+      message: 'Failed to fetch dashboard data',
       error: error.message,
     });
   }
@@ -887,12 +895,12 @@ const PatientTestStates = async (req, res) => {
 
 const paymentAfterReport = async (req, res) => {
   const { patientId } = req.params;
-  console.log("Processing payment after report for patient:", patientId);
+  console.log('Processing payment after report for patient:', patientId);
   try {
     if (!patientId) {
       return res.status(400).json({
         success: false,
-        message: "patientId is required",
+        message: 'patientId is required',
       });
     }
 
@@ -900,7 +908,7 @@ const paymentAfterReport = async (req, res) => {
     if (!patientTest) {
       return res.status(404).json({
         success: false,
-        message: "Patient test record not found",
+        message: 'Patient test record not found',
       });
     }
 
@@ -911,28 +919,29 @@ const paymentAfterReport = async (req, res) => {
     // Add history entry
     patientTest.history = patientTest.history || [];
     patientTest.history.push({
-      action: "finalize_payment",
-      performedBy: req.user.user_Name || "system",
+      action: 'finalize_payment',
+      performedBy: req.user.user_Name || 'system',
     });
 
-    const updatedPatientTest = await hospitalModel.PatientTest.findByIdAndUpdate(
-      patientId,
-      {
-        $set: {
-          paidAfterReport: newPaidAfterReport,
-          totalPaid: newTotalPaid,
-          remainingAmount: 0,
-          paymentStatus: "paid",
-          refundableAmount: 0,
-          performedBy: req.user.user_Name || "system",
+    const updatedPatientTest =
+      await hospitalModel.PatientTest.findByIdAndUpdate(
+        patientId,
+        {
+          $set: {
+            paidAfterReport: newPaidAfterReport,
+            totalPaid: newTotalPaid,
+            remainingAmount: 0,
+            paymentStatus: 'paid',
+            refundableAmount: 0,
+            performedBy: req.user.user_Name || 'system',
+          },
         },
-      },
-      { new: true }
-    ).select("-__v -isDeleted -createdAt -updatedAt");
+        { new: true }
+      ).select('-__v -isDeleted -createdAt -updatedAt');
 
     return res.status(200).json({
       success: true,
-      message: "Payment finalized successfully",
+      message: 'Payment finalized successfully',
       data: {
         patientTest: updatedPatientTest,
         performedBy: updatedPatientTest.performedBy,
@@ -941,138 +950,199 @@ const paymentAfterReport = async (req, res) => {
           newPaidAfterReport: newPaidAfterReport,
           newTotalPaid: newTotalPaid,
           newRemaining: 0,
-          paymentStatus: "paid",
+          paymentStatus: 'paid',
         },
       },
     });
   } catch (error) {
-    console.error("Error finalizing payment:", error);
+    console.error('Error finalizing payment:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
       error: error.message,
     });
   }
 };
+// 🔑 helpers
+const toNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+const clamp0 = (v) => Math.max(0, v);
 
 const updatePatientTest = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const body = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid patient test ID format",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid patient test ID format' });
     }
 
-    const existingTest = await hospitalModel.PatientTest.findById(id);
-    if (!existingTest) {
-      return res.status(404).json({
-        success: false,
-        message: "Patient test not found",
-      });
+    const existing = await hospitalModel.PatientTest.findById(id);
+    if (!existing) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Patient test not found' });
     }
 
-    const hasNonRegisteredTests = existingTest.selectedTests.some(
-      test => test.testStatus !== "registered"
+    // Block if any test already progressed beyond "registered"
+    const hasNonRegistered = existing.selectedTests.some(
+      (t) => t.testStatus !== 'registered'
     );
-    if (hasNonRegisteredTests) {
+    if (hasNonRegistered) {
       return res.status(400).json({
         success: false,
-        message: "Cannot update - one or more tests have status other than 'registered'",
+        message:
+          "Cannot update - one or more tests have status other than 'registered'",
       });
     }
 
-    const updateObj = {
-      $set: {
-        patient_Detail: {
-          patient_MRNo: updateData.patient_Detail?.patient_MRNo || existingTest.patient_Detail.patient_MRNo,
-          patient_CNIC: updateData.patient_Detail?.patient_CNIC || existingTest.patient_Detail.patient_CNIC,
-          patient_Name: updateData.patient_Detail?.patient_Name || existingTest.patient_Detail.patient_Name,
-          patient_Guardian: updateData.patient_Detail?.patient_Guardian || existingTest.patient_Detail.patient_Guardian,
-          patient_ContactNo: updateData.patient_Detail?.patient_ContactNo || existingTest.patient_Detail.patient_ContactNo,
-          patient_Gender: updateData.patient_Detail?.patient_Gender || existingTest.patient_Detail.patient_Gender,
-          patient_Age: updateData.patient_Detail?.patient_Age || existingTest.patient_Detail.patient_Age,
-          referredBy: updateData.patient_Detail?.referredBy || existingTest.patient_Detail.referredBy,
-        },
-        labNotes: updateData.labNotes || existingTest.labNotes,
-        performedBy: updateData.performedBy || existingTest.performedBy,
-      }
+    // ---- patient + simple fields (keep zeros by using ??) ----
+    const $set = {
+      patient_Detail: {
+        patient_MRNo:
+          body.patient_Detail?.patient_MRNo ??
+          existing.patient_Detail.patient_MRNo,
+        patient_CNIC:
+          body.patient_Detail?.patient_CNIC ??
+          existing.patient_Detail.patient_CNIC,
+        patient_Name:
+          body.patient_Detail?.patient_Name ??
+          existing.patient_Detail.patient_Name,
+        patient_Guardian:
+          body.patient_Detail?.patient_Guardian ??
+          existing.patient_Detail.patient_Guardian,
+        patient_ContactNo:
+          body.patient_Detail?.patient_ContactNo ??
+          existing.patient_Detail.patient_ContactNo,
+        patient_Gender:
+          body.patient_Detail?.patient_Gender ??
+          existing.patient_Detail.patient_Gender,
+        patient_Age:
+          body.patient_Detail?.patient_Age ??
+          existing.patient_Detail.patient_Age,
+        referredBy:
+          body.patient_Detail?.referredBy ?? existing.patient_Detail.referredBy,
+      },
+      labNotes: body.labNotes ?? existing.labNotes,
+      performedBy: body.performedBy ?? existing.performedBy,
+      isExternalPatient: body.isExternalPatient ?? existing.isExternalPatient,
+      tokenNumber: body.tokenNumber ?? existing.tokenNumber,
     };
 
-    if (updateData.totalPaid !== undefined) {
-      updateObj.$set.totalPaid = updateData.totalPaid;
-    }
-    if (updateData.paidAfterReport !== undefined) {
-      updateObj.$set.paidAfterReport = updateData.paidAfterReport;
-    }
+    // ---- selectedTests: rebuild from payload if provided, else keep existing ----
+    let selectedTests;
+    if (Array.isArray(body.selectedTests) && body.selectedTests.length) {
+      selectedTests = body.selectedTests.map((t) => {
+        const td = t.testDetails || {};
+        const price = toNum(td.testPrice);
+        const discount = clamp0(toNum(td.discountAmount));
+        const final = clamp0(price - discount);
+        const paid = clamp0(toNum(td.advanceAmount));
+        const paidCapped = Math.min(paid, final);
+        const remaining = clamp0(final - paidCapped);
 
-    if (updateData.selectedTests && updateData.selectedTests.length > 0) {
-      updateObj.$set.selectedTests = existingTest.selectedTests.map((existingTestItem, index) => {
-        const updateTestItem = updateData.selectedTests[index] || {};
         return {
-          ...existingTestItem.toObject(),
+          ...t,
           testDetails: {
-            ...existingTestItem.testDetails.toObject(),
-            testName: updateTestItem.testDetails?.testName || existingTestItem.testDetails.testName,
-            testPrice: updateTestItem.testDetails?.testPrice || existingTestItem.testDetails.testPrice,
-            advanceAmount: updateTestItem.testDetails?.advanceAmount || existingTestItem.testDetails.advanceAmount,
-            discountAmount: updateTestItem.testDetails?.discountAmount || existingTestItem.testDetails.discountAmount,
-            remainingAmount: updateTestItem.testDetails?.remainingAmount || existingTestItem.testDetails.remainingAmount,
+            ...td,
+            testPrice: price,
+            discountAmount: discount,
+            advanceAmount: paidCapped,
+            remainingAmount: remaining,
           },
-          testDate: updateTestItem.testDate || existingTestItem.testDate,
         };
       });
-
-      const totalAmount = updateObj.$set.selectedTests.reduce(
-        (sum, test) => sum + (test.testDetails.testPrice || 0), 0
-      );
-      const discountAmount = updateObj.$set.selectedTests.reduce(
-        (sum, test) => sum + (test.testDetails.discountAmount || 0), 0
-      );
-      const advanceAmount = updateObj.$set.selectedTests.reduce(
-        (sum, test) => sum + (test.testDetails.advanceAmount || 0), 0
-      );
-      const remainingAmount = totalAmount - discountAmount - advanceAmount;
-
-      updateObj.$set.totalAmount = totalAmount;
-      updateObj.$set.discountAmount = discountAmount;
-      updateObj.$set.advanceAmount = advanceAmount;
-      updateObj.$set.totalPaid = advanceAmount;
-      updateObj.$set.remainingAmount = remainingAmount;
+    } else {
+      // No incoming tests: normalize existing so totals are still correct
+      selectedTests = existing.selectedTests.map((t) => {
+        const td = t.testDetails || {};
+        const price = toNum(td.testPrice);
+        const discount = clamp0(toNum(td.discountAmount));
+        const final = clamp0(price - discount);
+        const paid = clamp0(toNum(td.advanceAmount));
+        const paidCapped = Math.min(paid, final);
+        const remaining = clamp0(final - paidCapped);
+        return {
+          ...t.toObject(),
+          testDetails: {
+            ...td,
+            testPrice: price,
+            discountAmount: discount,
+            advanceAmount: paidCapped,
+            remainingAmount: remaining,
+          },
+        };
+      });
     }
 
-    // Add history entry
-    updateObj.$push = {
+    $set.selectedTests = selectedTests;
+
+    // ---- recompute totals + paymentStatus (authoritative) ----
+    const totalPrice = selectedTests.reduce(
+      (s, t) => s + toNum(t.testDetails?.testPrice),
+      0
+    );
+    const totalDiscount = selectedTests.reduce(
+      (s, t) => s + clamp0(toNum(t.testDetails?.discountAmount)),
+      0
+    );
+    const totalPaid = selectedTests.reduce(
+      (s, t) => s + clamp0(toNum(t.testDetails?.advanceAmount)),
+      0
+    );
+
+    const finalTotal = clamp0(totalPrice - totalDiscount); // sum of (price - discount)
+    const remainingAmount = clamp0(finalTotal - totalPaid);
+
+    $set.totalAmount = finalTotal;
+    $set.discountAmount = totalDiscount;
+    $set.totalPaid = totalPaid;
+    $set.advanceAmount = totalPaid; // keep legacy in sync
+    $set.remainingAmount = remainingAmount;
+
+    $set.paymentStatus =
+      remainingAmount === 0 && totalPaid > 0
+        ? 'paid'
+        : totalPaid > 0
+        ? 'partial'
+        : 'pending';
+
+    // (optional) mirror to financialSummary if your UI reads it
+    $set['financialSummary.totalAmount'] = finalTotal;
+    $set['financialSummary.totalPaid'] = totalPaid;
+    $set['financialSummary.totalDiscount'] = totalDiscount;
+    $set['financialSummary.totalRemaining'] = remainingAmount;
+    $set['financialSummary.paymentStatus'] = $set.paymentStatus;
+
+    const $push = {
       history: {
-        action: "update",
-        performedBy: req.user.user_Name || "system",
+        action: 'update',
+        performedBy: req.user?.user_Name || 'system',
+        at: new Date(),
       },
     };
 
-    const updatedTest = await hospitalModel.PatientTest.findByIdAndUpdate(
+    const updated = await hospitalModel.PatientTest.findByIdAndUpdate(
       id,
-      updateObj,
-      { new: true }
+      { $set, $push },
+      { new: true, runValidators: true }
     );
 
     return res.status(200).json({
       success: true,
-      message: "Patient test updated successfully",
-      data: updatedTest,
+      message: 'Patient test updated successfully',
+      data: updated,
     });
-  } catch (error) {
-    console.error("Error updating patient test:", error);
+  } catch (err) {
+    console.error('Error updating patient test:', err);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
-      error: error.message,
+      message: 'Internal server error',
+      error: err.message,
     });
   }
 };
-
 
 module.exports = {
   createPatientTest,

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import ReactDOMServer from "react-dom/server";
-import PrintTestReport from "./PrintTestReport";
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import ReactDOMServer from 'react-dom/server';
+import PrintTestReport from './PrintTestReport';
 import {
   FiChevronLeft,
   FiSave,
@@ -11,11 +11,11 @@ import {
   FiInfo,
   FiX,
   FiSearch,
-} from "react-icons/fi";
-import { fetchPatientTestById } from "../../../features/patientTest/patientTestSlice";
-import { updatePatientTestResults } from "../../../features/testResult/TestResultSlice";
-import PatientInfoSection from "./PatientInfoSection";
-import TestResultsForm from "./TestResultsForm";
+} from 'react-icons/fi';
+import { fetchPatientTestById } from '../../../features/patientTest/patientTestSlice';
+import { updatePatientTestResults } from '../../../features/testResult/TestResultSlice';
+import PatientInfoSection from './PatientInfoSection';
+import TestResultsForm from './TestResultsForm';
 
 const UpdateReport = () => {
   const navigate = useNavigate();
@@ -24,22 +24,54 @@ const UpdateReport = () => {
   const { patientTestById, status, error } = useSelector(
     (state) => state.patientTest
   );
+  // console.log('patient test', patientTestById);
+
   const [initialValues, setInitialValues] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPrintOptionsModal, setShowPrintOptionsModal] = useState(false);
   const [selectedTestIds, setSelectedTestIds] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     results: {},
-    status: "completed",
-    notes: "",
-    performedBy: "",
+    status: 'completed',
+    notes: '',
+    performedBy: '',
   });
   const [activeTestIndex, setActiveTestIndex] = useState(0);
+
+  const [localStatuses, setLocalStatuses] = useState({});
+
+  const [statusByTest, setStatusByTest] = useState({});
+  // Get all selected tests
+  const selectedTests = patientTestById?.patientTest?.selectedTests || [];
+  // Get all test definitions
+  const testDefinitions = patientTestById?.testDefinitions || [];
+  // seed once tests load
+  useEffect(() => {
+    if (selectedTests.length) {
+      const seed = {};
+      selectedTests.forEach((t) => {
+        // default is "pending" if nothing known
+        const server = getCurrentStatus(t.statusHistory); // may be 'registered'/'processing'/etc
+        seed[t.test] = server || 'pending';
+      });
+      setStatusByTest(seed);
+    }
+  }, [selectedTests]);
 
   useEffect(() => {
     dispatch(fetchPatientTestById(id));
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (selectedTests.length > 0) {
+      const seed = {};
+      selectedTests.forEach((t) => {
+        seed[t.test] = getCurrentStatus(t.statusHistory);
+      });
+      setStatusByTest(seed);
+    }
+  }, [selectedTests]);
 
   // Extract patient data
   const patientData = patientTestById?.patientTest
@@ -49,7 +81,8 @@ const UpdateReport = () => {
         age: patientTestById.patientTest.patient_Detail?.patient_Age,
         mrNumber: patientTestById.patientTest.patient_Detail?.patient_MRNo,
         cnic: patientTestById.patientTest.patient_Detail?.patient_CNIC,
-        contactNo: patientTestById.patientTest.patient_Detail?.patient_ContactNo,
+        contactNo:
+          patientTestById.patientTest.patient_Detail?.patient_ContactNo,
         testDate: patientTestById.patientTest.createdAt,
         referredBy: patientTestById.patientTest.patient_Detail?.referredBy,
         paymentStatus: patientTestById.patientTest.paymentStatus,
@@ -57,11 +90,6 @@ const UpdateReport = () => {
         tokenNumber: patientTestById.patientTest.tokenNumber,
       }
     : null;
-
-  // Get all selected tests
-  const selectedTests = patientTestById?.patientTest?.selectedTests || [];
-  // Get all test definitions
-  const testDefinitions = patientTestById?.testDefinitions || [];
 
   // Initialize form data with test fields for all tests and pre-populate existing values
   useEffect(() => {
@@ -77,16 +105,16 @@ const UpdateReport = () => {
 
         initialResults[test.test] = testFields.map((field) => ({
           fieldName: field.name,
-          value: field.value || "",
-          notes: field.note || "",
-          unit: field.unit || "",
+          value: field.value || '',
+          notes: field.note || '',
+          unit: field.unit || '',
           normalRange: field.normalRange || null,
           fieldId: field._id,
         }));
 
         initialVals[test.test] = testFields.map((field) => ({
-          value: field.value || "",
-          notes: field.note || "",
+          value: field.value || '',
+          notes: field.note || '',
         }));
       });
 
@@ -100,7 +128,7 @@ const UpdateReport = () => {
   }, [selectedTests, testDefinitions]);
 
   const getCurrentStatus = (statusHistory) => {
-    if (!statusHistory || statusHistory.length === 0) return "registered";
+    if (!statusHistory || statusHistory.length === 0) return 'registered';
     const sortedHistory = [...statusHistory].sort(
       (a, b) => new Date(b.changedAt) - new Date(a.changedAt)
     );
@@ -114,9 +142,10 @@ const UpdateReport = () => {
       printData: patientTestById,
     };
 
-    const testsToPrint = testIds.length > 0
-      ? selectedTests.filter((test) => testIds.includes(test.test))
-      : selectedTests;
+    const testsToPrint =
+      testIds.length > 0
+        ? selectedTests.filter((test) => testIds.includes(test.test))
+        : selectedTests;
 
     const testResults = testsToPrint.map((test) => {
       const testDefinition = testDefinitions.find((td) => td._id === test.test);
@@ -139,38 +168,43 @@ const UpdateReport = () => {
 
   const proceedWithPrint = async (testIds) => {
     try {
-      // Save the results before printing
-      const requestData = {
-        results: Object.values(formData.results).flatMap((testResult) =>
-          testResult.map((field) => ({
-            fieldName: field.fieldName,
-            value: field.value,
-            notes: field.notes,
-          }))
-        ),
-        status: formData.status,
-        notes: formData.notes,
-        performedBy: formData.performedBy,
-      };
-      const testId = Array.isArray(selectedTests)
-        ? selectedTests.map((test) => test.test)
-        : selectedTests?.test;
+      for (const tid of testIds) {
+        const def = testDefinitions.find((td) => td._id === tid);
+        if (!def || !Array.isArray(def.fields)) {
+          console.warn('Skipping (no fields):', tid);
+          continue;
+        }
 
-      await dispatch(
-        updatePatientTestResults({
-          patientTestId: id,
-          testId: testId,
-          updateData: requestData,
-        })
-      ).unwrap();
+        const rows = formData?.results?.[tid] || [];
+        const updateData = {
+          results: rows
+            .filter((r) => r?.fieldName?.trim()?.length)
+            .map((r) => ({
+              fieldName: r.fieldName,
+              value: r.value,
+              notes: r.notes,
+              testId: tid, // 👈 important
+            })),
+          status: statusByTest[tid] ?? 'pending',
+          notes: formData.notes ?? '',
+        };
+
+        await dispatch(
+          updatePatientTestResults({
+            patientTestId: id,
+            testId: tid,
+            updateData,
+          })
+        ).unwrap();
+      }
 
       // Prepare and print the report
       const printData = preparePrintData(testIds);
       if (!printData) return;
 
-      const printWindow = window.open("", "_blank");
+      const printWindow = window.open('', '_blank');
       if (!printWindow) {
-        alert("Please allow popups for printing");
+        alert('Please allow popups for printing');
         return;
       }
 
@@ -323,14 +357,14 @@ const UpdateReport = () => {
       `);
       printWindow.document.close();
     } catch (error) {
-      alert(`Failed to save and print: ${error.message || "Unknown error"}`);
+      alert(`Failed to save and print: ${error.message || 'Unknown error'}`);
     }
   };
 
   const handlePrint = () => {
     // Initialize selectedTestIds with all test IDs by default
     setSelectedTestIds(selectedTests.map((test) => test.test));
-    setSearchQuery("");
+    setSearchQuery('');
     setShowPrintOptionsModal(true);
   };
 
@@ -352,7 +386,7 @@ const UpdateReport = () => {
 
   const handleSelectRegistered = () => {
     const registeredTestIds = selectedTests
-      .filter((test) => getCurrentStatus(test.statusHistory) === "registered")
+      .filter((test) => getCurrentStatus(test.statusHistory) === 'registered')
       .map((test) => test.test);
     setSelectedTestIds(registeredTestIds);
   };
@@ -360,10 +394,10 @@ const UpdateReport = () => {
   const handlePrintOption = () => {
     setShowPrintOptionsModal(false);
     if (selectedTestIds.length === 0) {
-      alert("Please select at least one test to print.");
+      alert('Please select at least one test to print.');
       return;
     }
-    if (patientData?.paymentStatus !== "paid") {
+    if (patientData?.paymentStatus !== 'paid') {
       setShowConfirmModal(true);
       return;
     }
@@ -371,35 +405,58 @@ const UpdateReport = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const requestData = {
-        results: Object.values(formData.results).flatMap((testResult) =>
-          testResult.map((field) => ({
-            fieldName: field.fieldName,
-            value: field.value,
-            notes: field.notes,
-          }))
-        ),
-        status: formData.status,
-        notes: formData.notes,
-        performedBy: formData.performedBy,
+    e?.preventDefault?.();
+
+    const failures = [];
+    for (const t of selectedTests) {
+      const tid = t.test;
+      const def = testDefinitions.find((td) => td._id === tid);
+      if (!def || !Array.isArray(def.fields)) {
+        console.warn('Skipping (no fields):', tid);
+        continue;
+      }
+
+      const rows = formData?.results?.[tid] || [];
+
+      const updateData = {
+        results: rows
+          .filter((r) => r?.fieldName?.trim()?.length)
+          .map((r) => ({
+            fieldName: r.fieldName,
+            value: r.value,
+            notes: r.notes,
+            testId: tid, // 👈 important
+          })),
+        status: statusByTest[tid] ?? 'pending',
+        notes: formData.notes ?? '',
       };
-      const testId = Array.isArray(selectedTests)
-        ? selectedTests.map((test) => test.test)
-        : selectedTests?.test;
-      await dispatch(
-        updatePatientTestResults({
-          patientTestId: id,
-          testId: testId,
-          updateData: requestData,
-        })
-      ).unwrap();
-      alert("Test results updated successfully!");
-      navigate(-1);
-    } catch (error) {
-      alert(`Failed to update results: ${error.message || "Unknown error"}`);
+
+      try {
+        await dispatch(
+          updatePatientTestResults({
+            patientTestId: id,
+            testId: tid,
+            updateData,
+          })
+        ).unwrap();
+      } catch (err) {
+        console.error('PATCH failed for', tid, err);
+        failures.push({ tid, msg: err?.message });
+      }
     }
+
+    if (failures.length) {
+      alert(
+        'Some tests failed:\n' +
+          failures
+            .map((f) => `• ${f.tid}: ${f.msg || 'Unknown error'}`)
+            .join('\n')
+      );
+      return;
+    }
+
+    alert('Test results updated successfully!');
+    navigate(-1);
   };
 
   // Confirmation Modal Component for Payment
@@ -410,7 +467,9 @@ const UpdateReport = () => {
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
         <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md transform transition-transform duration-300 ease-in-out scale-95 animate-scale-up">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Payment Pending</h3>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Payment Pending
+            </h3>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600"
@@ -419,7 +478,8 @@ const UpdateReport = () => {
             </button>
           </div>
           <p className="text-sm text-gray-600 mb-6">
-            The payment is pending. Are you sure you want to print before payment?
+            The payment is pending. Are you sure you want to print before
+            payment?
           </p>
           <div className="flex justify-end space-x-3">
             <button
@@ -445,14 +505,18 @@ const UpdateReport = () => {
     if (!isOpen) return null;
 
     const filteredTests = selectedTests.filter((test) =>
-      test.testDetails.testName.toLowerCase().includes(searchQuery.toLowerCase())
+      test.testDetails.testName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
     );
 
     return (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
         <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg transform transition-transform duration-300 ease-in-out scale-95 animate-scale-up">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">Select Tests to Print</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              Select Tests to Print
+            </h3>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 transition-colors"
@@ -461,7 +525,10 @@ const UpdateReport = () => {
             </button>
           </div>
           <div className="relative mb-4">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <FiSearch
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               value={searchQuery}
@@ -513,7 +580,9 @@ const UpdateReport = () => {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500 text-center">No tests match your search.</p>
+              <p className="text-sm text-gray-500 text-center">
+                No tests match your search.
+              </p>
             )}
           </div>
           <div className="flex justify-end space-x-3">
@@ -535,8 +604,46 @@ const UpdateReport = () => {
       </div>
     );
   };
+  // Save ONLY the current test's results
 
-  if (status === "loading") {
+  // put this in UpdateReport.jsx (replace your saveCurrentTest)
+  const saveCurrentTest = async (currentTestId) => {
+    const def = testDefinitions.find((td) => td._id === currentTestId);
+    if (!def || !Array.isArray(def.fields)) {
+      console.warn('Skipping update: no fields for test', currentTestId);
+      return;
+    }
+
+    const rows = formData?.results?.[currentTestId] || [];
+
+    const updateData = {
+      results: rows
+        .filter((r) => r?.fieldName?.trim()?.length)
+        .map((r) => ({
+          fieldName: r.fieldName,
+          value: r.value,
+          notes: r.notes,
+          testId: currentTestId, // 👈 important for backend filtering
+        })),
+      status: statusByTest[currentTestId] ?? 'pending',
+      notes: formData.notes ?? '',
+    };
+
+    await dispatch(
+      updatePatientTestResults({
+        patientTestId: id,
+        testId: currentTestId, // 👈 send a single id
+        updateData,
+      })
+    ).unwrap();
+
+    setLocalStatuses((prev) => ({
+      ...prev,
+      [currentTestId]: updateData.status,
+    }));
+  };
+
+  if (status === 'loading') {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-br bg-primary-50 bg-primary-100">
         <div className="text-center">
@@ -546,6 +653,8 @@ const UpdateReport = () => {
       </div>
     );
   }
+
+  console.log('formData in updated', formData);
 
   if (error) {
     return (
@@ -662,7 +771,7 @@ const UpdateReport = () => {
                   <div className="bg-opacity-20 rounded-lg p-4">
                     <p className="text-sm opacity-90">MR Number</p>
                     <p className="text-xl font-bold">
-                      {patientData.mrNumber || "N/A"}
+                      {patientData.mrNumber || 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -671,12 +780,14 @@ const UpdateReport = () => {
           </div>
 
           {/* Patient Info Section */}
-          <PatientInfoSection 
+          <PatientInfoSection
             patientData={patientData}
             selectedTests={selectedTests}
             testDefinitions={testDefinitions}
             activeTestIndex={activeTestIndex}
             setActiveTestIndex={setActiveTestIndex}
+            localStatuses={localStatuses}
+            statusByTest={statusByTest}
           />
 
           {/* Test Results Form */}
@@ -685,13 +796,26 @@ const UpdateReport = () => {
               selectedTests={selectedTests}
               testDefinitions={testDefinitions}
               activeTestIndex={activeTestIndex}
+              setActiveTestIndex={setActiveTestIndex}
               formData={formData}
               setFormData={setFormData}
               initialValues={initialValues}
               patientData={patientData}
+              statusByTest={statusByTest}
+              setStatusByTest={setStatusByTest}
+              onSave={async (_form, currentTestId) => {
+                await saveCurrentTest(currentTestId);
+              }}
             />
           )}
-
+        </div>
+        <div className="flex justify-end">
+          <button
+            onClick={handleSubmit}
+            className="flex mt-5 items-center px-6 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md transform hover:scale-105"
+          >
+            <FiSave className="mr-2 w-4 h-4" /> Save Results
+          </button>
         </div>
       </div>
     </div>

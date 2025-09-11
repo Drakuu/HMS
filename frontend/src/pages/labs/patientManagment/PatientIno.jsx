@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { InputField } from "../../../components/common/FormFields";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import doctorList from "../../../utils/doctors";
+import React, { useState, useEffect } from 'react';
+import { InputField } from '../../../components/common/FormFields';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import doctorList from '../../../utils/doctors';
 
 const PatientInfoForm = ({
   mode,
@@ -16,7 +16,7 @@ const PatientInfoForm = ({
   setUseDefaultContact,
   defaultContactNumber,
 }) => {
-  const [ageInput, setAgeInput] = useState("");
+  const [ageInput, setAgeInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
   // Calculate DOB from age input
@@ -85,7 +85,7 @@ const PatientInfoForm = ({
     window.ageInputTimeout = setTimeout(() => {
       setIsTyping(false);
 
-      if (value.trim() === "") {
+      if (value.trim() === '') {
         handleDobChange(null);
         return;
       }
@@ -99,7 +99,7 @@ const PatientInfoForm = ({
 
   // Update age input when DOB changes externally
   useEffect(() => {
-    if (dob && mode === "new" && !isTyping) {
+    if (dob && mode === 'new' && !isTyping) {
       // Calculate age from DOB for display
       const today = new Date();
       const birthDate = new Date(dob);
@@ -117,14 +117,21 @@ const PatientInfoForm = ({
         months += 12;
       }
 
-      let ageString = "";
+      let ageString = '';
       if (years > 0) ageString += `${years} year${years !== 1 ? 's' : ''} `;
       if (months > 0) ageString += `${months} month${months !== 1 ? 's' : ''} `;
-      if (days > 0 && years === 0) ageString += `${days} day${days !== 1 ? 's' : ''}`;
+      if (days > 0 && years === 0)
+        ageString += `${days} day${days !== 1 ? 's' : ''}`;
 
       setAgeInput(ageString.trim());
     }
   }, [dob, mode, isTyping]);
+  // 1) Put this helper near the top of the file (inside or above the component)
+  const RequiredLabel = ({ children, required }) => (
+    <label className="block mb-1 font-medium text-gray-700">
+      {required && <span className="text-red-500">*</span>} {children}
+    </label>
+  );
 
   // Common fields that appear in both modes
   const commonFields = (
@@ -136,6 +143,7 @@ const PatientInfoForm = ({
         icon="user"
         value={patient.Name}
         onChange={handlePatientChange}
+        required
       />
       <InputField
         name="CNIC"
@@ -159,12 +167,12 @@ const PatientInfoForm = ({
           htmlFor="Gender"
           className="block mb-1 font-medium text-gray-700"
         >
-          Gender
+          Gender<span className="text-red-500"> *</span>
         </label>
         <select
           id="Gender"
           name="Gender"
-          value={patient.Gender || ""}
+          value={patient.Gender || ''}
           onChange={handlePatientChange}
           className="border h-[42px] p-2 rounded w-full"
         >
@@ -175,7 +183,7 @@ const PatientInfoForm = ({
         </select>
       </div>
 
-      <div className="flex items-center justify-center">
+      <div className="flex items-center ">
         <div className="flex items-center mt-2">
           <input
             type="checkbox"
@@ -197,6 +205,7 @@ const PatientInfoForm = ({
         icon="phone"
         value={patient.ContactNo}
         onChange={handlePatientChange}
+        required
       />
 
       <div>
@@ -209,7 +218,7 @@ const PatientInfoForm = ({
         <select
           id="ReferredBy"
           name="ReferredBy"
-          value={patient.ReferredBy || ""}
+          value={patient.ReferredBy || ''}
           onChange={handlePatientChange}
           className="border h-[42px] p-2 rounded w-full"
         >
@@ -252,13 +261,14 @@ const PatientInfoForm = ({
       <div className="grid grid-cols-2 gap-4 col-span-2">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date of Birth
+            Date of Birth <span className="text-red-500">*</span>
           </label>
           <DatePicker
             selected={dob}
             onChange={handleDobChange}
             dateFormat="yyyy-MM-dd"
             showMonthDropdown
+            maxDate={new Date()}
             showYearDropdown
             dropdownMode="select"
             placeholderText="Select DOB"
@@ -268,7 +278,7 @@ const PatientInfoForm = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Age (auto-calculates DOB)
+            Age (auto-calculates DOB)<span className="text-red-500"> *</span>
           </label>
           <input
             type="text"
@@ -276,7 +286,7 @@ const PatientInfoForm = ({
             value={ageInput}
             onChange={handleAgeChange}
             className="border rounded px-3 py-2 h-[42px] w-full"
-          />
+          />{' '}
           <p className="text-xs text-gray-500 mt-1">
             Enter numbers: 20 (years), 0.2 (2 months), 1.5 (1 year 6 months)
           </p>
@@ -300,29 +310,31 @@ const PatientInfoForm = ({
       <div className="flex gap-4 mb-4">
         <button
           type="button"
-          className={`px-4 py-2 rounded ${mode === "existing" ? "bg-primary-700 text-white" : "bg-gray-200"
-            }`}
-          onClick={() => setMode("existing")}
+          className={`px-4 py-2 rounded ${
+            mode === 'existing' ? 'bg-primary-700 text-white' : 'bg-gray-200'
+          }`}
+          onClick={() => setMode('existing')}
         >
           Existing
         </button>
         <button
           type="button"
-          className={`px-4 py-2 rounded ${mode === "new" ? "bg-primary-700 text-white" : "bg-gray-200"
-            }`}
-          onClick={() => setMode("new")}
+          className={`px-4 py-2 rounded ${
+            mode === 'new' ? 'bg-primary-700 text-white' : 'bg-gray-200'
+          }`}
+          onClick={() => setMode('new')}
         >
           New
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        {mode === "existing" && existingPatientFields}
+        {mode === 'existing' && existingPatientFields}
 
         {commonFields}
 
         {/* Age field for existing patients (placed after common fields) */}
-        {mode === "existing" && (
+        {mode === 'existing' && (
           <InputField
             name="Age"
             label="Age"
@@ -334,7 +346,7 @@ const PatientInfoForm = ({
           />
         )}
 
-        {mode === "new" && newPatientFields}
+        {mode === 'new' && newPatientFields}
       </div>
     </div>
   );

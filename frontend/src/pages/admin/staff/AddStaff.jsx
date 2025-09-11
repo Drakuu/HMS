@@ -276,9 +276,9 @@ const StaffFormPage = () => {
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="">
       <div className="bg-primary-600 rounded-md text-white px-6 py-8 mb-6 shadow-md">
-        <div className="max-w-9xl mx-auto">
+        <div className="">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="h-12 w-1 bg-primary-300 mr-4 rounded-full"></div>
