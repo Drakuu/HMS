@@ -25,6 +25,7 @@ const CriticalSummary = () => {
   const { date } = useParams();
   const dispatch = useDispatch();
 
+
   // ---- selector (resilient to slight slice naming differences) ----
   const summaryState = useSelector((s) => {
     const node =
@@ -113,14 +114,14 @@ const CriticalSummary = () => {
       doctorSignature: r.doctorSignature ?? '',
       tests: Array.isArray(r.tests)
         ? r.tests.map((t) => ({
-            testName:
-              t.testName ??
-              t.name ??
-              t.test?.name ??
-              t.testDetails?.name ??
-              '-',
-            criticalValue: t.criticalValue ?? t.value ?? t.result ?? '-',
-          }))
+          testName:
+            t.testName ??
+            t.name ??
+            t.test?.name ??
+            t.testDetails?.name ??
+            '-',
+          criticalValue: t.criticalValue ?? t.value ?? t.result ?? '-',
+        }))
         : [],
     }));
 
@@ -152,21 +153,21 @@ const CriticalSummary = () => {
 
   const toggleRow = (id) => setExpandedRow((r) => (r === id ? null : id));
 
-const handlePrint = () => {
-  if (!sortedRows.length) return alert('No data to print');
-  const stamp = format(new Date(), 'dd-MM-yy HH:mm');
+  const handlePrint = () => {
+    if (!sortedRows.length) return alert('No data to print');
+    const stamp = format(new Date(), 'dd-MM-yy HH:mm');
 
-  const html = ReactDOMServer.renderToStaticMarkup(
-    <PrintCriticalSummary
-      rows={sortedRows}
-      dateRange={{ startDate, endDate }}
-    />
-  );
+    const html = ReactDOMServer.renderToStaticMarkup(
+      <PrintCriticalSummary
+        rows={sortedRows}
+        dateRange={{ startDate, endDate }}
+      />
+    );
 
-  const w = window.open('', '_blank');
-  if (!w) return alert('Please allow popups for printing');
-  w.document.open();
-  w.document.write(`
+    const w = window.open('', '_blank');
+    if (!w) return alert('Please allow popups for printing');
+    w.document.open();
+    w.document.write(`
     <!doctype html>
     <html>
       <head><title>Critical_Summary_${stamp}</title></head>
@@ -178,8 +179,8 @@ const handlePrint = () => {
       </script>
     </html>
   `);
-  w.document.close();
-};
+    w.document.close();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
@@ -351,7 +352,7 @@ const handlePrint = () => {
                                 </h3>
                                 <div className="space-y-2 text-sm">
                                   {Array.isArray(row.tests) &&
-                                  row.tests.length ? (
+                                    row.tests.length ? (
                                     row.tests.map((t, i) => (
                                       <div
                                         key={i}

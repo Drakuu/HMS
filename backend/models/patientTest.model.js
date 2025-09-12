@@ -36,7 +36,7 @@ const patientTestSchema = new mongoose.Schema(
         },
         testStatus: {
           type: String,
-          enum: ["draft", "registered", "completed", "cancelled", "refunded"],
+          enum: ["draft", "registered", "completed", "cancelled", "refunded", 'pending'],
           default: "registered",
         },
         testDetails: {

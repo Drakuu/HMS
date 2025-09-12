@@ -1,12 +1,12 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const getAuthHeaders = () => {
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+  const jwtLoginToken = localStorage.getItem('jwtLoginToken');
   return {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     Authorization: `Bearer ${jwtLoginToken}`,
   };
 };
@@ -14,7 +14,7 @@ const getAuthHeaders = () => {
 // ─── Thunks ────────────────────────────────────────────────────────────────
 
 export const createRadiologyReport = createAsyncThunk(
-  "radiology/createReport",
+  'radiology/createReport',
   async (reportData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
@@ -27,7 +27,7 @@ export const createRadiologyReport = createAsyncThunk(
       const message =
         error.response?.data?.message ||
         error.message ||
-        "Failed to create radiology report";
+        'Failed to create radiology report';
       return rejectWithValue({
         message,
         statusCode: error.response?.status || 500,
@@ -37,7 +37,7 @@ export const createRadiologyReport = createAsyncThunk(
 );
 
 export const fetchAllRadiologyReports = createAsyncThunk(
-  "radiology/fetchAllReports",
+  'radiology/fetchAllReports',
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(`${API_URL}/radiology/get-reports`, {
@@ -49,14 +49,14 @@ export const fetchAllRadiologyReports = createAsyncThunk(
       const message =
         error.response?.data?.message ||
         error.message ||
-        "Failed to fetch radiology reports";
+        'Failed to fetch radiology reports';
       return rejectWithValue({ message });
     }
   }
 );
 
 export const fetchRadiologyReportById = createAsyncThunk(
-  "radiology/fetchReportById",
+  'radiology/fetchReportById',
   async (id, { rejectWithValue }) => {
     try {
       const response = await axios.get(
@@ -68,14 +68,14 @@ export const fetchRadiologyReportById = createAsyncThunk(
       const message =
         error.response?.data?.message ||
         error.message ||
-        "Failed to fetch radiology report";
+        'Failed to fetch radiology report';
       return rejectWithValue({ message });
     }
   }
 );
 
 export const updateRadiologyReport = createAsyncThunk(
-  "radiology/updateReport",
+  'radiology/updateReport',
   async ({ id, reportData }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
@@ -88,14 +88,14 @@ export const updateRadiologyReport = createAsyncThunk(
       const message =
         error.response?.data?.message ||
         error.message ||
-        "Failed to update radiology report";
+        'Failed to update radiology report';
       return rejectWithValue({ message });
     }
   }
 );
 
 export const fetchAvailableTemplates = createAsyncThunk(
-  "radiology/fetchTemplates",
+  'radiology/fetchTemplates',
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(
@@ -109,14 +109,14 @@ export const fetchAvailableTemplates = createAsyncThunk(
       const message =
         error.response?.data?.message ||
         error.message ||
-        "Failed to fetch templates";
+        'Failed to fetch templates';
       return rejectWithValue({ message });
     }
   }
 );
 
 export const fetchRadiologyReportsByDate = createAsyncThunk(
-  "radiology/fetchReportsByDate",
+  'radiology/fetchReportsByDate',
   async ({ startDate, endDate }, { rejectWithValue }) => {
     try {
       const response = await axios.get(
@@ -131,8 +131,24 @@ export const fetchRadiologyReportsByDate = createAsyncThunk(
       const message =
         error.response?.data?.message ||
         error.message ||
-        "Failed to fetch radiology reports by date";
+        'Failed to fetch radiology reports by date';
       return rejectWithValue({ message });
+    }
+  }
+);
+
+export const fetchReportByMrno = createAsyncThunk(
+  'radiology/fetchReportByMrno',
+  async (mrno, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(
+        `${API_URL}/radiology/get-report-by-mrno/${mrno}`,
+        { headers: getAuthHeaders() }
+      );
+
+      return res.data.data; // single report object
+    } catch (e) {
+      return rejectWithValue(e.message || 'Network error');
     }
   }
 );
@@ -142,16 +158,16 @@ export const fetchRadiologyReportsByDate = createAsyncThunk(
 const initialState = {
   reports: [],
   totalPatients: [],
-  filteredReports: [], 
+  filteredReports: [],
   currentReport: null,
   templates: [],
   status: {
-    create: "idle",
-    fetchAll: "idle",
-    fetchById: "idle",
-    update: "idle",
-    fetchTemplates: "idle",
-    fetchByDate: "idle",
+    create: 'idle',
+    fetchAll: 'idle',
+    fetchById: 'idle',
+    update: 'idle',
+    fetchTemplates: 'idle',
+    fetchByDate: 'idle',
   },
   isLoading: false,
   isError: false,
@@ -161,143 +177,168 @@ const initialState = {
 // ─── Slice ─────────────────────────────────────────────────────────────────
 
 const radiologySlice = createSlice({
-  name: "radiology",
+  name: 'radiology',
   initialState,
   reducers: {
     resetRadiologyStatus: (state) => {
       state.status = {
-        create: "idle",
-        fetchAll: "idle",
-        fetchById: "idle",
-        update: "idle",
-        fetchTemplates: "idle",
-        fetchByDate: "idle",
+        create: 'idle',
+        fetchAll: 'idle',
+        fetchById: 'idle',
+        update: 'idle',
+        fetchTemplates: 'idle',
+        fetchByDate: 'idle',
+        fetchByMrno: 'idle',
       };
       state.isError = false;
       state.error = null;
     },
     clearCurrentReport: (state) => {
       state.currentReport = null;
+      state.filteredReports = [];
     },
   },
   extraReducers: (builder) => {
     builder
       // ── Create Report ─────────────────────
       .addCase(createRadiologyReport.pending, (state) => {
-        state.status.create = "pending";
+        state.status.create = 'pending';
         state.isLoading = true;
         state.isError = false;
         state.error = null;
       })
       .addCase(createRadiologyReport.fulfilled, (state, action) => {
-        state.status.create = "succeeded";
+        state.status.create = 'succeeded';
         state.isLoading = false;
         // state.patient = action.payload?.patient || action.payload;
         state.radiology = action.payload; // ← Fix: assuming reports is array
       })
       .addCase(createRadiologyReport.rejected, (state, action) => {
-        state.status.create = "failed";
+        state.status.create = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message || "Failed to create report";
+        state.error = action.payload.message || 'Failed to create report';
       })
 
       // Fetch All Reports
       .addCase(fetchAllRadiologyReports.pending, (state) => {
-        state.status.fetchAll = "pending";
+        state.status.fetchAll = 'pending';
         state.isLoading = true;
         state.isError = false;
         state.error = null;
       })
       .addCase(fetchAllRadiologyReports.fulfilled, (state, action) => {
-        state.status.fetchAll = "succeeded";
+        state.status.fetchAll = 'succeeded';
         state.isLoading = false;
         state.reports = action.payload;
       })
       .addCase(fetchAllRadiologyReports.rejected, (state, action) => {
-        state.status.fetchAll = "failed";
+        state.status.fetchAll = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message || "Failed to fetch reports";
+        state.error = action.payload.message || 'Failed to fetch reports';
       })
 
       // ── Fetch by ID ───────────────────────
       .addCase(fetchRadiologyReportById.pending, (state) => {
-        state.status.fetchById = "pending";
+        state.status.fetchById = 'pending';
         state.isLoading = true;
         state.isError = false;
         state.error = null;
       })
       .addCase(fetchRadiologyReportById.fulfilled, (state, action) => {
-        state.status.fetchById = "succeeded";
+        state.status.fetchById = 'succeeded';
         state.isLoading = false;
         state.currentReport = action.payload;
       })
       .addCase(fetchRadiologyReportById.rejected, (state, action) => {
-        state.status.fetchById = "failed";
+        state.status.fetchById = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message || "Failed to fetch report";
+        state.error = action.payload.message || 'Failed to fetch report';
       })
 
       // ── Update Report ─────────────────────
       .addCase(updateRadiologyReport.pending, (state) => {
-        state.status.update = "pending";
+        state.status.update = 'pending';
         state.isLoading = true;
         state.isError = false;
         state.error = null;
       })
       .addCase(updateRadiologyReport.fulfilled, (state, action) => {
-        state.status.update = "succeeded";
+        state.status.update = 'succeeded';
         state.isLoading = false;
         state.currentReport = action.payload;
       })
       .addCase(updateRadiologyReport.rejected, (state, action) => {
-        state.status.update = "failed";
+        state.status.update = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message || "Failed to update report";
+        state.error = action.payload.message || 'Failed to update report';
       })
 
       // ── Fetch Templates ───────────────────
       .addCase(fetchAvailableTemplates.pending, (state) => {
-        state.status.fetchTemplates = "pending";
+        state.status.fetchTemplates = 'pending';
         state.isLoading = true;
         state.isError = false;
         state.error = null;
       })
       .addCase(fetchAvailableTemplates.fulfilled, (state, action) => {
-        state.status.fetchTemplates = "succeeded";
+        state.status.fetchTemplates = 'succeeded';
         state.isLoading = false;
         state.templates = action.payload;
       })
       .addCase(fetchAvailableTemplates.rejected, (state, action) => {
-        state.status.fetchTemplates = "failed";
+        state.status.fetchTemplates = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message || "Failed to fetch templates";
+        state.error = action.payload.message || 'Failed to fetch templates';
       })
       .addCase(fetchRadiologyReportsByDate.pending, (state) => {
-        state.status.fetchByDate = "pending";
+        state.status.fetchByDate = 'pending';
         state.isLoading = true;
         state.isError = false;
         state.error = null;
       })
       .addCase(fetchRadiologyReportsByDate.fulfilled, (state, action) => {
-        state.status.fetchByDate = "succeeded";
+        state.status.fetchByDate = 'succeeded';
         state.isLoading = false;
         state.filteredReports = action.payload;
       })
       .addCase(fetchRadiologyReportsByDate.rejected, (state, action) => {
-        state.status.fetchByDate = "failed";
+        state.status.fetchByDate = 'failed';
         state.isLoading = false;
         state.isError = true;
-        state.error = action.payload.message || "Failed to fetch reports by date";
+        state.error =
+          action.payload.message || 'Failed to fetch reports by date';
+      })
+      // ── Fetch by MRNO ───────────────────────
+      .addCase(fetchReportByMrno.pending, (state) => {
+        state.status.fetchByMrno = 'pending';
+        state.isLoading = true;
+        state.isError = false;
+        state.error = null;
+      })
+      .addCase(fetchReportByMrno.fulfilled, (state, action) => {
+        state.status.fetchByMrno = 'succeeded';
+        state.isLoading = false;
+        state.currentReport = action.payload; // single report object
+      })
+      .addCase(fetchReportByMrno.rejected, (state, action) => {
+        state.status.fetchByMrno = 'failed';
+        state.isLoading = false;
+        state.isError = true;
+        state.error =
+          action.payload?.message || 'Failed to fetch report by MRNO';
       });
   },
 });
 
-export const { resetRadiologyStatus, clearCurrentReport, clearFilteredReports  } =
-  radiologySlice.actions;
+export const {
+  resetRadiologyStatus,
+  clearCurrentReport,
+  clearFilteredReports,
+} = radiologySlice.actions;
 
 export default radiologySlice.reducer;

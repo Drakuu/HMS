@@ -18,7 +18,7 @@ import {
   BillDetailPage,
   EditPatientTest,
 LabBillSummary,
-
+  RadiologyForm,
 } from '../pages/labs/labsPages'
 import { Navigate, Route, Routes } from 'react-router-dom';
 import DynamicLayout from '../layouts/DynamicLayout';
@@ -63,6 +63,7 @@ const LabRoutes = () => {
             path="createradiologyreport"
             element={<CreateRadiologyReport />}
           />
+          <Route path='RadiologyForm' element={<RadiologyForm/>}/>
           <Route path="RadiologyPennal" element={<RadiologyPennal />} />
           <Route
             path="RediologyPatientDetail/:id"

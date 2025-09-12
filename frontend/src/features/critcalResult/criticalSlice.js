@@ -1,26 +1,26 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const API_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const getAuthHeaders = () => {
-  const jwtLoginToken = localStorage.getItem("jwtLoginToken");
+  const jwtLoginToken = localStorage.getItem('jwtLoginToken');
   if (jwtLoginToken) {
     try {
       jwtDecode(jwtLoginToken);
     } catch (error) {
-      console.error("Invalid JWT token:", error.message);
+      console.error('Invalid JWT token:', error.message);
     }
   }
   return {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
     Authorization: `Bearer ${jwtLoginToken}`,
   };
 };
 
 export const createCriticalResult = createAsyncThunk(
-  "criticalResult/createCriticalResult",
+  'criticalResult/createCriticalResult',
   async (criticalResultData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
@@ -31,14 +31,14 @@ export const createCriticalResult = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to create critical result"
+        error.response?.data?.message || 'Failed to create critical result'
       );
     }
   }
 );
 
 export const fetchCriticalResults = createAsyncThunk(
-  "criticalResult/fetchCriticalResults",
+  'criticalResult/fetchCriticalResults',
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get(
@@ -48,14 +48,14 @@ export const fetchCriticalResults = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch critical results"
+        error.response?.data?.message || 'Failed to fetch critical results'
       );
     }
   }
 );
 
 export const fetchCriticalResultById = createAsyncThunk(
-  "criticalResult/fetchCriticalResultById",
+  'criticalResult/fetchCriticalResultById',
   async (id, { rejectWithValue }) => {
     try {
       const response = await axios.get(
@@ -65,14 +65,14 @@ export const fetchCriticalResultById = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch critical result"
+        error.response?.data?.message || 'Failed to fetch critical result'
       );
     }
   }
 );
 
 export const updateCriticalResult = createAsyncThunk(
-  "criticalResult/updateCriticalResult",
+  'criticalResult/updateCriticalResult',
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await axios.put(
@@ -83,14 +83,14 @@ export const updateCriticalResult = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to update critical result"
+        error.response?.data?.message || 'Failed to update critical result'
       );
     }
   }
 );
 
 export const deleteCriticalResult = createAsyncThunk(
-  "criticalResult/deleteCriticalResult",
+  'criticalResult/deleteCriticalResult',
   async (id, { rejectWithValue }) => {
     try {
       await axios.delete(
@@ -100,20 +100,51 @@ export const deleteCriticalResult = createAsyncThunk(
       return id;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to delete critical result"
+        error.response?.data?.message || 'Failed to delete critical result'
       );
     }
   }
 );
 
+export const getSummaryByDate = createAsyncThunk(
+  'criticalResult/getSummaryByDate',
+  async ({ startDate, endDate }, { rejectWithValue }) => {
+    try {
+      if (!startDate) throw new Error('Start date is required');
+      if (!endDate) endDate = startDate;
+
+      const qs = new URLSearchParams({
+        startDate,
+        endDate,
+      }).toString();
+
+      const response = await axios.get(
+        `${API_URL}/criticalResult/get-critical-summery-by-date?${qs}`,
+        { headers: getAuthHeaders() }
+      );
+
+
+      return response.data; // array
+    } catch (err) {
+      const message =
+        err.response?.response?.message ||
+        err.message ||
+        'Failed to fetch summary by date';
+      return rejectWithValue({ message });
+    }
+  }
+);
+
 const criticalResultSlice = createSlice({
-  name: "criticalResult",
+  name: 'criticalResult',
   initialState: {
     criticalResults: [],
     currentCriticalResult: null,
     loading: false,
     error: null,
     success: false,
+    status: { summary: 'idle' },
+    summaryState: { summary: [], loading: false, error: null },
   },
   reducers: {
     clearError: (state) => {
@@ -204,6 +235,22 @@ const criticalResultSlice = createSlice({
       .addCase(deleteCriticalResult.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(getSummaryByDate.pending, (state) => {
+        state.status.summary = 'pending';
+        state.summaryState.loading = true;
+        state.summaryState.error = null;
+      })
+      .addCase(getSummaryByDate.fulfilled, (state, action) => {
+        state.status.summary = 'succeeded';
+        state.summaryState.loading = false;
+        state.summaryState.summary = action.payload; // array from API
+      })
+      .addCase(getSummaryByDate.rejected, (state, action) => {
+        state.status.summary = 'failed';
+        state.summaryState.loading = false;
+        state.summaryState.error =
+          action.payload?.message || 'Failed to fetch summary by date';
       });
   },
 });

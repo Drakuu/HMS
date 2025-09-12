@@ -149,8 +149,8 @@ const createPatientTest = async (req, res) => {
       const doc = tests.find((t) => t._id.equals(row.test));
       const price = Number(
         row.testPrice ??
-          (doc ? doc.testPrice : 0) ??
-          0
+        (doc ? doc.testPrice : 0) ??
+        0
       );
       const discount = Math.max(0, Number(row.discountAmount ?? 0));
       const paid = Math.max(0, Number(row.advanceAmount ?? 0));
@@ -1105,8 +1105,8 @@ const updatePatientTest = async (req, res) => {
       remainingAmount === 0 && totalPaid > 0
         ? 'paid'
         : totalPaid > 0
-        ? 'partial'
-        : 'pending';
+          ? 'partial'
+          : 'pending';
 
     // (optional) mirror to financialSummary if your UI reads it
     $set['financialSummary.totalAmount'] = finalTotal;

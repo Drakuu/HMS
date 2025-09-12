@@ -257,50 +257,51 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
       },
     ],
     lab: [
-      {
-        name: "Dashboards",
-        icon: <DashboardIcon className="text-lg" />,
-        links: [{ href: "dashboard", label: "Lab Dashboard" }],
-      },
-      {
-        name: "Test Managment",
-        icon: <TestIcon className="text-lg" />,
-        links: [
-          { href: "add-test", label: "Add Test" },
-          { href: "all-tests", label: "All Test" },
+          {
+            name: 'Dashboards',
+            icon: <DashboardIcon className="text-lg" />,
+            links: [{ href: 'dashboard', label: 'Lab Dashboard' }],
+          },
+          {
+            name: 'Test Managment',
+            icon: <TestIcon className="text-lg" />,
+            links: [
+              { href: 'add-test', label: 'Add Test' },
+              { href: 'all-tests', label: 'All Test' },
+            ],
+          },
+          {
+            name: 'Patient Managment',
+            icon: <PatientTestIcon className="text-lg" />,
+            links: [
+              { href: 'patient-test', label: 'Patients Test' },
+              { href: 'all-patients', label: 'All patients' },
+            ],
+          },
+          {
+            name: 'Report Managment',
+            icon: <TestReportIcon className="text-lg" />,
+            links: [
+              { href: 'test-report', label: 'Patients Reports' },
+              { href: 'critical-reports', label: 'Critical Reports' },
+              // { href: "all-reports", label: "All reports" },
+            ],
+          },
+    
+          {
+            name: 'Billing Managment',
+            icon: <BillingIcon className="text-lg" />,
+            links: [{ href: 'test-billing', label: 'Patients Bills' }],
+          },
+          {
+            name: 'Ultrasound ',
+            icon: <TestReportIcon className="text-lg" />,
+            links: [
+              { href: 'RadiologyForm', label: 'Ultrasound Test' },
+              { href: 'RadiologyPennal', label: 'Ultrasound Report' },
+            ],
+          },
         ],
-      },
-      {
-        name: "Patient Managment",
-        icon: <PatientTestIcon className="text-lg" />,
-        links: [
-          { href: "patient-test", label: "Patients Test" },
-          { href: "all-patients", label: "All patients" },
-        ],
-      },
-      {
-        name: "Report Managment",
-        icon: <TestReportIcon className="text-lg" />,
-        links: [
-          { href: "test-report", label: "Patients Reports" },
-          { href: "critical-reports", label: "Critical Reports" },
-          // { href: "all-reports", label: "All reports" },
-        ],
-      },
-
-      {
-        name: "Billing Managment",
-        icon: <BillingIcon className="text-lg" />,
-        links: [{ href: "test-billing", label: "Patients Bills" }],
-      },
-      {
-        name: "Ultrasound ",
-        icon: <TestReportIcon className="text-lg" />,
-        links: [
-          { href: "RadiologyPennal", label: "Ultrasound patient" }
-        ],
-      },
-    ],
     radiology: [
       {
         name: "Ultrasound ",
