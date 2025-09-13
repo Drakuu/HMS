@@ -1,26 +1,26 @@
 export const printPatient = (patient) => {
-   try {
-      // Extract patient data from nested structure
-      const patientData = patient.patient || {};
-      const admissionDetails = patient.admission_Details || {};
-      const wardInfo = patient.ward_Information || {};
-      const financials = patient.financials || {};
-      const guardianInfo = patientData.patient_Guardian || {};
+  try {
+    // Extract patient data from nested structure
+    const patientData = patient.patient || {};
+    const admissionDetails = patient.admission_Details || {};
+    const wardInfo = patient.ward_Information || {};
+    const financials = patient.financials || {};
+    const guardianInfo = patientData.patient_Guardian || {};
 
-      const formatDate = (dateString) => {
-         if (!dateString) return 'N/A';
-         try {
-            return new Date(dateString).toLocaleDateString('en-US', {
-               year: 'numeric',
-               month: 'short',
-               day: 'numeric'
-            });
-         } catch {
-            return dateString;
-         }
-      };
+    const formatDate = (dateString) => {
+      if (!dateString) return 'N/A';
+      try {
+        return new Date(dateString).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch {
+        return dateString;
+      }
+    };
 
-      const printContent = `
+    const printContent = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -116,7 +116,7 @@ export const printPatient = (patient) => {
         </head>
         <body>
           <div class="print-header">
-            <div class="hospital-name">Al-Shahbaz Hospital</div>
+            <div class="hospital-name">Al-Shahbaz Dental/Eye & Skin Care</div>
             <div>Thana Road Kahuta | Phone: (123) 456-7890</div>
             <div class="document-title">PATIENT ADMISSION RECORD</div>
           </div>
@@ -199,20 +199,20 @@ export const printPatient = (patient) => {
       </html>
     `;
 
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(printContent);
-      printWindow.document.close();
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
 
-      // Print after content is loaded
-      printWindow.onload = () => {
-         setTimeout(() => {
-            printWindow.print();
-            printWindow.onafterprint = () => printWindow.close();
-         }, 500);
-      };
+    // Print after content is loaded
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.onafterprint = () => printWindow.close();
+      }, 500);
+    };
 
-   } catch (error) {
-      console.error('Print error:', error);
-      throw new Error('Failed to generate print preview');
-   }
+  } catch (error) {
+    console.error('Print error:', error);
+    throw new Error('Failed to generate print preview');
+  }
 };

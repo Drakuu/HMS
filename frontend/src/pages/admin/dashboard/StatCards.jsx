@@ -78,64 +78,11 @@ export const StatCards = ({
       subtitle="Total outpatient revenue"
     />
     <StatCard
-      title="IPD Revenue"
-      value={`PKR ${totalIpdRevenue.toLocaleString()}`}
-      icon={DollarSign}
-      color="#EC4899" // pink-500
-      subtitle="Total inpatient revenue"
-    />
-    <StatCard
-      title="Lab Revenue"
-      value={`PKR ${totalLabRevenue.toLocaleString()}`}
-      icon={FlaskConical}
-      color="#D97706" // amber-500
-      subtitle="Total lab test revenue"
-    />
-
-    {/* Patient Count Cards */}
-    <StatCard
-      title="Internal Lab Patients"
-      value={totalInternalLabPatients}
-      icon={UserCheck}
-      color="#059669" // emerald-600
-      subtitle="Hospital patients"
-    />
-    <StatCard
-      title="External Lab Patients"
-      value={totalExternalLabPatients}
-      icon={UserX}
-      color="#DC2626" // red-600
-      subtitle="Walk-in patients"
-    />
-
-    {/* Existing Cards */}
-    <StatCard
-      title="Admitted Patients"
-      value={totalAdmittedPatients}
-      icon={Bed}
-      color="#0d9488" // teal-600
-      subtitle="Currently in wards"
-    />
-    <StatCard
       title="OPD Patients"
       value={totalOpdPatients}
       icon={Users}
       color="#059669" // emerald-600
       subtitle="Outpatient visits"
-    />
-    <StatCard
-      title="Wards"
-      value={totalWards}
-      icon={Home}
-      color="#dc2626" // red-600
-      subtitle="Hospital departments"
-    />
-    <StatCard
-      title="Beds"
-      value={totalBeds}
-      icon={Bed}
-      color="#d97706" // amber-600
-      subtitle="Total capacity"
     />
     <StatCard
       title="Departments"

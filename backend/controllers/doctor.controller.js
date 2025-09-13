@@ -62,7 +62,7 @@ const createDoctor = async (req, res) => {
     const newUser = await hospitalModel.User.create({
       user_Identifier,
       user_Name,
-      user_Email,
+      user_Email: user_Email && user_Email.trim() !== '' ? user_Email : null,
       user_CNIC,
       user_Password: await bcrypt.hash(user_Password, 10),
       user_Access: 'Doctor',
@@ -94,7 +94,7 @@ const createDoctor = async (req, res) => {
         } : undefined
       }
     });
-    console.log("New doctor created: ", newDoctor);
+    // console.log("New doctor created: ", newDoctor);
     // Update user reference
     await hospitalModel.User.findByIdAndUpdate(newUser._id, {
       doctorProfile: newDoctor._id
@@ -120,6 +120,9 @@ const createDoctor = async (req, res) => {
       if (field === 'user_Email') fieldName = 'email';
       if (field === 'user_CNIC') fieldName = 'CNIC';
       if (field === 'user_Contact') fieldName = 'contact number';
+
+      // Handle null values specifically
+      const displayValue = value === null ? 'empty' : value;
 
       return res.status(409).json({
         success: false,

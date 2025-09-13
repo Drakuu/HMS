@@ -25,11 +25,11 @@ const PrintPdf = ({ formData }) => {
       <body>
         <div className="watermark">CONFIDENTIAL</div>
         <div className="header">
-          <div className="hospital-name">Al-Shahbaz Hospital</div>
+          <div className="hospital-name">Al-Shahbaz Dental/Eye & Skin Care</div>
           <div className="form-title">PATIENT REGISTRATION - OFFICIAL RECORD</div>
           <div>{new Date().toLocaleDateString()}</div>
         </div>
-        
+
         <div className="patient-info">
           <div className="section-title">PATIENT DETAILS</div>
           <div className="info-grid">
@@ -45,9 +45,9 @@ const PrintPdf = ({ formData }) => {
             <div className="info-item"><span className="label">Blood Group:</span> {formData.bloodGroup || 'N/A'}</div>
             <div className="info-item"><span className="label">Mobile:</span> {formData.mobileNumber || 'N/A'}</div>
             <div className="info-item"><span className="label">Emergency Contact:</span> {formData.emergencyContact || 'N/A'}</div>
-            <div className="info-item" style={{gridColumn: 'span 2'}}><span className="label">Address:</span> {formData.address || 'N/A'}</div>
+            <div className="info-item" style={{ gridColumn: 'span 2' }}><span className="label">Address:</span> {formData.address || 'N/A'}</div>
           </div>
-          
+
           <div className="section-title">MEDICAL INFORMATION</div>
           <div className="info-grid">
             <div className="info-item"><span className="label">Consulting Doctor:</span> {formData.doctor || 'N/A'}</div>
@@ -56,7 +56,7 @@ const PrintPdf = ({ formData }) => {
             <div className="info-item"><span className="label">Qualification:</span> {formData.doctorQualification || 'N/A'}</div>
             <div className="info-item"><span className="label">Referred By:</span> {formData.referredBy || 'N/A'}</div>
           </div>
-          
+
           <div className="section-title">BILLING DETAILS</div>
           <div className="info-grid">
             <div className="info-item"><span className="label">Consultation Fee:</span> Rs. {formData.doctorFee || '0'}</div>
@@ -64,12 +64,12 @@ const PrintPdf = ({ formData }) => {
             <div className="info-item"><span className="label">Total Fee:</span> Rs. {formData.totalFee || '0'}</div>
           </div>
         </div>
-        
+
         <div className="footer">
-          <div>This is an official document of Al-Shahbaz Hospital</div>
+          <div>This is an official document of Al-Shahbaz Dental/Eye & Skin Care</div>
           <div>Generated on: {new Date().toLocaleString()}</div>
         </div>
-        
+
         <script>
           {`
             setTimeout(function() {

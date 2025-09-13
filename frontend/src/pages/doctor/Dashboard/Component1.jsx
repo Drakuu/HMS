@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Activity, 
-  Users, 
-  Calendar, 
-  Heart, 
-  TrendingUp, 
+import {
+  Activity,
+  Users,
+  Calendar,
+  Heart,
+  TrendingUp,
   Clock,
   AlertCircle,
   CheckCircle,
@@ -94,12 +94,12 @@ const DoctorDashboard = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                  Al-Shahbaz Hospital Dashboard
+                  Al-Shahbaz Dental/Eye & Skin Care Dashboard
                 </h1>
                 <p className="text-sm text-gray-500">Welcome back, Dr. Anderson</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
@@ -160,13 +160,13 @@ const DoctorDashboard = () => {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900">Patient Analytics</h3>
                 <div className="flex space-x-2">
-                  <button 
+                  <button
                     onClick={() => setSelectedMetric('patients')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedMetric === 'patients' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
                   >
                     Patients
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSelectedMetric('revenue')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedMetric === 'revenue' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
                   >
@@ -179,27 +179,27 @@ const DoctorDashboard = () => {
                   <AreaChart data={patientStats}>
                     <defs>
                       <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="month" stroke="#64748b" />
                     <YAxis stroke="#64748b" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                        border: 'none', 
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: 'none',
                         borderRadius: '12px',
                         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
-                      }} 
+                      }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey={selectedMetric} 
-                      stroke="#3b82f6" 
+                    <Area
+                      type="monotone"
+                      dataKey={selectedMetric}
+                      stroke="#3b82f6"
                       strokeWidth={3}
-                      fill="url(#colorGradient)" 
+                      fill="url(#colorGradient)"
                       animationDuration={1000}
                     />
                   </AreaChart>
@@ -258,36 +258,36 @@ const DoctorDashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="time" stroke="#64748b" />
                   <YAxis stroke="#64748b" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                      border: 'none', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      border: 'none',
                       borderRadius: '12px',
                       boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
-                    }} 
+                    }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="heartRate" 
-                    stroke="#ef4444" 
+                  <Line
+                    type="monotone"
+                    dataKey="heartRate"
+                    stroke="#ef4444"
                     strokeWidth={3}
                     dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
                     name="Heart Rate"
                     animationDuration={1500}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="bloodPressure" 
-                    stroke="#3b82f6" 
+                  <Line
+                    type="monotone"
+                    dataKey="bloodPressure"
+                    stroke="#3b82f6"
                     strokeWidth={3}
                     dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
                     name="Blood Pressure"
                     animationDuration={1500}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="temperature" 
-                    stroke="#10b981" 
+                  <Line
+                    type="monotone"
+                    dataKey="temperature"
+                    stroke="#10b981"
                     strokeWidth={3}
                     dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
                     name="Temperature"

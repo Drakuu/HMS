@@ -21,9 +21,9 @@ const StaffForm = ({
 }) => {
   const staffRoles = [
     { value: 'Receptionist', label: 'Receptionist' },
-    { value: 'Lab', label: 'Lab' },
-    { value: 'Radiology', label: 'Radiology' },
-    { value: 'Nurse', label: 'Nurse' }
+    // { value: 'Lab', label: 'Lab' },
+    // { value: 'Radiology', label: 'Radiology' },
+    // { value: 'Nurse', label: 'Nurse' }
   ];
 
   const shifts = ['Morning', 'Evening', 'Night', 'Rotational'];

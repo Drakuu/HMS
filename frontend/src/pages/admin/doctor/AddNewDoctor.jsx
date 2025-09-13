@@ -335,14 +335,11 @@ const DoctorForm = ({ mode = 'create' }) => {
   // Error handling function
   const handleApiError = (error) => {
     console.error('API Error:', error);
-
-    // Accept both thrown payload (unwrap) and action error shape
     const payload = error?.payload ?? error;
+
     if (payload) {
       const { statusCode, message, errorType, field, value, errors } = payload;
 
-
-      // Handle duplicate key errors
       // Map both backend field names and your form fields
       const fieldNameMap = {
         user_Email: 'email',
@@ -352,10 +349,12 @@ const DoctorForm = ({ mode = 'create' }) => {
         user_Contact: 'contact number',
         contact: 'contact number',
       };
+
       const fieldName = fieldNameMap[field] || field || 'value';
+      const displayValue = value === null ? 'empty' : value;
 
       toast.error(
-        `This ${fieldName} (${value ?? ''}) is already registered. Please use a different ${fieldName}.`
+        `This ${fieldName} (${displayValue}) is already registered. Please use a different ${fieldName}.`
       );
 
       // Set field-specific error for highlighting
@@ -364,7 +363,7 @@ const DoctorForm = ({ mode = 'create' }) => {
         [(field === 'user_Email' || field === 'email') ? 'doctor_Email'
           : (field === 'user_CNIC' || field === 'cnic') ? 'doctor_CNIC'
             : (field === 'user_Contact' || field === 'contact') ? 'doctor_Contact'
-              : 'doctor_Email' // sensible default
+              : 'doctor_Email'
         ]: `This ${fieldName} is already registered`
       }));
       return;

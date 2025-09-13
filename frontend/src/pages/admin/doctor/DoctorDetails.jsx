@@ -126,7 +126,7 @@ const DoctorDetails = () => {
                 </h3>
                 <div className="space-y-3 ">
                   <DetailItem icon={<FaIdCard />} label="Name" value={currentDoctor?.user.user_Name} />
-                  <DetailItem icon={<FaEnvelope />} label="Email" value={currentDoctor?.user.user_Email} />
+                  <DetailItem icon={<FaEnvelope />} label="Email" value={currentDoctor?.user.user_Email || "Not Provided"} />
                   <DetailItem icon={<FaPhone />} label="Contact" value={currentDoctor?.user.user_Contact} />
                   <DetailItem icon={<FaMapMarkerAlt />} label="Address" value={currentDoctor?.user.user_Address} />
                 </div>

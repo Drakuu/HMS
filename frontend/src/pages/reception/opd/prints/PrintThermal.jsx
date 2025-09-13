@@ -84,7 +84,7 @@ const PrintThermal = ({ formData }) => {
       </head>
       <body>
         <div className="header">
-          <div className="hospital-name">Al-Shahbaz Hospital</div>
+          <div className="hospital-name">Al-Shahbaz Dental/Eye & Skin Care</div>
           <div>PATIENT REGISTRATION</div>
           <div>{new Date().toLocaleDateString()}</div>
         </div>

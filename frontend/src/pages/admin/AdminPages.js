@@ -13,8 +13,6 @@ import Departments from './departments/Departments';
 
 import OpdFinance from "./finance/OpdFinance"
 
-import IpdFinance from "./finance/IpdFinance"
-
 
 export {
   AdminDashboard,
@@ -26,6 +24,5 @@ export {
   AddStaff,
   StaffListPage,
   OpdFinance,
-  IpdFinance,
 
 };

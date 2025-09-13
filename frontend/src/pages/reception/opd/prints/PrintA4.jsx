@@ -423,7 +423,7 @@ const PrintA4 = ({ formData }) => {
           <div className="header-container">
             <div className="logo-section">
               <img src={logoDataUrl || Logo} className="logo" alt="Hospital Logo" />
-              <div className="hospital-name">Al-Shahbaz Hospital</div>
+              <div className="hospital-name">Al-Shahbaz Dental/Eye & Skin Care</div>
               <div className="hospital-name-urdu">
                 الشہباز ہسپتال
               </div>

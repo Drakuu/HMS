@@ -10,9 +10,7 @@ import { useSelector } from 'react-redux';
 import ReceptionRoutes from "./routes/ReceptionRoutes";
 import AdminRoutes from "./routes/AdminRoutes";
 import ProfileRoutes from "./pages/profile/profileRoutes";
-import RadiologyRoutes from "./routes/RadiologyRoutes";
 import DoctorRoutes from "./routes/DoctorRoutes";
-import LabRoutes from "./routes/LabRoutes";
 import Landing_Page from "./pages/landing-page/Index";
 import AuthRoutes from "./routes/AuthRoutes"
 
@@ -31,10 +29,7 @@ const App = () => {
           {/* Protected routes */}
           {userAccess === 'admin' && <Route path="/admin/*" element={<AdminRoutes />} />}
           {userAccess === 'receptionist' && <Route path="/receptionist/*" element={<ReceptionRoutes />} />}
-          {userAccess === 'lab' && <Route path="/lab/*" element={<LabRoutes />} />}
           {userAccess === 'doctor' && <Route path="/doctor/*" element={<DoctorRoutes />} />}
-          <Route path="/radiology/*" element={<RadiologyRoutes />} />
-
 
           {/* Unified profile route */}
           <Route path="/profile" element={<ProfileRoutes />} />

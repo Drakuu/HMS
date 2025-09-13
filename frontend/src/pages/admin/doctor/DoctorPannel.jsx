@@ -304,7 +304,7 @@ const DoctorList = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-primary-900">{doc.user?.user_Email}</div>
-                        <div className="text-sm text-primary-500">{doc.doctor_Contact}</div>
+                        <div className="text-sm text-primary-500">{doc.user?.user_Contact}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-primary-900 max-w-xs truncate">

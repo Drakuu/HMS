@@ -89,7 +89,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <DashboardIcon className="text-lg" />,
         links: [{ href: "dashboard", label: "Admin Dashboard" }],
       },
-
       {
         name: 'Departments',
         icon: <GroupsIcon className="text-lg" />,
@@ -110,13 +109,6 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         ],
       },
       {
-        name: 'Lab Managment',
-        icon: <AdminIcon className="text-lg" />,
-        links: [
-          { href: 'test-report', label: `All Lab Tests` },
-        ],
-      },
-      {
         name: 'Patient Managment',
         icon: <AdminIcon className="text-lg" />,
         links: [
@@ -128,74 +120,57 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         icon: <AdminIcon className="text-lg" />,
         links: [
           { href: 'opd-finance', label: `OPD` },
-          { href: 'ipd-finance', label: `IPD` },
-          { href: 'test-billing', label: `Lab` },
-          { href: 'RadiologyPennal', label: `Radiology` },
         ],
       },
 
     ],
-    doctor: [
-      {
-        name: "Dashboard",
-        icon: <DashboardIcon className="text-lg" />,
-        links: [{ href: "dashboard", label: "Dashboard" }],
-      },
-      {
-        name: "My Appointments",
-        icon: <AppointmentsIcon className="text-lg" />,
-        links: [
-          { href: 'book-appointments', label: 'My Appointments' }
-        ]
-      },
-      {
-        name: "Patient Records",
-        icon: <PatientRecordIcon className="text-lg" />,
-        links: [{ href: "patient-records", label: "Patient Records" }],
-      },
-      {
-        name: "Prescriptions",
-        icon: <PrescriptionIcon className="text-lg" />,
-        links: [{ href: "prescriptions", label: "Prescriptions" }],
-      },
-      {
-        name: "Reports",
-        icon: <ReportIcon className="text-lg" />,
-        links: [{ href: "reports", label: "Reports" }],
-      },
-      {
-        name: "Notes / Diagnosis",
-        icon: <NotesIcon className="text-lg" />,
-        links: [{ href: "notes", label: "Notes / Diagnosis" }],
-      },
+    // doctor: [
+    //   {
+    //     name: "Dashboard",
+    //     icon: <DashboardIcon className="text-lg" />,
+    //     links: [{ href: "dashboard", label: "Dashboard" }],
+    //   },
+    //   {
+    //     name: "My Appointments",
+    //     icon: <AppointmentsIcon className="text-lg" />,
+    //     links: [
+    //       { href: 'book-appointments', label: 'My Appointments' }
+    //     ]
+    //   },
+    //   {
+    //     name: "Patient Records",
+    //     icon: <PatientRecordIcon className="text-lg" />,
+    //     links: [{ href: "patient-records", label: "Patient Records" }],
+    //   },
+    //   {
+    //     name: "Prescriptions",
+    //     icon: <PrescriptionIcon className="text-lg" />,
+    //     links: [{ href: "prescriptions", label: "Prescriptions" }],
+    //   },
+    //   {
+    //     name: "Reports",
+    //     icon: <ReportIcon className="text-lg" />,
+    //     links: [{ href: "reports", label: "Reports" }],
+    //   },
+    //   {
+    //     name: "Notes / Diagnosis",
+    //     icon: <NotesIcon className="text-lg" />,
+    //     links: [{ href: "notes", label: "Notes / Diagnosis" }],
+    //   },
 
-      {
-        name: "Settings",
-        icon: <SettingsIcon className="text-lg" />,
-        links: [{ href: "settings", label: "Settings" }],
-      },
+    //   {
+    //     name: "Settings",
+    //     icon: <SettingsIcon className="text-lg" />,
+    //     links: [{ href: "settings", label: "Settings" }],
+    //   },
 
-    ],
+    // ],
     receptionist: [
       {
         name: "Dashboards",
         icon: <DashboardIcon className="text-lg" />,
         links: [
           { href: "dashboard", label: "Reception Dashboard" },
-        ],
-      },
-      {
-        name: "Wards",
-        icon: <RoomIcon className="text-lg" />,
-        links: [{ href: "ward-management", label: "Ward Management" }],
-      },
-      {
-        name: "Pharmacy",
-        icon: <PharmacyIcon className="text-lg" />,
-        links: [
-          { href: "Med-list", label: "Medicine List" },
-          { href: "prescription-management", label: "Prescription Management" },
-          { href: "stock-management", label: "Stock Management" },
         ],
       },
       {
@@ -212,18 +187,13 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         ],
       },
       {
-        name: "IPD",
-        icon: <IPDIcon className="text-lg" />,
-        links: [
-          { href: "ipd/Admitted", label: "Admission list" },
-          { href: "ipd/ssp", label: "SSP Admissions" },
-          { href: "ipd/private", label: "Private Admissions" },
-        ],
-      },
-      {
-        name: "OT",
+        name: "Procedure",
         icon: <OTIcon className="text-lg" />,
-        links: [{ href: "OTMain", label: "OT Schedule" }],
+        links: [
+          { href: "dental", label: "Dental Procedure" },
+          { href: "skin", label: "Skin Procedure" },
+          { href: "eyes", label: "Eyes Procedure" }
+        ],
       },
       {
         name: "Refunds",
@@ -241,74 +211,9 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         ],
       },
       {
-        name: "Inventory",
-        icon: <InventoryIcon className="text-lg" />,
-        links: [{ href: "inventory", label: "Inventory" }],
-      },
-      {
-        name: "Calendar",
-        icon: <CalendarIcon className="text-lg" />,
-        links: [{ href: "calendar", label: "Calendar" }],
-      },
-      {
         name: "Expenses",
         icon: <CalendarIcon className="text-lg" />,
         links: [{ href: "expenses", label: "Expenses" }],
-      },
-    ],
-    lab: [
-          {
-            name: 'Dashboards',
-            icon: <DashboardIcon className="text-lg" />,
-            links: [{ href: 'dashboard', label: 'Lab Dashboard' }],
-          },
-          {
-            name: 'Test Managment',
-            icon: <TestIcon className="text-lg" />,
-            links: [
-              { href: 'add-test', label: 'Add Test' },
-              { href: 'all-tests', label: 'All Test' },
-            ],
-          },
-          {
-            name: 'Patient Managment',
-            icon: <PatientTestIcon className="text-lg" />,
-            links: [
-              { href: 'patient-test', label: 'Patients Test' },
-              { href: 'all-patients', label: 'All patients' },
-            ],
-          },
-          {
-            name: 'Report Managment',
-            icon: <TestReportIcon className="text-lg" />,
-            links: [
-              { href: 'test-report', label: 'Patients Reports' },
-              { href: 'critical-reports', label: 'Critical Reports' },
-              // { href: "all-reports", label: "All reports" },
-            ],
-          },
-    
-          {
-            name: 'Billing Managment',
-            icon: <BillingIcon className="text-lg" />,
-            links: [{ href: 'test-billing', label: 'Patients Bills' }],
-          },
-          {
-            name: 'Ultrasound ',
-            icon: <TestReportIcon className="text-lg" />,
-            links: [
-              { href: 'RadiologyForm', label: 'Ultrasound Test' },
-              { href: 'RadiologyPennal', label: 'Ultrasound Report' },
-            ],
-          },
-        ],
-    radiology: [
-      {
-        name: "Ultrasound ",
-        icon: <TestReportIcon className="text-lg" />,
-        links: [
-          { href: "RadiologyPennal", label: "Ultrasound patient" }
-        ],
       },
     ],
   };
@@ -344,7 +249,7 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
         } lg:translate-x-0`}
     >
       <div className="p-4 border-b border-primary-300 flex items-center justify-between">
-        <h1 className="text-xl py-1.5 font-semibold">Al-Shahbaz Hospital</h1>
+        <h1 className="text-xl py-1.5 font-semibold">Al-Shahbaz Dental/Eye & Skin Care</h1>
         <button
           onClick={toggleSidebar}
           className="lg:hidden p-1 rounded-md hover:bg-primary-700 focus:outline-none"
@@ -360,8 +265,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                 to={menu.links[0].href}
                 onClick={() => handleSubMenuClick(menu.links[0].label)}
                 className={`flex items-center px-4 py-3 transition-colors ${activeSubMenu === menu.links[0].label
-                    ? "bg-primary-700"
-                    : "hover:bg-primary-700"
+                  ? "bg-primary-700"
+                  : "hover:bg-primary-700"
                   }`}
               >
                 <span className="mr-3">{menu.icon}</span>
@@ -370,8 +275,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
             ) : (
               <div
                 className={`flex items-center justify-between px-4 py-3 cursor-pointer transition-colors ${activeMenu === menu.name
-                    ? "bg-primary-700"
-                    : "hover:bg-primary-700"
+                  ? "bg-primary-700"
+                  : "hover:bg-primary-700"
                   }`}
                 onClick={() => toggleMenu(menu.name)}
               >
@@ -395,8 +300,8 @@ const DynamicSidebar = ({ userRole, isOpen, toggleSidebar }) => {
                     to={link.href}
                     onClick={() => handleSubMenuClick(link.label)}
                     className={`block px-3 py-2 text-sm transition-colors rounded ${activeSubMenu === link.label
-                        ? "bg-primary-600 text-white"
-                        : "hover:bg-primary-600 text-white"
+                      ? "bg-primary-600 text-white"
+                      : "hover:bg-primary-600 text-white"
                       }`}
                   >
                     {link.label}
